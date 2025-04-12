@@ -21,14 +21,14 @@ A Python-based application for managing school operations, including student rec
 - **Graphical Interface**: User-friendly GUI for administrators.
 - **Database Storage**: Store data securely with a local database.
 
-## Requirements
+**Requirements**
 - Python 3.8 or higher
 - Dependencies listed in `requirements.txt`
 - A compatible database system (e.g., SQLite, configured separately)
 - Git (for cloning the repository)
 - A webcam or QR code scanner (for QR code functionality, if applicable)
 
-## Installation
+**Installation**
 Follow these steps to set up the School System Management application on your local machine.
 
 1. **Clone the repository**:
@@ -37,7 +37,7 @@ Follow these steps to set up the School System Management application on your lo
    git clone https://github.com/harry647/School-System-Management.git
    cd School-System-Management
 
-2. Set up a virtual environment:
+2. **Set up a virtual environment**:
    - Create a virtual environment to isolate dependencies (recommended):
 . windows
    '''bash
@@ -49,15 +49,16 @@ Follow these steps to set up the School System Management application on your lo
 '''bash
   source venv/bin/activate
 
-3. Install dependencies: Install the required Python packages listed in requirements.txt:
-
-pip install -r requirements.txt
+3. **Install dependencies**: Install the required Python packages listed in requirements.txt:
+'''bash
+   pip install -r requirements.txt
+   
 - Verify installation: Ensure all dependencies are installed correctly by checking the Python environment:
--If no errors occur, the core libraries are installed. If errors arise, reinstall the dependencies or consult requirements.txt for specific versions.
+- If no errors occur, the core libraries are installed. If errors arise, reinstall the dependencies or consult requirements.txt for specific versions.
 
-4. Prepare for configuration: The application requires a configuration file and database, which are not included in the repository for security reasons. Proceed to the section to set these up.
+4. **Prepare for configuration** : The application requires a configuration file and database, which are not included in the repository for security reasons. Proceed to the section to set these up.
 
-## Configuration
+**Configuration**
 1. Sensitive files (e.g., config.json, database) are not included in the repository. You must create and configure them manually.
 
 2. Create a config.json file in the project root (School-System-Management/).
@@ -68,9 +69,9 @@ pip install -r requirements.txt
   },
 }
 
-## Usage
+**Usage**
 
-1. Activate the virtual environment (if not already active):
+1. **Activate the virtual environment (if not already active)**:
 On Windows:
 '''bash
   venv\Scripts\activate
@@ -79,11 +80,11 @@ On macOS/Linux:
 '''bash
 source venv/bin/activate
 
-2. Run the application:
+2.**Run the application**:
 '''bash
  python main.py
 
-3. Use the GUI to:
+3. **Use the GUI to**:
 - Add or update student records.
 - Manage library books and borrowing.
 - Deal with resource management
@@ -91,42 +92,43 @@ source venv/bin/activate
 - Generate reports or view data.
 - Refer to help.txt for detailed instructions, shortcuts, or troubleshooting tips.
 
-## Project Structure
+**Project Structure**
 School-System-Management/
-├── QRcode_Reader.py        # Handles QR code scanning
-├── db_manager.py           # Manages database operations
-├── db_utils.py             # Database utility functions
-├── gui_manager.py          # Manages the graphical interface
-├── library_logic.py        # Library system logic
-├── main.py                 # Application entry point
-├── setup_school.py         # Initializes the database
-├── requirements.txt        # Python dependencies
-├── README.md               # Project documentation
-├── .gitignore              # Git ignore rules
-├── help.txt                # User guide
-├── school_icon.ico         # Application icon
-Note: Sensitive files like config.json and the database (school_database.db) are not included. Create them as described above
+- ├── QRcode_Reader.py        # Handles QR code scanning
+- ├── db_manager.py           # Manages database operations
+- ├── db_utils.py             # Database utility functions
+- ├── gui_manager.py          # Manages the graphical interface
+- ├── library_logic.py        # Library system logic
+- ├── main.py                 # Application entry point
+- ├── setup_school.py         # Initializes the database
+- ├── requirements.txt        # Python dependencies
+- ├── README.md               # Project documentation
+- ├── .gitignore              # Git ignore rules
+- ├── help.txt                # User guide
+- ├── school_icon.ico         # Application icon
+  
+  **Note**: Sensitive files like config.json and the database (school_database.db) are not included. Create them as described above
 
-## Contributing
+**Contributing**
 Contributions are welcome! To contribute:
 
 1. Fork the repository.
-2. Create a feature branch:
+2. **Create a feature branch**:
 ''' bash
  git checkout -b feature/your-feature
 
-3. Commit your changes:
+3. **Commit your changes**:
 '''bash
 git commit -m "Add your feature"
 
-4. Push to your branch:
+4. **Push to your branch**:
 '''bash
 git push origin feature/your-feature
 
-5. Open a pull request on GitHub.
+5. **Open a pull request on GitHub**.
 - Please include tests and follow the project’s coding style.
 
-## License
+**License**
 This project is licensed under the MIT License (pending addition of a LICENSE file). See the repository for details.
 
 
