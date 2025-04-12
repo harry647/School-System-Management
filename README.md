@@ -84,8 +84,47 @@ source venv/bin/activate
 3. Use the GUI to:
 - Add or update student records.
 - Manage library books and borrowing.
+- Deal with resource management
 - Scan QR codes for attendance or resource tracking.
 - Generate reports or view data.
 - Refer to help.txt for detailed instructions, shortcuts, or troubleshooting tips.
+
+## Project Structure
+School-System-Management/
+├── QRcode_Reader.py        # Handles QR code scanning
+├── db_manager.py           # Manages database operations
+├── db_utils.py             # Database utility functions
+├── gui_manager.py          # Manages the graphical interface
+├── library_logic.py        # Library system logic
+├── main.py                 # Application entry point
+├── setup_school.py         # Initializes the database
+├── requirements.txt        # Python dependencies
+├── README.md               # Project documentation
+├── .gitignore              # Git ignore rules
+├── help.txt                # User guide
+├── school_icon.ico         # Application icon
+Note: Sensitive files like config.json and the database (school_database.db) are not included. Create them as described above
+
+## Contributing
+Contributions are welcome! To contribute:
+
+1. Fork the repository.
+2. Create a feature branch:
+''' bash
+ git checkout -b feature/your-feature
+
+3. Commit your changes:
+'''bash
+git commit -m "Add your feature"
+
+4. Push to your branch:
+'''bash
+git push origin feature/your-feature
+
+5. Open a pull request on GitHub.
+- Please include tests and follow the project’s coding style.
+
+## License
+This project is licensed under the MIT License (pending addition of a LICENSE file). See the repository for details.
 
 
