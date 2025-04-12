@@ -15,7 +15,9 @@ A Python-based application for managing school operations, including student rec
 ## Features
 - **Student Management**: Add, update, and view student information.
 - **Library System**: Manage books, track borrowing, and handle returns.
-- **QR Code Scanning**: Use QR codes for quick student or resource identification.
+- **Library Reports**: Gives detailed reports about revision books, borrowing and returning records and total books in the library per category.
+- **QR Code Scanning**: Use QR codes for quick student or resource identification, borrowing and returning.
+- **Resource Management**: They include Ream and Furniture Management. 
 - **Graphical Interface**: User-friendly GUI for administrators.
 - **Database Storage**: Store data securely with a local database.
 
