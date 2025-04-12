@@ -1,0 +1,165 @@
+School Management System Help Documentation
+
+Welcome to the Schools Management System! This help file explains the functionality of each button in the dashboard. For additional support, contact your system administrator.
+
+contact: +254708759036  Email: harryoginga@gmail.com
+
+Library Services
+
+--Borrow Book By Teacher: Allows a teacher to borrow a book using their unique Teacher ID. Enter the Teacher ID and Book ID to record the borrowing transaction in the system.
+
+--Borrow Book via QR: Borrow a book by scanning its QR code using a connected QR scanner. The system identifies the Book ID and prompts for the borrower's ID (teacher or student).
+
+--Return Book By Teacher: Returns a book borrowed by a teacher. Enter the Teacher ID and Book ID to mark the book as returned and update its availability.
+
+--Add New Book: Manually add a new book to the library inventory. Provide details like Book ID, title, author, category, and condition to register it in the system.
+
+--Add Book via QR: Add a new book by scanning a QR code containing its details. The system decodes the QR and prompts for any additional information needed.
+
+--Load Books Data(Excel): Import multiple books into the system from an Excel file. The file should follow a predefined format (e.g., columns for Book ID, title, etc.).
+
+--Borrow Books By Student: Borrow multiple books for a student using their Student ID. Enter the Student ID and a list of Book IDs to record the transaction.
+
+--Return Books By Student: Return books borrowed by a student. Enter the Student ID and Book IDs to update the system and mark the books as available.
+
+--Generate QR: Create a QR code for a specific Book ID. Enter the Book ID, and the system generates a printable QR code for labeling or scanning.
+
+--Bulk Borrow: Borrow multiple books for multiple users (students or teachers) via an Excel file or interactive selection. Upload a file or select users and books manually.
+
+--Bulk Return: Return multiple books for multiple users via an Excel file or interactive selection. Upload a file or select books to return in bulk.
+
+--Manage Categories: Add or edit tags/categories for existing books (e.g., Fiction, Science). Select books and assign categories to organize the inventory.
+
+--Manage Short Form Mappings: Define short forms and their full names for classes and subjects (e.g., "F1" = "Form 1"). Helps streamline data entry and reporting.
+
+--Add Revision Book: Add a revision book (e.g., study guide) to the library. Similar to adding a new book but categorized specifically as a revision resource.
+
+--Borrow Revision Book: Borrow a revision book for a student. Enter the Student ID and Revision Book ID to record the transaction.
+
+--Return Revision Book: Return a revision book borrowed by a student. Enter the Student ID and Revision Book ID to update availability.
+
+Library Reports
+
+--View All Books And Print: Display a list of all books in the library with an option to print the list. Shows details like title, author, and status.
+
+--Search Unreturned Books: Find books that haven’t been returned yet. Displays a list of overdue or still-borrowed books with borrower details.
+
+--Display All Books In Inventory: Show all books currently available in the library (not borrowed). Useful for stock checking.
+
+--Books by Condition: View books grouped by condition (e.g., New, Good, Damaged). Helps identify books needing repair or replacement.
+
+--Export Data: Export all library data (books, borrowers, etc.) to CSV or JSON files for backup or analysis.
+
+--Import Data: Import library data from CSV or JSON files to restore or update the system. Ensure files match the expected format.
+
+--Search Book Borrow: Search for a book’s borrowing history by its Book ID. Shows who borrowed it and when.
+
+--View Revision Books: Display a list of all revision books in the library, including their availability status.
+
+--Students with Revision Books: View a list of students who have borrowed revision books, including book details and due dates.
+
+Membership Services
+
+--Add Student: Add a new student to the system. Enter details like Student ID, name, form, and optional furniture assignments (locker, chair).
+
+--Add Teacher: Add a new teacher to the system. Enter Teacher ID, name, and other relevant details.
+
+--Search Student: Search for students by ID, name, or other filters (e.g., form). Displays matching student records.
+
+--Search Teacher: Search for teachers by ID or name. Shows teacher details and borrowing history.
+
+--Load Students Data: Import student data from an Excel file. File should include Student ID, name, form, etc.
+
+--Graduate Students: Automatically advance all students to the next form (e.g., Form 1 to Form 2) at the end of the academic year.
+
+--Update Student Info: Manually update a student’s details, such as stream, locker, or chair assignments, using their Student ID.
+
+--Display Students by Form: View all students grouped by form with expandable details (e.g., name, borrowed books). Useful for class management.
+
+--Students Without Books: Show a list of students who have not borrowed any books, helping identify inactive users.
+
+Furniture Reports (Subframe under Membership Services)
+
+--Search Locker: Search for a locker by its ID to view assigned student details and status (e.g., occupied, damaged).
+
+--Search Chair: Search for a chair by its ID to view assigned student details and condition.
+
+--Display All Furniture: View total lockers and chairs by form with an option to export as a PDF. Summarizes furniture allocation.
+
+--Display Furniture Details: Show a detailed list of all furniture (lockers and chairs) with student assignments and exportable as PDF.
+
+--Add Furniture Category: Add or update a furniture category (e.g., "Lockers Form 1") with counts of items.
+
+--Display Furniture Categories: View all furniture categories with their counts and export as PDF.
+
+--Load Chairs from Excel: Import chair assignments from an Excel file, linking chairs to students.
+
+--Load Lockers from Excel: Import locker assignments from an Excel file, linking lockers to students.
+
+Other Features
+
+Reams Management
+
+--Add Ream: Add reams (paper contributions) for a student. Enter Student ID and quantity to track contributions.
+
+--Total Reams: View the total number of reams contributed by all students.
+
+--Used Reams: Deduct used reams from the total student contributions. Enter the amount used.
+
+--View All Reams: Display all ream contributions with student details, downloadable as a PDF.
+
+--Export Reams (Excel): Export ream entries to an Excel file for record-keeping.
+
+--Import Reams (Excel): Import ream entries from an Excel file to update the system.
+
+Delete Entities
+
+--Delete Student: Remove a student and their associated records (borrowed books, reams) by Student ID.
+
+--Delete Book: Remove a book and its borrowing records by Book ID.
+
+--Delete Student Borrow: Remove a specific book borrowed by a student using Student ID and Book ID.
+
+--Delete Teacher: Remove a teacher and their borrowed books by Teacher ID.
+
+--Delete Teacher Borrow: Remove a specific book borrowed by a teacher using Teacher ID and Book ID.
+
+--Delete Ream Entry: Remove a ream contribution entry by its Ream Entry ID.
+
+Furniture Management
+
+--Assign Locker: Assign lockers to students interactively or in batch via selection or file upload.
+
+--Assign Chair: Assign chairs to students interactively or in batch via selection or file upload.
+
+--View Locker Status: View the status of all lockers (e.g., assigned, unassigned, damaged) and export to Excel.
+
+--View Chair Status: View the status of all chairs (e.g., assigned, unassigned, damaged) and export to Excel.
+
+--Report Damaged Locker: Mark a locker as damaged or needing repair by its ID.
+
+--Report Damaged Chair: Mark a chair as damaged or needing repair by its ID.
+
+--Generate Furniture IDs: Generate and print unique IDs for lockers and chairs for labeling purposes.
+
+Clock Row Buttons (Additional Features)
+
+--Backup Database: Export the entire database to a SQL file for safekeeping. Choose a file location to save the backup.
+
+--Restore Database: Restore data from a SQL backup file, merging with existing data where possible. Select the backup file to import.
+
+--Notifications: View notifications about overdue books, including titles and due dates.
+
+--Settings: Customize system settings, such as theme (Light/Dark). Opens a settings window for adjustments.
+
+--Help: Display this help documentation from the help.txt file.
+
+--Refresh: Refresh the dashboard to update all displayed data and statuses.
+
+--Reminder Settings: Customize reminder frequency (e.g., daily, weekly) and sound settings for overdue notifications.
+
+Register and Logout
+
+--Register User: Register a new user (e.g., admin, librarian) with a username and password to access the system.
+
+--Logout: Log out of the current session, returning to the login screen.
