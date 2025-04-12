@@ -1,3 +1,4 @@
+```markdown
 "School-System-Management" 
 
 A Python-based application for managing school operations, including student records, library resources, and administrative tasks. Features include a graphical user interface (GUI), QR code scanning for data entry, and a database for persistent storage.
@@ -21,14 +22,14 @@ A Python-based application for managing school operations, including student rec
 - **Graphical Interface**: User-friendly GUI for administrators.
 - **Database Storage**: Store data securely with a local database.
 
-**Requirements**
+## Requirements
 - Python 3.8 or higher
 - Dependencies listed in `requirements.txt`
 - A compatible database system (e.g., SQLite, configured separately)
 - Git (for cloning the repository)
 - A webcam or QR code scanner (for QR code functionality, if applicable)
 
-**Installation**
+## Installation
 Follow these steps to set up the School System Management application on your local machine.
 
 1. **Clone the repository**:
@@ -69,7 +70,7 @@ Follow these steps to set up the School System Management application on your lo
   },
 }
 
-**Usage**
+## Usage
 
 1. **Activate the virtual environment (if not already active)**:
 On Windows:
@@ -92,7 +93,7 @@ source venv/bin/activate
 - Generate reports or view data.
 - Refer to help.txt for detailed instructions, shortcuts, or troubleshooting tips.
 
-**Project Structure**
+## Project Structure
 School-System-Management/
 - ├── QRcode_Reader.py        # Handles QR code scanning
 - ├── db_manager.py           # Manages database operations
@@ -109,7 +110,7 @@ School-System-Management/
   
   **Note**: Sensitive files like config.json and the database (school_database.db) are not included. Create them as described above
 
-**Contributing**
+## Contributing
 Contributions are welcome! To contribute:
 
 1. Fork the repository.
@@ -128,7 +129,7 @@ git push origin feature/your-feature
 5. **Open a pull request on GitHub**.
 - Please include tests and follow the project’s coding style.
 
-**License**
+## License
 This project is licensed under the MIT License (pending addition of a LICENSE file). See the repository for details.
 
 
