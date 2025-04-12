@@ -1,4 +1,4 @@
-"# School-System-Management" 
+"School-System-Management" 
 
 A Python-based application for managing school operations, including student records, library resources, and administrative tasks. Features include a graphical user interface (GUI), QR code scanning for data entry, and a database for persistent storage.
 
