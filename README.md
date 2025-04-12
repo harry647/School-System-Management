@@ -54,3 +54,38 @@ pip install -r requirements.txt
 -If no errors occur, the core libraries are installed. If errors arise, reinstall the dependencies or consult requirements.txt for specific versions.
 
 4. Prepare for configuration: The application requires a configuration file and database, which are not included in the repository for security reasons. Proceed to the section to set these up.
+
+## Configuration
+1. Sensitive files (e.g., config.json, database) are not included in the repository. You must create and configure them manually.
+
+2. Create a config.json file in the project root (School-System-Management/).
+ - Use a template provided below:
+{
+  "database_config": {
+    "database": "school_database.db"
+  },
+}
+
+## Usage
+
+1. Activate the virtual environment (if not already active):
+On Windows:
+'''bash
+  venv\Scripts\activate
+
+On macOS/Linux:
+'''bash
+source venv/bin/activate
+
+2. Run the application:
+'''bash
+ python main.py
+
+3. Use the GUI to:
+- Add or update student records.
+- Manage library books and borrowing.
+- Scan QR codes for attendance or resource tracking.
+- Generate reports or view data.
+- Refer to help.txt for detailed instructions, shortcuts, or troubleshooting tips.
+
+
