@@ -525,7 +525,10 @@ class LibraryLogic:
                 return True, "No changes specified for update."
 
             if updates:
-                cursor.execute(f"UPDATE students SET {', '.join(updates)} WHERE student_id = ?", params + [student_id])
+                # Build the SET clause safely with parameterized queries
+                set_clause = ', '.join(updates)  # updates already contains '?' placeholders
+                sql = f"UPDATE students SET {set_clause} WHERE student_id = ?"
+                cursor.execute(sql, params + [student_id])
             if new_locker:
                 cursor.execute("INSERT OR REPLACE INTO locker_assignments (student_id, locker_id) VALUES (?, ?)", 
                               (student_id, new_locker))

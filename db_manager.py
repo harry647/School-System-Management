@@ -1155,6 +1155,13 @@ class DatabaseManager:
 
     def close(self):
         """Close the database connection when the application exits."""
-        self._close_connection()
+        if self.connection:
+            try:
+                self.connection.close()
+                self.logger.info("Database connection closed successfully")
+            except SQLiteError as e:
+                self.logger.error(f"Error closing database connection: {e}")
+            finally:
+                self.connection = None
 
     
