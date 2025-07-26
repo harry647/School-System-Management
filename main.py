@@ -24,7 +24,13 @@ import winsound
 
 # Configure logging to a user-writable directory
 
-log_dir = os.path.join(os.getenv('LOCALAPPDATA'), 'HarLuFranInnoFluxSMS')
+# Use platform-appropriate directories for log files
+if platform.system() == 'Windows':
+    log_dir = os.path.join(os.getenv('LOCALAPPDATA'), 'HarLuFranInnoFluxSMS')
+else:
+    # Use XDG_DATA_HOME on Linux/Unix or fallback to ~/.local/share
+    xdg_data_home = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))
+    log_dir = os.path.join(xdg_data_home, 'HarLuFranInnoFluxSMS')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'school_management.log')
 
@@ -1043,7 +1049,11 @@ class LibraryManagementSystem:
                     reminder_text = self.logic.check_reminders(user_id)
                     if reminder_text:
                         self.gui.update_reminder_label(reminder_label, reminder_text)
-                        winsound.Beep(1000, 1000)  # 1000 Hz, 1 second beep
+                        try:
+                            import winsound
+                            winsound.Beep(1000, 1000)  # 1000 Hz, 1 second beep
+                        except (ImportError, OSError):
+                            self.logger.debug("Sound not available; winsound not supported on this platform.")
                         self.logger.info("Reminder triggered for overdue revision books")
                     else:
                         self.gui.update_reminder_label(reminder_label, "No overdue revision books")
