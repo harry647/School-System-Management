@@ -235,6 +235,39 @@ class DistributionSessionRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(DistributionSession)
+    
+    def create_with_students(self, session: DistributionSession, students: list[str]) -> int:
+        """
+        Create session and pre-fill distribution_students
+        
+        Args:
+            session: DistributionSession object
+            students: List of student IDs
+            
+        Returns:
+            The created session ID
+        """
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO distribution_sessions (class, stream, subject, term, created_by, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (session.class_name, session.stream, session.subject, session.term, session.created_by, "DRAFT")
+        )
+        session_id = cursor.lastrowid
+
+        for student_id in students:
+            cursor.execute(
+                """
+                INSERT INTO distribution_students (session_id, student_id)
+                VALUES (?, ?)
+                """,
+                (session_id, student_id)
+            )
+
+        self.db.commit()
+        return session_id
 
 
 class DistributionStudentRepository(BaseRepository):
@@ -242,6 +275,46 @@ class DistributionStudentRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(DistributionStudent)
+    
+    def bulk_update_books(self, session_id: int, rows: list[dict]) -> None:
+        """
+        Update book assignments for multiple students in bulk
+        
+        Args:
+            session_id: ID of the distribution session
+            rows: List of dictionaries with student_id, book_number, book_id
+        """
+        cursor = self.db.cursor()
+        for row in rows:
+            cursor.execute(
+                """
+                UPDATE distribution_students
+                SET book_number = ?, book_id = ?
+                WHERE session_id = ? AND student_id = ?
+                """,
+                (row["book_number"], row["book_id"], session_id, row["student_id"])
+            )
+        self.db.commit()
+    
+    def get_unassigned(self, session_id: int) -> list:
+        """
+        Get students who haven't been assigned books yet
+        
+        Args:
+            session_id: ID of the distribution session
+            
+        Returns:
+            List of unassigned student records
+        """
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            SELECT * FROM distribution_students
+            WHERE session_id = ? AND book_id IS NULL
+            """,
+            (session_id,)
+        )
+        return cursor.fetchall()
 
 
 class DistributionImportLogRepository(BaseRepository):
@@ -249,3 +322,20 @@ class DistributionImportLogRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(DistributionImportLog)
+    
+    def log_success(self, session_id: int, file_name: str, user: str) -> None:
+        """
+        Log a successful import operation
+        
+        Args:
+            session_id: ID of the distribution session
+            file_name: Name of the imported file
+            user: Username of the user who performed the import
+        """
+        self.create(
+            session_id=session_id,
+            file_name=file_name,
+            imported_by=user,
+            status="SUCCESS",
+            message="Import completed successfully"
+        )

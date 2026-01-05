@@ -623,6 +623,354 @@ class BookService:
             logger.error(f"Error importing books from Excel: {e}")
             return []
 
+    def create_session(self, class_name, stream, subject, term, created_by, students):
+        """
+        students: list of student_id
+        """
+        cursor = self.db.cursor()
+
+        # create session
+        cursor.execute("""
+            INSERT INTO distribution_sessions
+            (class, stream, subject, term, created_by, status)
+            VALUES (?, ?, ?, ?, ?, 'DRAFT')
+        """, (class_name, stream, subject, term, created_by))
+
+        session_id = cursor.lastrowid
+
+        # pre-fill students (placeholders)
+        for student_id in students:
+            cursor.execute("""
+                INSERT INTO distribution_students (session_id, student_id)
+                VALUES (?, ?)
+            """, (session_id, student_id))
+
+        self.db.commit()
+        return session_id
+
+    def export_csv(self, session_id, file_path):
+        records = self.student_repo.find_by_field("session_id", session_id)
+
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["student_id", "book_number", "notes"])
+
+            for r in records:
+                writer.writerow([
+                    r.student_id,
+                    r.book_number or "",
+                    r.notes or ""
+                ])
+
+        return file_path
+
+    def import_csv(self, session_id, file_path, imported_by):
+        cursor = self.db.cursor()
+        errors = []
+
+        with open(file_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                if not row["book_number"]:
+                    continue  # allow blanks
+
+                # map book_number → book_id
+                cursor.execute(
+                    "SELECT book_id FROM books WHERE book_id = ? AND available = 1",
+                    (row["book_number"],)
+                )
+                book = cursor.fetchone()
+
+                if not book:
+                    errors.append(f"Invalid book: {row['book_number']}")
+                    continue
+
+                cursor.execute("""
+                    UPDATE distribution_students
+                    SET book_number = ?, book_id = ?
+                    WHERE session_id = ? AND student_id = ?
+                """, (
+                    row["book_number"],
+                    book[0],
+                    session_id,
+                    row["student_id"]
+                ))
+
+        status = "SUCCESS" if not errors else "PARTIAL"
+
+        self.log_repo.create(
+            session_id=session_id,
+            file_name=file_path,
+            imported_by=imported_by,
+            status=status,
+            message="; ".join(errors) if errors else "Imported successfully"
+        )
+
+        self.db.commit()
+        return errors
+
+    def summary(self, session_id):
+        records = self.student_repo.find_by_field("session_id", session_id)
+
+        total = len(records)
+        assigned = sum(1 for r in records if r.book_id)
+        missing = total - assigned
+
+        return {
+            "total_students": total,
+            "assigned_books": assigned,
+            "missing_books": missing
+        }
+
+    def post_session(self, session_id, posted_by):
+        cursor = self.db.cursor()
+
+        try:
+            # create borrow records
+            cursor.execute("""
+                INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on)
+                SELECT student_id, book_id, DATE('now')
+                FROM distribution_students
+                WHERE session_id = ?
+                  AND book_id IS NOT NULL
+            """, (session_id,))
+
+            # mark books unavailable
+            cursor.execute("""
+                UPDATE books
+                SET available = 0
+                WHERE book_id IN (
+                    SELECT book_id FROM distribution_students
+                    WHERE session_id = ?
+                )
+            """, (session_id,))
+
+            # close session
+            cursor.execute("""
+                UPDATE distribution_sessions
+                SET status = 'POSTED', distributed_by = ?
+                WHERE id = ?
+            """, (posted_by, session_id))
+
+            self.db.commit()
+    
+            except Exception:
+                self.db.rollback()
+                raise
+    
+        def undo_distribution_session(self, session_id: int) -> bool:
+            """
+            Undo a distribution session by deleting all related records.
+            
+            Args:
+                session_id: ID of the distribution session to undo
+                
+            Returns:
+                True if the undo was successful, False otherwise
+            """
+            logger.info(f"Undoing distribution session {session_id}")
+            
+            try:
+                cursor = self.db.cursor()
+                
+                # Delete all distribution student records for the session
+                cursor.execute("""
+                    DELETE FROM distribution_students WHERE session_id = ?
+                """, (session_id,))
+                
+                # Delete the distribution session
+                cursor.execute("""
+                    DELETE FROM distribution_sessions WHERE id = ?
+                """, (session_id,))
+                
+                self.db.commit()
+                logger.info(f"Successfully undid distribution session {session_id}")
+                return True
+                
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"Error undoing distribution session: {e}")
+                return False
+    
+        def return_via_distribution(self, session_id: int, returned_by: str) -> bool:
+            """
+            Return all books assigned in a distribution session.
+            
+            Args:
+                session_id: ID of the distribution session
+                returned_by: Username of the user processing the returns
+                
+            Returns:
+                True if the return was successful, False otherwise
+            """
+            logger.info(f"Returning books via distribution session {session_id}")
+            
+            try:
+                cursor = self.db.cursor()
+                
+                # Get all book assignments for the session
+                cursor.execute("""
+                    SELECT student_id, book_id FROM distribution_students
+                    WHERE session_id = ? AND book_id IS NOT NULL
+                """, (session_id,))
+                
+                assignments = cursor.fetchall()
+                
+                # Return each book
+                for student_id, book_id in assignments:
+                    self.return_book_student(student_id, book_id, "Good", 0, returned_by)
+                
+                logger.info(f"Successfully returned {len(assignments)} books via distribution session {session_id}")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Error returning books via distribution: {e}")
+                return False
+    
+        def detect_duplicate_books(self) -> List[dict]:
+            """
+            Detect duplicate books in the system.
+            
+            Returns:
+                List of dictionaries containing duplicate book information
+            """
+            logger.info("Detecting duplicate books")
+            
+            try:
+                cursor = self.db.cursor()
+                
+                # Find books with duplicate titles and authors
+                cursor.execute("""
+                    SELECT title, author, COUNT(*) as count
+                    FROM books
+                    GROUP BY title, author
+                    HAVING COUNT(*) > 1
+                """)
+                
+                duplicates = []
+                for row in cursor.fetchall():
+                    title, author, count = row
+                    
+                    # Get all book IDs for this duplicate
+                    cursor.execute("""
+                        SELECT book_number FROM books WHERE title = ? AND author = ?
+                    """, (title, author))
+                    
+                    book_numbers = [item[0] for item in cursor.fetchall()]
+                    
+                    duplicates.append({
+                        "title": title,
+                        "author": author,
+                        "count": count,
+                        "book_numbers": book_numbers
+                    })
+                
+                logger.info(f"Found {len(duplicates)} sets of duplicate books")
+                return duplicates
+                
+            except Exception as e:
+                logger.error(f"Error detecting duplicate books: {e}")
+                return []
+    
+        def optimize_bulk_import(self, session_id: int, file_path: str, imported_by: str, batch_size: int = 100) -> dict:
+            """
+            Optimized bulk import for large datasets (1,000+ students).
+            
+            Args:
+                session_id: ID of the distribution session
+                file_path: Path to the CSV file
+                imported_by: Username of the user performing the import
+                batch_size: Number of records to process in each batch
+                
+            Returns:
+                Dictionary containing import statistics
+            """
+            logger.info(f"Starting optimized bulk import for session {session_id}")
+            
+            try:
+                cursor = self.db.cursor()
+                errors = []
+                success_count = 0
+                total_records = 0
+                
+                # Pre-fetch all available books for faster lookup
+                cursor.execute("SELECT book_number, book_id FROM books WHERE available = 1")
+                available_books = {row[0]: row[1] for row in cursor.fetchall()}
+                
+                with open(file_path, newline="", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    batch = []
+                    
+                    for row in reader:
+                        total_records += 1
+                        
+                        if not row["book_number"]:
+                            continue  # Skip blanks
+                        
+                        book_number = row["book_number"]
+                        student_id = row["student_id"]
+                        
+                        # Check if book is available
+                        if book_number in available_books:
+                            book_id = available_books[book_number]
+                            batch.append((book_number, book_id, session_id, student_id))
+                            
+                            # Remove from available books to prevent duplicate assignment
+                            del available_books[book_number]
+                            
+                            if len(batch) >= batch_size:
+                                # Process batch
+                                cursor.executemany("""
+                                    UPDATE distribution_students
+                                    SET book_number = ?, book_id = ?
+                                    WHERE session_id = ? AND student_id = ?
+                                """, batch)
+                                success_count += len(batch)
+                                batch = []
+                        else:
+                            errors.append(f"Invalid book: {book_number}")
+                    
+                    # Process remaining records in the final batch
+                    if batch:
+                        cursor.executemany("""
+                            UPDATE distribution_students
+                            SET book_number = ?, book_id = ?
+                            WHERE session_id = ? AND student_id = ?
+                        """, batch)
+                        success_count += len(batch)
+                
+                # Log the import
+                status = "SUCCESS" if not errors else "PARTIAL"
+                self.log_repo.create(
+                    session_id=session_id,
+                    file_name=file_path,
+                    imported_by=imported_by,
+                    status=status,
+                    message="; ".join(errors) if errors else "Imported successfully"
+                )
+                
+                self.db.commit()
+                
+                logger.info(f"Bulk import completed: {success_count} successful, {len(errors)} errors")
+                
+                return {
+                    "success_count": success_count,
+                    "error_count": len(errors),
+                    "total_records": total_records,
+                    "errors": errors
+                }
+                
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"Error in bulk import: {e}")
+                return {
+                    "success_count": 0,
+                    "error_count": 0,
+                    "total_records": 0,
+                    "errors": [str(e)]
+                }
+
     def export_books_to_excel(self, filename: str) -> bool:
         """
         Export books to an Excel file.
@@ -988,6 +1336,131 @@ class BookService:
         except Exception as e:
             logger.error(f"Error getting borrowing history: {e}")
             return []
+    
+    def create_distribution_session_with_students(self, session_data: dict, student_ids: List[str]) -> int:
+        """
+        Create a distribution session and pre-fill all student records
+        
+        Args:
+            session_data: Dictionary containing session information
+            student_ids: List of student IDs to include in the session
+            
+        Returns:
+            The created session ID
+        """
+        logger.info(f"Creating distribution session with {len(student_ids)} students")
+        
+        try:
+            # Validate required fields
+            ValidationUtils.validate_input(session_data.get('class_name'), "Class name cannot be empty")
+            ValidationUtils.validate_input(session_data.get('stream'), "Stream cannot be empty")
+            ValidationUtils.validate_input(session_data.get('subject'), "Subject cannot be empty")
+            ValidationUtils.validate_input(session_data.get('term'), "Term cannot be empty")
+            ValidationUtils.validate_input(session_data.get('created_by'), "Created by cannot be empty")
+            
+            if not student_ids:
+                raise ValueError("Student IDs list cannot be empty")
+            
+            # Create session object
+            session = DistributionSession(**session_data)
+            
+            # Use the new repository method
+            session_repo = DistributionSessionRepository()
+            session_id = session_repo.create_with_students(session, student_ids)
+            
+            logger.info(f"Distribution session created successfully with ID: {session_id} and {len(student_ids)} students")
+            return session_id
+            
+        except Exception as e:
+            logger.error(f"Error creating distribution session with students: {e}")
+            raise DatabaseException(f"Failed to create distribution session: {e}")
+    
+    def bulk_update_distribution_books(self, session_id: int, book_assignments: List[dict]) -> bool:
+        """
+        Bulk update book assignments for students in a distribution session
+        
+        Args:
+            session_id: ID of the distribution session
+            book_assignments: List of dictionaries with student_id, book_number, book_id
+            
+        Returns:
+            True if update was successful, False otherwise
+        """
+        logger.info(f"Bulk updating book assignments for session {session_id}")
+        
+        try:
+            if not book_assignments:
+                logger.warning("No book assignments provided")
+                return False
+            
+            # Use the new repository method
+            student_repo = DistributionStudentRepository()
+            student_repo.bulk_update_books(session_id, book_assignments)
+            
+            logger.info(f"Successfully updated {len(book_assignments)} book assignments for session {session_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error bulk updating distribution books: {e}")
+            return False
+    
+    def get_unassigned_students_in_session(self, session_id: int) -> List[dict]:
+        """
+        Get students who haven't been assigned books in a distribution session
+        
+        Args:
+            session_id: ID of the distribution session
+            
+        Returns:
+            List of unassigned student records
+        """
+        logger.info(f"Getting unassigned students for session {session_id}")
+        
+        try:
+            student_repo = DistributionStudentRepository()
+            unassigned = student_repo.get_unassigned(session_id)
+            
+            # Convert to list of dictionaries for easier use
+            result = []
+            for row in unassigned:
+                student_dict = dict(zip([column[0] for column in self.db.cursor().description], row))
+                result.append(student_dict)
+            
+            logger.info(f"Found {len(result)} unassigned students in session {session_id}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error getting unassigned students: {e}")
+            return []
+    
+    def log_distribution_import_success(self, session_id: int, file_name: str, user: str) -> bool:
+        """
+        Log a successful distribution import operation
+        
+        Args:
+            session_id: ID of the distribution session
+            file_name: Name of the imported file
+            user: Username of the user who performed the import
+            
+        Returns:
+            True if logging was successful, False otherwise
+        """
+        logger.info(f"Logging successful import for session {session_id} by user {user}")
+        
+        try:
+            ValidationUtils.validate_input(file_name, "File name cannot be empty")
+            ValidationUtils.validate_input(user, "User cannot be empty")
+            
+            # Use the new repository method
+            import_log_repo = DistributionImportLogRepository()
+            import_log_repo.log_success(session_id, file_name, user)
+            
+            logger.info(f"Successfully logged import operation for session {session_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error logging distribution import: {e}")
+            return False
     
     def get_currently_borrowed_books_student(self, student_id: str) -> List[BorrowedBookStudent]:
         """
