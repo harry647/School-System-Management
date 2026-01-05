@@ -7,7 +7,28 @@ from .base import (
     StudentRepository,
     TeacherRepository,
     BookRepository,
-    UserRepository
+    UserRepository,
+    # Student-related repositories
+    ReamEntryRepository,
+    TotalReamsRepository,
+    # Book-related repositories
+    BookTagRepository,
+    BorrowedBookStudentRepository,
+    BorrowedBookTeacherRepository,
+    QRBookRepository,
+    QRBorrowLogRepository,
+    DistributionSessionRepository,
+    DistributionStudentRepository,
+    DistributionImportLogRepository,
+    # User-related repositories
+    UserSettingRepository,
+    ShortFormMappingRepository,
+    # Furniture-related repositories
+    ChairRepository,
+    LockerRepository,
+    FurnitureCategoryRepository,
+    LockerAssignmentRepository,
+    ChairAssignmentRepository
 )
 
 __all__ = [
@@ -15,5 +36,26 @@ __all__ = [
     'StudentRepository',
     'TeacherRepository',
     'BookRepository',
-    'UserRepository'
+    'UserRepository',
+    # Student-related repositories
+    'ReamEntryRepository',
+    'TotalReamsRepository',
+    # Book-related repositories
+    'BookTagRepository',
+    'BorrowedBookStudentRepository',
+    'BorrowedBookTeacherRepository',
+    'QRBookRepository',
+    'QRBorrowLogRepository',
+    'DistributionSessionRepository',
+    'DistributionStudentRepository',
+    'DistributionImportLogRepository',
+    # User-related repositories
+    'UserSettingRepository',
+    'ShortFormMappingRepository',
+    # Furniture-related repositories
+    'ChairRepository',
+    'LockerRepository',
+    'FurnitureCategoryRepository',
+    'LockerAssignmentRepository',
+    'ChairAssignmentRepository'
 ]

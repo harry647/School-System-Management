@@ -162,3 +162,143 @@ class UserRepository(BaseRepository):
             return True
         except Exception as e:
             raise DatabaseException(f"User validation failed: {e}")
+
+
+# Student-related repositories
+class ReamEntryRepository(BaseRepository):
+    """Repository for ream entry operations."""
+    
+    def __init__(self):
+        from ...models.student import ReamEntry
+        super().__init__(ReamEntry)
+
+
+class TotalReamsRepository(BaseRepository):
+    """Repository for total reams operations."""
+    
+    def __init__(self):
+        from ...models.student import TotalReams
+        super().__init__(TotalReams)
+
+
+# Book-related repositories
+class BookTagRepository(BaseRepository):
+    """Repository for book tag operations."""
+    
+    def __init__(self):
+        from ...models.book import BookTag
+        super().__init__(BookTag)
+
+
+class BorrowedBookStudentRepository(BaseRepository):
+    """Repository for borrowed book student operations."""
+    
+    def __init__(self):
+        from ...models.book import BorrowedBookStudent
+        super().__init__(BorrowedBookStudent)
+
+
+class BorrowedBookTeacherRepository(BaseRepository):
+    """Repository for borrowed book teacher operations."""
+    
+    def __init__(self):
+        from ...models.book import BorrowedBookTeacher
+        super().__init__(BorrowedBookTeacher)
+
+
+class QRBookRepository(BaseRepository):
+    """Repository for QR book operations."""
+    
+    def __init__(self):
+        from ...models.book import QRBook
+        super().__init__(QRBook)
+
+
+class QRBorrowLogRepository(BaseRepository):
+    """Repository for QR borrow log operations."""
+    
+    def __init__(self):
+        from ...models.book import QRBorrowLog
+        super().__init__(QRBorrowLog)
+
+
+class DistributionSessionRepository(BaseRepository):
+    """Repository for distribution session operations."""
+    
+    def __init__(self):
+        from ...models.book import DistributionSession
+        super().__init__(DistributionSession)
+
+
+class DistributionStudentRepository(BaseRepository):
+    """Repository for distribution student operations."""
+    
+    def __init__(self):
+        from ...models.book import DistributionStudent
+        super().__init__(DistributionStudent)
+
+
+class DistributionImportLogRepository(BaseRepository):
+    """Repository for distribution import log operations."""
+    
+    def __init__(self):
+        from ...models.book import DistributionImportLog
+        super().__init__(DistributionImportLog)
+
+
+# User-related repositories
+class UserSettingRepository(BaseRepository):
+    """Repository for user setting operations."""
+    
+    def __init__(self):
+        from ...models.user import UserSetting
+        super().__init__(UserSetting)
+
+
+class ShortFormMappingRepository(BaseRepository):
+    """Repository for short form mapping operations."""
+    
+    def __init__(self):
+        from ...models.user import ShortFormMapping
+        super().__init__(ShortFormMapping)
+
+
+# Furniture-related repositories
+class ChairRepository(BaseRepository):
+    """Repository for chair operations."""
+    
+    def __init__(self):
+        from ...models.furniture import Chair
+        super().__init__(Chair)
+
+
+class LockerRepository(BaseRepository):
+    """Repository for locker operations."""
+    
+    def __init__(self):
+        from ...models.furniture import Locker
+        super().__init__(Locker)
+
+
+class FurnitureCategoryRepository(BaseRepository):
+    """Repository for furniture category operations."""
+    
+    def __init__(self):
+        from ...models.furniture import FurnitureCategory
+        super().__init__(FurnitureCategory)
+
+
+class LockerAssignmentRepository(BaseRepository):
+    """Repository for locker assignment operations."""
+    
+    def __init__(self):
+        from ...models.furniture import LockerAssignment
+        super().__init__(LockerAssignment)
+
+
+class ChairAssignmentRepository(BaseRepository):
+    """Repository for chair assignment operations."""
+    
+    def __init__(self):
+        from ...models.furniture import ChairAssignment
+        super().__init__(ChairAssignment)
