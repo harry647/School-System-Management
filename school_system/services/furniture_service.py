@@ -2,7 +2,8 @@
 Furniture service for managing furniture-related operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union, Dict
+import datetime
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
@@ -402,3 +403,473 @@ class FurnitureService:
   
         self.chair_assignment_repository.delete(assignment)
         return True
+
+    def search_furniture(self, query: str, furniture_type: str = 'all') -> List[Union[Chair, Locker]]:
+        """
+        Search furniture by various criteria.
+
+        Args:
+            query: The search query.
+            furniture_type: The type of furniture to search ('all', 'chair', 'locker').
+
+        Returns:
+            A list of furniture items matching the criteria.
+        """
+        logger.info(f"Searching furniture with query: {query}, type: {furniture_type}")
+        
+        results = []
+        
+        try:
+            if furniture_type in ['all', 'chair']:
+                chairs = self.chair_repository.get_all()
+                for chair in chairs:
+                    if (query.lower() in str(chair.chair_id).lower() or
+                        (chair.location and query.lower() in chair.location.lower()) or
+                        (chair.form and query.lower() in chair.form.lower())):
+                        results.append(chair)
+            
+            if furniture_type in ['all', 'locker']:
+                lockers = self.locker_repository.get_all()
+                for locker in lockers:
+                    if (query.lower() in str(locker.locker_id).lower() or
+                        (locker.location and query.lower() in locker.location.lower()) or
+                        (locker.form and query.lower() in locker.form.lower())):
+                        results.append(locker)
+            
+            logger.info(f"Found {len(results)} furniture items matching query: {query}")
+            return results
+        except Exception as e:
+            logger.error(f"Error searching furniture: {e}")
+            return []
+
+    def report_maintenance_issue(self, furniture_id: int, furniture_type: str, issue: str) -> bool:
+        """
+        Report maintenance issue for furniture.
+
+        Args:
+            furniture_id: The ID of the furniture item.
+            furniture_type: The type of furniture ('chair' or 'locker').
+            issue: Description of the maintenance issue.
+
+        Returns:
+            True if the issue was reported successfully, otherwise False.
+        """
+        logger.info(f"Reporting maintenance issue for {furniture_type} {furniture_id}: {issue}")
+        
+        try:
+            if furniture_type == 'chair':
+                furniture_item = self.chair_repository.get_by_id(furniture_id)
+            elif furniture_type == 'locker':
+                furniture_item = self.locker_repository.get_by_id(furniture_id)
+            else:
+                return False
+            
+            if not furniture_item:
+                return False
+            
+            # Store maintenance issue
+            if not hasattr(furniture_item, 'maintenance_issues'):
+                furniture_item.maintenance_issues = []
+            
+            furniture_item.maintenance_issues.append({
+                'issue': issue,
+                'reported_date': datetime.datetime.now().isoformat(),
+                'status': 'reported'
+            })
+            
+            # Update condition if needed
+            if furniture_item.cond != 'Needs Repair':
+                furniture_item.cond = 'Needs Repair'
+            
+            if furniture_type == 'chair':
+                self.chair_repository.update(furniture_item)
+            else:
+                self.locker_repository.update(furniture_item)
+            
+            logger.info(f"Maintenance issue reported successfully for {furniture_type} {furniture_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error reporting maintenance issue: {e}")
+            return False
+
+    def assign_furniture_batch(self, assignments: List[dict], furniture_type: str) -> List[bool]:
+        """
+        Assign multiple furniture items in batch.
+
+        Args:
+            assignments: A list of assignment dictionaries.
+            furniture_type: The type of furniture ('chair' or 'locker').
+
+        Returns:
+            A list of boolean values indicating success/failure for each assignment.
+        """
+        logger.info(f"Assigning {len(assignments)} {furniture_type} items in batch")
+        
+        results = []
+        
+        try:
+            for assignment in assignments:
+                try:
+                    if furniture_type == 'chair':
+                        ValidationUtils.validate_input(assignment.get('student_id'), "Student ID cannot be empty")
+                        ValidationUtils.validate_input(assignment.get('chair_id'), "Chair ID cannot be empty")
+                        
+                        # Check if chair exists and is available
+                        chair = self.chair_repository.get_by_id(assignment['chair_id'])
+                        if not chair or chair.assigned:
+                            results.append(False)
+                            continue
+                        
+                        # Create assignment
+                        assignment_obj = ChairAssignment(**assignment)
+                        created_assignment = self.chair_assignment_repository.create(assignment_obj)
+                        
+                        # Update chair status
+                        chair.assigned = 1
+                        self.chair_repository.update(chair)
+                        
+                        results.append(True)
+                    elif furniture_type == 'locker':
+                        ValidationUtils.validate_input(assignment.get('student_id'), "Student ID cannot be empty")
+                        ValidationUtils.validate_input(assignment.get('locker_id'), "Locker ID cannot be empty")
+                        
+                        # Check if locker exists and is available
+                        locker = self.locker_repository.get_by_id(assignment['locker_id'])
+                        if not locker or locker.assigned:
+                            results.append(False)
+                            continue
+                        
+                        # Create assignment
+                        assignment_obj = LockerAssignment(**assignment)
+                        created_assignment = self.locker_assignment_repository.create(assignment_obj)
+                        
+                        # Update locker status
+                        locker.assigned = 1
+                        self.locker_repository.update(locker)
+                        
+                        results.append(True)
+                    else:
+                        results.append(False)
+                except Exception as e:
+                    logger.error(f"Error in batch assignment: {e}")
+                    results.append(False)
+            
+            logger.info(f"Batch assignment completed: {sum(results)}/{len(results)} successful")
+            return results
+        except Exception as e:
+            logger.error(f"Error in batch furniture assignment: {e}")
+            return []
+
+    def get_available_furniture(self, furniture_type: str, location: str = None) -> List[Union[Chair, Locker]]:
+        """
+        Get available furniture by type and location.
+
+        Args:
+            furniture_type: The type of furniture ('chair' or 'locker').
+            location: Optional location filter.
+
+        Returns:
+            A list of available furniture items.
+        """
+        logger.info(f"Getting available {furniture_type} items" + (f" in {location}" if location else ""))
+        
+        try:
+            available_items = []
+            
+            if furniture_type == 'chair':
+                all_chairs = self.chair_repository.get_all()
+                for chair in all_chairs:
+                    if chair.assigned == 0 and (not location or (chair.location and chair.location == location)):
+                        available_items.append(chair)
+            elif furniture_type == 'locker':
+                all_lockers = self.locker_repository.get_all()
+                for locker in all_lockers:
+                    if locker.assigned == 0 and (not location or (locker.location and locker.location == location)):
+                        available_items.append(locker)
+            
+            logger.info(f"Found {len(available_items)} available {furniture_type} items")
+            return available_items
+        except Exception as e:
+            logger.error(f"Error getting available furniture: {e}")
+            return []
+
+    def get_furniture_statistics(self) -> dict:
+        """
+        Get overall furniture statistics.
+
+        Returns:
+            A dictionary containing furniture statistics.
+        """
+        logger.info("Generating furniture statistics")
+        
+        try:
+            chairs = self.chair_repository.get_all()
+            lockers = self.locker_repository.get_all()
+            categories = self.furniture_category_repository.get_all()
+            
+            stats = {
+                'total_chairs': len(chairs),
+                'assigned_chairs': len([c for c in chairs if c.assigned]),
+                'available_chairs': len([c for c in chairs if not c.assigned]),
+                'chairs_needing_repair': len([c for c in chairs if c.cond == 'Needs Repair']),
+                
+                'total_lockers': len(lockers),
+                'assigned_lockers': len([l for l in lockers if l.assigned]),
+                'available_lockers': len([l for l in lockers if not l.assigned]),
+                'lockers_needing_repair': len([l for l in lockers if l.cond == 'Needs Repair']),
+                
+                'total_furniture': len(chairs) + len(lockers),
+                'assigned_furniture': len([c for c in chairs if c.assigned]) + len([l for l in lockers if l.assigned]),
+                'available_furniture': len([c for c in chairs if not c.assigned]) + len([l for l in lockers if not l.assigned]),
+                'furniture_needing_repair': len([c for c in chairs if c.cond == 'Needs Repair']) + len([l for l in lockers if l.cond == 'Needs Repair']),
+                
+                'categories': {cat.category_name: {'total': cat.total_count, 'needs_repair': cat.needs_repair} for cat in categories}
+            }
+            
+            logger.info(f"Furniture statistics generated: {stats}")
+            return stats
+        except Exception as e:
+            logger.error(f"Error generating furniture statistics: {e}")
+            return {}
+
+    def analyze_furniture_condition(self) -> dict:
+        """
+        Analyze condition of all furniture.
+
+        Returns:
+            A dictionary containing furniture condition analysis.
+        """
+        logger.info("Analyzing furniture condition")
+        
+        try:
+            chairs = self.chair_repository.get_all()
+            lockers = self.locker_repository.get_all()
+            
+            # Analyze chairs
+            chair_conditions = {}
+            for chair in chairs:
+                condition = chair.cond
+                chair_conditions[condition] = chair_conditions.get(condition, 0) + 1
+            
+            # Analyze lockers
+            locker_conditions = {}
+            for locker in lockers:
+                condition = locker.cond
+                locker_conditions[condition] = locker_conditions.get(condition, 0) + 1
+            
+            analysis = {
+                'chairs': chair_conditions,
+                'lockers': locker_conditions,
+                'overall': {
+                    'Good': chair_conditions.get('Good', 0) + locker_conditions.get('Good', 0),
+                    'Fair': chair_conditions.get('Fair', 0) + locker_conditions.get('Fair', 0),
+                    'Needs Repair': chair_conditions.get('Needs Repair', 0) + locker_conditions.get('Needs Repair', 0),
+                    'Poor': chair_conditions.get('Poor', 0) + locker_conditions.get('Poor', 0)
+                }
+            }
+            
+            logger.info(f"Furniture condition analysis: {analysis}")
+            return analysis
+        except Exception as e:
+            logger.error(f"Error analyzing furniture condition: {e}")
+            return {}
+
+    def reassign_furniture(self, student_id: int, new_furniture_id: int, furniture_type: str) -> bool:
+        """
+        Reassign furniture from one student to another.
+
+        Args:
+            student_id: The ID of the student to reassign.
+            new_furniture_id: The ID of the new furniture item.
+            furniture_type: The type of furniture ('chair' or 'locker').
+
+        Returns:
+            True if the reassignment was successful, otherwise False.
+        """
+        logger.info(f"Reassigning {furniture_type} for student {student_id} to {new_furniture_id}")
+        
+        try:
+            # Get current assignment
+            if furniture_type == 'chair':
+                current_assignment = self.chair_assignment_repository.get_by_id(student_id)
+                new_furniture = self.chair_repository.get_by_id(new_furniture_id)
+            elif furniture_type == 'locker':
+                current_assignment = self.locker_assignment_repository.get_by_id(student_id)
+                new_furniture = self.locker_repository.get_by_id(new_furniture_id)
+            else:
+                return False
+            
+            if not current_assignment or not new_furniture:
+                return False
+            
+            # Check if new furniture is available
+            if new_furniture.assigned:
+                return False
+            
+            # Get old furniture and mark as available
+            if furniture_type == 'chair':
+                old_furniture = self.chair_repository.get_by_id(current_assignment.chair_id)
+            else:
+                old_furniture = self.locker_repository.get_by_id(current_assignment.locker_id)
+            
+            if old_furniture:
+                old_furniture.assigned = 0
+                if furniture_type == 'chair':
+                    self.chair_repository.update(old_furniture)
+                else:
+                    self.locker_repository.update(old_furniture)
+            
+            # Update assignment with new furniture
+            if furniture_type == 'chair':
+                current_assignment.chair_id = new_furniture_id
+                self.chair_assignment_repository.update(current_assignment)
+            else:
+                current_assignment.locker_id = new_furniture_id
+                self.locker_assignment_repository.update(current_assignment)
+            
+            # Mark new furniture as assigned
+            new_furniture.assigned = 1
+            if furniture_type == 'chair':
+                self.chair_repository.update(new_furniture)
+            else:
+                self.locker_repository.update(new_furniture)
+            
+            logger.info(f"Successfully reassigned {furniture_type} for student {student_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error reassigning furniture: {e}")
+            return False
+
+    def generate_inventory_report(self) -> dict:
+        """
+        Generate comprehensive furniture inventory report.
+
+        Returns:
+            A dictionary containing inventory report.
+        """
+        logger.info("Generating furniture inventory report")
+        
+        try:
+            chairs = self.chair_repository.get_all()
+            lockers = self.locker_repository.get_all()
+            
+            # Group by location
+            inventory_by_location = {}
+            
+            for chair in chairs:
+                location = chair.location or 'Unassigned'
+                if location not in inventory_by_location:
+                    inventory_by_location[location] = {'chairs': [], 'lockers': []}
+                inventory_by_location[location]['chairs'].append({
+                    'id': chair.chair_id,
+                    'form': chair.form,
+                    'color': chair.color,
+                    'condition': chair.cond,
+                    'assigned': bool(chair.assigned)
+                })
+            
+            for locker in lockers:
+                location = locker.location or 'Unassigned'
+                if location not in inventory_by_location:
+                    inventory_by_location[location] = {'chairs': [], 'lockers': []}
+                inventory_by_location[location]['lockers'].append({
+                    'id': locker.locker_id,
+                    'form': locker.form,
+                    'color': locker.color,
+                    'condition': locker.cond,
+                    'assigned': bool(locker.assigned)
+                })
+            
+            report = {
+                'generated_at': datetime.datetime.now().isoformat(),
+                'total_items': len(chairs) + len(lockers),
+                'locations': inventory_by_location,
+                'summary': self.get_furniture_statistics()
+            }
+            
+            logger.info(f"Furniture inventory report generated")
+            return report
+        except Exception as e:
+            logger.error(f"Error generating inventory report: {e}")
+            return {}
+
+    def update_furniture_location(self, furniture_id: int, furniture_type: str, new_location: str) -> bool:
+        """
+        Update location of furniture item.
+
+        Args:
+            furniture_id: The ID of the furniture item.
+            furniture_type: The type of furniture ('chair' or 'locker').
+            new_location: The new location.
+
+        Returns:
+            True if the location was updated successfully, otherwise False.
+        """
+        logger.info(f"Updating location for {furniture_type} {furniture_id} to {new_location}")
+        
+        try:
+            if furniture_type == 'chair':
+                furniture_item = self.chair_repository.get_by_id(furniture_id)
+            elif furniture_type == 'locker':
+                furniture_item = self.locker_repository.get_by_id(furniture_id)
+            else:
+                return False
+            
+            if not furniture_item:
+                return False
+            
+            furniture_item.location = new_location
+            
+            if furniture_type == 'chair':
+                self.chair_repository.update(furniture_item)
+            else:
+                self.locker_repository.update(furniture_item)
+            
+            logger.info(f"Successfully updated location for {furniture_type} {furniture_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating furniture location: {e}")
+            return False
+
+    def get_furniture_usage_history(self, furniture_id: int, furniture_type: str) -> List[dict]:
+        """
+        Get usage history for a furniture item.
+
+        Args:
+            furniture_id: The ID of the furniture item.
+            furniture_type: The type of furniture ('chair' or 'locker').
+
+        Returns:
+            A list of dictionaries containing usage history.
+        """
+        logger.info(f"Getting usage history for {furniture_type} {furniture_id}")
+        
+        try:
+            usage_history = []
+            
+            if furniture_type == 'chair':
+                assignments = self.chair_assignment_repository.get_all()
+                furniture_id_field = 'chair_id'
+            elif furniture_type == 'locker':
+                assignments = self.locker_assignment_repository.get_all()
+                furniture_id_field = 'locker_id'
+            else:
+                return []
+            
+            # Filter assignments for this specific furniture item
+            item_assignments = [a for a in assignments if getattr(a, furniture_id_field) == furniture_id]
+            
+            for assignment in item_assignments:
+                usage_entry = {
+                    'student_id': assignment.student_id,
+                    'assigned_date': assignment.assigned_date,
+                    'furniture_id': furniture_id,
+                    'furniture_type': furniture_type
+                }
+                usage_history.append(usage_entry)
+            
+            logger.info(f"Retrieved {len(usage_history)} usage records for {furniture_type} {furniture_id}")
+            return usage_history
+        except Exception as e:
+            logger.error(f"Error getting furniture usage history: {e}")
+            return []
