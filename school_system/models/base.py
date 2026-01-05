@@ -4,6 +4,7 @@ from school_system.database.connection import get_db_session as db_get_db_sessio
 
 class BaseModel:
     __tablename__ = None
+    __pk__ = "id"  # Default primary key
     
     def __init__(self):
         self.created_at = datetime.utcnow()

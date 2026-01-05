@@ -3,6 +3,7 @@ from .base import BaseModel
 
 class Book(BaseModel):
     __tablename__ = 'books'
+    __pk__ = "book_number"
     
     def __init__(self, book_number, available=1, revision=0, book_condition="New"):
         super().__init__()
@@ -26,6 +27,7 @@ class Book(BaseModel):
 
 class BookTag(BaseModel):
     __tablename__ = 'book_tags'
+    __pk__ = "book_id"
     def __init__(self, book_id, tag):
         super().__init__()
         self.book_id = book_id
@@ -46,6 +48,7 @@ class BookTag(BaseModel):
 
 class BorrowedBookStudent(BaseModel):
     __tablename__ = 'borrowed_books_student'
+    __pk__ = "student_id"
     def __init__(self, student_id, book_id, borrowed_on, reminder_days=None):
         super().__init__()
         self.student_id = student_id
@@ -68,6 +71,7 @@ class BorrowedBookStudent(BaseModel):
 
 class BorrowedBookTeacher(BaseModel):
     __tablename__ = 'borrowed_books_teacher'
+    __pk__ = "teacher_id"
     def __init__(self, teacher_id, book_id, borrowed_on):
         super().__init__()
         self.teacher_id = teacher_id
@@ -89,6 +93,7 @@ class BorrowedBookTeacher(BaseModel):
 
 class QRBook(BaseModel):
     __tablename__ = 'qr_books'
+    __pk__ = "book_number"
     def __init__(self, book_number, details="", added_date=None):
         super().__init__()
         self.book_number = book_number
@@ -110,6 +115,7 @@ class QRBook(BaseModel):
 
 class QRBorrowLog(BaseModel):
     __tablename__ = 'qr_borrow_log'
+    __pk__ = "book_number"
     def __init__(self, book_number, student_id, borrow_date, return_date=None):
         super().__init__()
         self.book_number = book_number
@@ -132,6 +138,7 @@ class QRBorrowLog(BaseModel):
 
 class DistributionSession(BaseModel):
     __tablename__ = 'distribution_sessions'
+    __pk__ = "class_name"
     def __init__(self, class_name, stream, subject, term, created_by, distributed_by=None, status="DRAFT"):
         super().__init__()
         self.class_name = class_name
@@ -157,6 +164,7 @@ class DistributionSession(BaseModel):
 
 class DistributionStudent(BaseModel):
     __tablename__ = 'distribution_students'
+    __pk__ = "session_id"
     def __init__(self, session_id, student_id, book_id=None, book_number=None, notes=None):
         super().__init__()
         self.session_id = session_id
@@ -180,6 +188,7 @@ class DistributionStudent(BaseModel):
 
 class DistributionImportLog(BaseModel):
     __tablename__ = 'distribution_import_logs'
+    __pk__ = "session_id"
     def __init__(self, session_id, file_name, imported_by, status, message):
         super().__init__()
         self.session_id = session_id

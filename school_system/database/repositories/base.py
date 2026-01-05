@@ -1,4 +1,5 @@
 from typing import List, Optional, Type, TypeVar, Generic
+from contextlib import contextmanager
 from ...core.exceptions import DatabaseException
 from ...core.validators import StudentValidator, TeacherValidator, BookValidator, UserValidator
 
@@ -21,10 +22,11 @@ class BaseRepository(Generic[T]):
         return self._db
     
     def get_by_id(self, id: int) -> Optional[T]:
-        """Get entity by ID."""
+        """Get entity by primary key."""
         try:
             cursor = self.db.cursor()
-            cursor.execute(f"SELECT * FROM {self.model.__tablename__} WHERE id = ?", (id,))
+            pk = getattr(self.model, '__pk__', 'id')
+            cursor.execute(f"SELECT * FROM {self.model.__tablename__} WHERE {pk} = ?", (id,))
             result = cursor.fetchone()
             if result:
                 return self.model(**dict(zip([column[0] for column in cursor.description], result)))
@@ -59,7 +61,8 @@ class BaseRepository(Generic[T]):
         try:
             cursor = self.db.cursor()
             set_clause = ', '.join([f"{key} = ?" for key in kwargs.keys()])
-            cursor.execute(f"UPDATE {self.model.__tablename__} SET {set_clause} WHERE id = ?", (*kwargs.values(), id))
+            pk = getattr(self.model, '__pk__', 'id')
+            cursor.execute(f"UPDATE {self.model.__tablename__} SET {set_clause} WHERE {pk} = ?", (*kwargs.values(), id))
             self.db.commit()
             return self.get_by_id(id)
         except Exception as e:
@@ -69,7 +72,8 @@ class BaseRepository(Generic[T]):
         """Delete an entity."""
         try:
             cursor = self.db.cursor()
-            cursor.execute(f"DELETE FROM {self.model.__tablename__} WHERE id = ?", (id,))
+            pk = getattr(self.model, '__pk__', 'id')
+            cursor.execute(f"DELETE FROM {self.model.__tablename__} WHERE {pk} = ?", (id,))
             self.db.commit()
             return cursor.rowcount > 0
         except Exception as e:
@@ -93,6 +97,119 @@ class BaseRepository(Generic[T]):
             return cursor.fetchone()[0]
         except Exception as e:
             raise DatabaseException(f"Error counting entities: {e}")
+
+    def exists(self, **conditions) -> bool:
+        """Check if a record exists with given conditions."""
+        try:
+            cursor = self.db.cursor()
+            where_clause = " AND ".join([f"{k} = ?" for k in conditions.keys()])
+            cursor.execute(
+                f"SELECT 1 FROM {self.model.__tablename__} WHERE {where_clause} LIMIT 1",
+                tuple(conditions.values())
+            )
+            return cursor.fetchone() is not None
+        except Exception as e:
+            raise DatabaseException(f"Error checking existence: {e}")
+
+    def get_by_fields(self, **conditions) -> Optional[T]:
+        """Get a single entity by multiple fields."""
+        try:
+            cursor = self.db.cursor()
+            where_clause = " AND ".join([f"{k} = ?" for k in conditions.keys()])
+            cursor.execute(
+                f"SELECT * FROM {self.model.__tablename__} WHERE {where_clause} LIMIT 1",
+                tuple(conditions.values())
+            )
+            row = cursor.fetchone()
+            if row:
+                return self.model(**dict(zip([c[0] for c in cursor.description], row)))
+            return None
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving entity by fields: {e}")
+
+    def bulk_create(self, rows: List[dict]) -> int:
+        """Insert multiple rows efficiently."""
+        if not rows:
+            return 0
+        try:
+            cursor = self.db.cursor()
+            columns = rows[0].keys()
+            placeholders = ', '.join(['?'] * len(columns))
+            sql = f"""
+                INSERT INTO {self.model.__tablename__}
+                ({', '.join(columns)})
+                VALUES ({placeholders})
+            """
+            cursor.executemany(
+                sql,
+                [tuple(row[col] for col in columns) for row in rows]
+            )
+            self.db.commit()
+            return cursor.rowcount
+        except Exception as e:
+            raise DatabaseException(f"Error bulk creating entities: {e}")
+
+    def bulk_update(self, updates: List[dict], where_field: str):
+        """
+        Bulk update rows.
+        Each dict must contain `where_field`.
+        """
+        try:
+            cursor = self.db.cursor()
+            for row in updates:
+                where_value = row.pop(where_field)
+                set_clause = ', '.join([f"{k} = ?" for k in row.keys()])
+                cursor.execute(
+                    f"""
+                    UPDATE {self.model.__tablename__}
+                    SET {set_clause}
+                    WHERE {where_field} = ?
+                    """,
+                    (*row.values(), where_value)
+                )
+            self.db.commit()
+        except Exception as e:
+            raise DatabaseException(f"Error bulk updating entities: {e}")
+
+    def delete_by_fields(self, **conditions) -> int:
+        """Delete rows matching conditions."""
+        try:
+            cursor = self.db.cursor()
+            where_clause = " AND ".join([f"{k} = ?" for k in conditions.keys()])
+            cursor.execute(
+                f"DELETE FROM {self.model.__tablename__} WHERE {where_clause}",
+                tuple(conditions.values())
+            )
+            self.db.commit()
+            return cursor.rowcount
+        except Exception as e:
+            raise DatabaseException(f"Error deleting by fields: {e}")
+
+    def paginate(self, limit: int, offset: int = 0) -> List[T]:
+        """Paginated retrieval."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(
+                f"SELECT * FROM {self.model.__tablename__} LIMIT ? OFFSET ?",
+                (limit, offset)
+            )
+            rows = cursor.fetchall()
+            return [
+                self.model(**dict(zip([c[0] for c in cursor.description], row)))
+                for row in rows
+            ]
+        except Exception as e:
+            raise DatabaseException(f"Error paginating entities: {e}")
+
+    @contextmanager
+    def transaction(self):
+        """Transaction context manager for atomic operations."""
+        try:
+            yield
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
 
 # Specific repository classes for different entities

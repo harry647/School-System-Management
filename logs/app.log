@@ -61,3 +61,4 @@
 2026-01-05 17:00:39,859 - school_system - INFO - Initializing database tables
 2026-01-05 17:00:39,968 - school_system - INFO - Database initialized successfully with all updates
 2026-01-05 17:01:04,497 - school_system - INFO - Database connection established to school.db
+2026-01-05 17:39:03,842 - school_system - INFO - Database connection established to school.db

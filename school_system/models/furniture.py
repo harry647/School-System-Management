@@ -3,6 +3,7 @@ from .base import BaseModel
 
 class Chair(BaseModel):
     __tablename__ = 'chairs'
+    __pk__ = "chair_id"
     def __init__(self, chair_id, location=None, form=None, color="Black", cond="Good", assigned=0):
         super().__init__()
         self.chair_id = chair_id
@@ -27,6 +28,7 @@ class Chair(BaseModel):
 
 class Locker(BaseModel):
     __tablename__ = 'lockers'
+    __pk__ = "locker_id"
     def __init__(self, locker_id, location=None, form=None, color="Black", cond="Good", assigned=0):
         super().__init__()
         self.locker_id = locker_id
@@ -51,6 +53,7 @@ class Locker(BaseModel):
 
 class FurnitureCategory(BaseModel):
     __tablename__ = 'furniture_categories'
+    __pk__ = "category_name"
     def __init__(self, category_name, total_count=0, needs_repair=0):
         super().__init__()
         self.category_name = category_name
@@ -72,6 +75,7 @@ class FurnitureCategory(BaseModel):
 
 class LockerAssignment(BaseModel):
     __tablename__ = 'locker_assignments'
+    __pk__ = "student_id"
     def __init__(self, student_id, locker_id, assigned_date=None):
         super().__init__()
         self.student_id = student_id
@@ -93,6 +97,7 @@ class LockerAssignment(BaseModel):
 
 class ChairAssignment(BaseModel):
     __tablename__ = 'chair_assignments'
+    __pk__ = "student_id"
     def __init__(self, student_id, chair_id, assigned_date=None):
         super().__init__()
         self.student_id = student_id

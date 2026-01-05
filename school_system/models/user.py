@@ -3,6 +3,7 @@ from .base import BaseModel
 
 class User(BaseModel):
     __tablename__ = 'users'
+    __pk__ = "username"
     
     def __init__(self, username, password, role="student"):
         super().__init__()
@@ -25,6 +26,7 @@ class User(BaseModel):
 
 class UserSetting(BaseModel):
     __tablename__ = 'settings'
+    __pk__ = "user_id"
     def __init__(self, user_id, reminder_frequency="daily", sound_enabled=1):
         super().__init__()
         self.user_id = user_id
@@ -46,6 +48,7 @@ class UserSetting(BaseModel):
 
 class ShortFormMapping(BaseModel):
     __tablename__ = 'short_form_mappings'
+    __pk__ = "short_form"
     def __init__(self, short_form, full_name, type):
         super().__init__()
         self.short_form = short_form

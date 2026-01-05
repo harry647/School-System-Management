@@ -3,6 +3,7 @@ from .base import BaseModel
 
 class Student(BaseModel):
     __tablename__ = 'students'
+    __pk__ = "student_id"
     
     def __init__(self, student_id, name, stream):
         super().__init__()
@@ -25,6 +26,7 @@ class Student(BaseModel):
 
 class ReamEntry(BaseModel):
     __tablename__ = 'ream_entries'
+    __pk__ = "student_id"
     def __init__(self, student_id, reams_count, date_added=None):
         super().__init__()
         self.student_id = student_id
