@@ -43,7 +43,7 @@ def resource_path(relative_path):
 
 
 # SQLite doesn't use a connection pool, so we'll manage a single DB file
-DATABASE_FILE = "School_Management_db"
+DATABASE_FILE = "school.db"
 
 
 def load_db_config(config_file='config.json'):

@@ -1,0 +1,59 @@
+2026-01-05 16:04:42,049 - school_system - INFO - Starting School System Management Application
+2026-01-05 16:04:42,051 - school_system - INFO - Initializing database
+2026-01-05 16:04:42,052 - school_system - INFO - Initializing database tables
+2026-01-05 16:04:42,714 - school_system - INFO - Default admin user created with password
+2026-01-05 16:04:42,754 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 16:04:43,010 - school_system - INFO - Login window displayed
+2026-01-05 16:04:43,010 - school_system - INFO - Application started successfully
+2026-01-05 16:04:58,545 - school_system - WARNING - Failed login attempt for user: admin
+2026-01-05 16:05:07,051 - school_system - INFO - User admin logged in successfully
+2026-01-05 16:05:07,074 - school_system - INFO - User admin logged in with role admin
+2026-01-05 16:05:07,104 - school_system - INFO - Main window created for user admin with role admin
+2026-01-05 16:05:07,104 - school_system - INFO - Main application window created
+2026-01-05 16:05:37,487 - school_system - INFO - Application closing
+2026-01-05 16:05:37,490 - school_system - INFO - Database connection established to school.db
+2026-01-05 16:05:37,491 - school_system - INFO - Database connection closed
+2026-01-05 16:05:37,578 - school_system - INFO - Database connection closed
+2026-01-05 16:06:14,340 - school_system - INFO - Starting School System Management Application
+2026-01-05 16:06:14,341 - school_system - INFO - Initializing database
+2026-01-05 16:06:14,341 - school_system - INFO - Initializing database tables
+2026-01-05 16:06:14,348 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 16:06:14,561 - school_system - INFO - Login window displayed
+2026-01-05 16:06:14,561 - school_system - INFO - Application started successfully
+2026-01-05 16:06:30,444 - school_system - INFO - User admin logged in successfully
+2026-01-05 16:06:30,466 - school_system - INFO - User admin logged in with role admin
+2026-01-05 16:06:30,494 - school_system - INFO - Main window created for user admin with role admin
+2026-01-05 16:06:30,494 - school_system - INFO - Main application window created
+2026-01-05 16:06:54,478 - school_system - INFO - User admin logged out
+2026-01-05 16:06:54,525 - school_system - INFO - User admin logged out
+2026-01-05 16:06:54,553 - school_system - INFO - Login window displayed
+2026-01-05 16:06:57,825 - school_system - INFO - Database connection established to school.db
+2026-01-05 16:06:57,825 - school_system - INFO - Database connection closed
+2026-01-05 16:12:10,821 - school_system - INFO - Starting School System Management Application
+2026-01-05 16:12:10,839 - school_system - INFO - Initializing database
+2026-01-05 16:12:10,839 - school_system - INFO - Initializing database tables
+2026-01-05 16:12:11,954 - school_system - INFO - Default admin user created with password
+2026-01-05 16:12:12,021 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 16:12:12,259 - school_system - INFO - Login window displayed
+2026-01-05 16:12:12,259 - school_system - INFO - Application started successfully
+2026-01-05 16:12:25,437 - school_system - INFO - User admin logged in successfully
+2026-01-05 16:12:25,460 - school_system - INFO - User admin logged in with role admin
+2026-01-05 16:12:25,489 - school_system - INFO - Main window created for user admin with role admin
+2026-01-05 16:12:25,490 - school_system - INFO - Main application window created
+2026-01-05 16:12:34,743 - school_system - INFO - Application closing from main window
+2026-01-05 16:12:34,806 - school_system - INFO - Database connection established to school.db
+2026-01-05 16:12:34,806 - school_system - INFO - Database connection closed
+2026-01-05 16:14:35,876 - school_system - INFO - Starting School System Management Application
+2026-01-05 16:14:35,877 - school_system - INFO - Initializing database
+2026-01-05 16:14:35,878 - school_system - INFO - Initializing database tables
+2026-01-05 16:14:35,884 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 16:14:36,084 - school_system - INFO - Login window displayed
+2026-01-05 16:14:36,084 - school_system - INFO - Application started successfully
+2026-01-05 16:14:45,316 - school_system - INFO - User admin logged in successfully
+2026-01-05 16:14:45,337 - school_system - INFO - User admin logged in with role admin
+2026-01-05 16:14:45,365 - school_system - INFO - Main window created for user admin with role admin
+2026-01-05 16:14:45,365 - school_system - INFO - Main application window created
+2026-01-05 16:14:59,035 - school_system - INFO - Application closing
+2026-01-05 16:14:59,036 - school_system - INFO - Database connection established to school.db
+2026-01-05 16:14:59,036 - school_system - INFO - Database connection closed
+2026-01-05 16:14:59,131 - school_system - INFO - Database connection closed

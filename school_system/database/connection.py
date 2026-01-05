@@ -274,6 +274,25 @@ def initialize_database():
                 total_available INTEGER NOT NULL DEFAULT 0
             )
         """)
+
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS qr_books (
+                    book_number TEXT PRIMARY KEY,
+                    details TEXT,
+                    added_date TEXT
+                )
+            """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS qr_borrow_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                book_number TEXT,
+                student_id TEXT,
+                borrow_date TEXT,
+                return_date TEXT,
+                FOREIGN KEY (book_number) REFERENCES qr_books(book_number) ON DELETE CASCADE,
+                FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE SET NULL
+            )
+        """)
         
         # Insert initial total_reams value
         cursor.execute("SELECT SUM(reams_count) FROM ream_entries")
