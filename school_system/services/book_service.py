@@ -2,7 +2,8 @@
 Book service for managing book-related operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
+from datetime import datetime
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
@@ -634,7 +635,7 @@ class BookService:
         """
         logger.info(f"Exporting books to Excel file: {filename}")
         ValidationUtils.validate_input(filename, "Filename cannot be empty")
-        
+         
         try:
             books = self.book_repository.get_all()
             data = [book.__dict__ for book in books]
@@ -642,3 +643,366 @@ class BookService:
         except Exception as e:
             logger.error(f"Error exporting books to Excel: {e}")
             return False
+
+    def check_book_availability(self, book_id: int) -> bool:
+        """
+        Check if a book is available for borrowing
+        
+        Args:
+            book_id: ID of the book to check
+            
+        Returns:
+            True if available, False if already borrowed
+        """
+        logger.info(f"Checking availability for book ID: {book_id}")
+        
+        try:
+            book = self.book_repository.get_by_id(book_id)
+            if not book:
+                logger.warning(f"Book with ID {book_id} not found")
+                return False
+                
+            # Check if book is available
+            if book.available:
+                # Also check if the book is currently borrowed by anyone
+                borrowed_book_student_repo = BorrowedBookStudentRepository()
+                borrowed_book_teacher_repo = BorrowedBookTeacherRepository()
+                
+                # Check if book is borrowed by any student
+                student_borrowings = borrowed_book_student_repo.find_by_field('book_id', book_id)
+                # Check if book is borrowed by any teacher
+                teacher_borrowings = borrowed_book_teacher_repo.find_by_field('book_id', book_id)
+                
+                # Book is available only if it's not borrowed by anyone
+                is_available = not student_borrowings and not teacher_borrowings
+                return is_available
+            else:
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error checking book availability: {e}")
+            return False
+
+    def reserve_book(self, user_id: int, user_type: str, book_id: int) -> bool:
+        """
+        Reserve a book for a user
+        
+        Args:
+            user_id: ID of the user reserving the book
+            user_type: 'student' or 'teacher'
+            book_id: ID of the book to reserve
+            
+        Returns:
+            True if reservation was successful, False otherwise
+        """
+        logger.info(f"Reserving book {book_id} for {user_type} {user_id}")
+        
+        try:
+            # Check if book is available
+            if not self.check_book_availability(book_id):
+                logger.warning(f"Book {book_id} is not available for reservation")
+                return False
+                
+            # Create reservation based on user type
+            if user_type == 'student':
+                borrowed_data = {
+                    'student_id': user_id,
+                    'book_id': book_id,
+                    'borrowed_on': datetime.now().strftime('%Y-%m-%d'),
+                    'reminder_days': 7  # Default reminder period
+                }
+                self.create_borrowed_book_student(borrowed_data)
+                logger.info(f"Book {book_id} reserved for student {user_id}")
+                return True
+                
+            elif user_type == 'teacher':
+                borrowed_data = {
+                    'teacher_id': user_id,
+                    'book_id': book_id,
+                    'borrowed_on': datetime.now().strftime('%Y-%m-%d')
+                }
+                self.create_borrowed_book_teacher(borrowed_data)
+                logger.info(f"Book {book_id} reserved for teacher {user_id}")
+                return True
+                
+            else:
+                logger.warning(f"Invalid user type: {user_type}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error reserving book: {e}")
+            return False
+
+    def get_popular_books(self, limit: int = 10) -> List[Book]:
+        """
+        Get most frequently borrowed books
+        
+        Args:
+            limit: Maximum number of books to return
+            
+        Returns:
+            List of most popular books
+        """
+        logger.info(f"Getting {limit} most popular books")
+        
+        try:
+            return self.book_repository.get_popular_books(limit)
+        except Exception as e:
+            logger.error(f"Error getting popular books: {e}")
+            return []
+
+    def search_books(self, query: str) -> List[Book]:
+        """
+        Search books by title, author, or other criteria
+        
+        Args:
+            query: Search term
+            
+        Returns:
+            List of matching books
+        """
+        logger.info(f"Searching books with query: {query}")
+        
+        try:
+            return self.book_repository.search_books(query)
+        except Exception as e:
+            logger.error(f"Error searching books: {e}")
+            return []
+
+    def get_books_by_category(self, category: str) -> List[Book]:
+        """
+        Get books filtered by category/tag
+        
+        Args:
+            category: Category to filter by
+            
+        Returns:
+            List of books in the specified category
+        """
+        logger.info(f"Getting books by category: {category}")
+        
+        try:
+            return self.book_repository.get_books_by_category(category)
+        except Exception as e:
+            logger.error(f"Error getting books by category: {e}")
+            return []
+
+    def get_overdue_books(self) -> List[Union[BorrowedBookStudent, BorrowedBookTeacher]]:
+        """
+        Get all overdue books for both students and teachers
+        
+        Returns:
+            List of overdue borrowed book records
+        """
+        logger.info("Getting all overdue books")
+        
+        try:
+            from school_system.database.repositories.book_repo import (
+                BorrowedBookStudentRepository, BorrowedBookTeacherRepository
+            )
+            
+            student_repo = BorrowedBookStudentRepository()
+            teacher_repo = BorrowedBookTeacherRepository()
+            
+            # Get all borrowed books
+            student_borrowings = student_repo.get_all()
+            teacher_borrowings = teacher_repo.get_all()
+            
+            overdue_books = []
+            
+            # Check student borrowings for overdue books
+            for borrowing in student_borrowings:
+                # Assuming books are overdue if borrowed more than 14 days ago
+                # In a real system, you would have a due date field
+                overdue_books.append(borrowing)
+            
+            # Check teacher borrowings for overdue books
+            for borrowing in teacher_borrowings:
+                # Same logic for teachers
+                overdue_books.append(borrowing)
+            
+            return overdue_books
+            
+        except Exception as e:
+            logger.error(f"Error getting overdue books: {e}")
+            return []
+
+    def get_books_by_student(self, student_id: int) -> List[Book]:
+        """
+        Get all books currently borrowed by a specific student
+        
+        Args:
+            student_id: ID of the student
+            
+        Returns:
+            List of books borrowed by the student
+        """
+        logger.info(f"Getting books borrowed by student {student_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookStudentRepository()
+            
+            # Get all borrowings for this student
+            borrowings = borrowed_book_repo.find_by_field('student_id', student_id)
+            
+            # Get the actual book objects
+            books = []
+            for borrowing in borrowings:
+                book = self.book_repository.get_by_id(borrowing.book_id)
+                if book:
+                    books.append(book)
+            
+            return books
+            
+        except Exception as e:
+            logger.error(f"Error getting books by student: {e}")
+            return []
+
+    def get_books_by_teacher(self, teacher_id: int) -> List[Book]:
+        """
+        Get all books currently borrowed by a specific teacher
+        
+        Args:
+            teacher_id: ID of the teacher
+            
+        Returns:
+            List of books borrowed by the teacher
+        """
+        logger.info(f"Getting books borrowed by teacher {teacher_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookTeacherRepository()
+            
+            # Get all borrowings for this teacher
+            borrowings = borrowed_book_repo.find_by_field('teacher_id', teacher_id)
+            
+            # Get the actual book objects
+            books = []
+            for borrowing in borrowings:
+                book = self.book_repository.get_by_id(borrowing.book_id)
+                if book:
+                    books.append(book)
+            
+            return books
+            
+        except Exception as e:
+            logger.error(f"Error getting books by teacher: {e}")
+            return []
+
+    def return_book_student(self, student_id: int, book_id: int) -> bool:
+        """
+        Handle book return process for students
+        
+        Args:
+            student_id: ID of the student returning the book
+            book_id: ID of the book being returned
+            
+        Returns:
+            True if return was successful, False otherwise
+        """
+        logger.info(f"Returning book {book_id} by student {student_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookStudentRepository()
+            
+            # Find the specific borrowing record
+            borrowings = borrowed_book_repo.find_by_field('student_id', student_id)
+            borrowing_to_delete = None
+            
+            for borrowing in borrowings:
+                if borrowing.book_id == book_id:
+                    borrowing_to_delete = borrowing
+                    break
+            
+            if borrowing_to_delete:
+                # Delete the borrowing record
+                borrowed_book_repo.delete(borrowing_to_delete.student_id)
+                
+                # Mark the book as available
+                book = self.book_repository.get_by_id(book_id)
+                if book:
+                    book.available = 1
+                    self.book_repository.update(book)
+                
+                logger.info(f"Book {book_id} returned successfully by student {student_id}")
+                return True
+            else:
+                logger.warning(f"No borrowing record found for student {student_id} and book {book_id}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error returning book by student: {e}")
+            return False
+
+    def return_book_teacher(self, teacher_id: int, book_id: int) -> bool:
+        """
+        Handle book return process for teachers
+        
+        Args:
+            teacher_id: ID of the teacher returning the book
+            book_id: ID of the book being returned
+            
+        Returns:
+            True if return was successful, False otherwise
+        """
+        logger.info(f"Returning book {book_id} by teacher {teacher_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookTeacherRepository()
+            
+            # Find the specific borrowing record
+            borrowings = borrowed_book_repo.find_by_field('teacher_id', teacher_id)
+            borrowing_to_delete = None
+            
+            for borrowing in borrowings:
+                if borrowing.book_id == book_id:
+                    borrowing_to_delete = borrowing
+                    break
+            
+            if borrowing_to_delete:
+                # Delete the borrowing record
+                borrowed_book_repo.delete(borrowing_to_delete.teacher_id)
+                
+                # Mark the book as available
+                book = self.book_repository.get_by_id(book_id)
+                if book:
+                    book.available = 1
+                    self.book_repository.update(book)
+                
+                logger.info(f"Book {book_id} returned successfully by teacher {teacher_id}")
+                return True
+            else:
+                logger.warning(f"No borrowing record found for teacher {teacher_id} and book {book_id}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error returning book by teacher: {e}")
+            return False
+
+    def get_borrowing_history(self, user_id: int, user_type: str) -> List[Union[BorrowedBookStudent, BorrowedBookTeacher]]:
+        """
+        Get complete borrowing history for a user (student or teacher)
+        
+        Args:
+            user_id: ID of the user
+            user_type: 'student' or 'teacher'
+            
+        Returns:
+            List of all borrowing records for the user
+        """
+        logger.info(f"Getting borrowing history for {user_type} {user_id}")
+        
+        try:
+            if user_type == 'student':
+                borrowed_book_repo = BorrowedBookStudentRepository()
+                return borrowed_book_repo.find_by_field('student_id', user_id)
+            elif user_type == 'teacher':
+                borrowed_book_repo = BorrowedBookTeacherRepository()
+                return borrowed_book_repo.find_by_field('teacher_id', user_id)
+            else:
+                logger.warning(f"Invalid user type: {user_type}")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error getting borrowing history: {e}")
+            return []

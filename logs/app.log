@@ -108,3 +108,23 @@
 2026-01-05 21:03:48,173 - school_system - INFO - Initializing database tables
 2026-01-05 21:03:48,189 - school_system - INFO - Database initialized successfully with all updates
 2026-01-05 21:03:48,190 - school_system - INFO - Database connection established to school.db
+2026-01-05 21:08:05,270 - school_system - INFO - Initializing database tables
+2026-01-05 21:08:05,279 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 21:08:05,280 - school_system - INFO - Checking availability for book ID: 999
+2026-01-05 21:08:05,280 - school_system - INFO - Database connection established to school.db
+2026-01-05 21:08:05,282 - school_system - WARNING - Book with ID 999 not found
+2026-01-05 21:08:05,282 - school_system - INFO - Getting 5 most popular books
+2026-01-05 21:08:05,282 - school_system - INFO - Searching books with query: Python
+2026-01-05 21:08:05,283 - school_system - INFO - Getting books by category: Programming
+2026-01-05 21:11:32,103 - school_system - INFO - Initializing database tables
+2026-01-05 21:11:32,110 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 21:11:32,110 - school_system - INFO - Checking availability for book ID: 999
+2026-01-05 21:11:32,111 - school_system - INFO - Database connection established to school.db
+2026-01-05 21:11:32,112 - school_system - WARNING - Book with ID 999 not found
+2026-01-05 21:11:32,112 - school_system - INFO - Getting 5 most popular books
+2026-01-05 21:11:32,113 - school_system - INFO - Searching books with query: Python
+2026-01-05 21:11:32,114 - school_system - INFO - Getting books by category: Programming
+2026-01-05 21:11:32,114 - school_system - INFO - Getting all overdue books
+2026-01-05 21:11:32,114 - school_system - INFO - Getting books borrowed by student 123
+2026-01-05 21:11:32,115 - school_system - INFO - Getting books borrowed by teacher 456
+2026-01-05 21:11:32,115 - school_system - INFO - Getting borrowing history for student 123
