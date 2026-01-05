@@ -1,24 +1,21 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, DateTime
+# Base model for all database models
 from datetime import datetime
+from school_system.database.connection import get_db_session as db_get_db_session
 
-# Base class for all SQLAlchemy models
-Base = declarative_base()
-
-
-class BaseModel(Base):
-    """Base model class with common fields and functionality."""
-    __abstract__ = True
+class BaseModel:
+    def __init__(self):
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
     
-    # Common fields for all models
-    id = Column(Integer, primary_key=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    def save(self):
+        """Save the model to the database."""
+        db = db_get_db_session()
+        # Implement save logic here
+        pass
     
     def __repr__(self):
-        """String representation of the model."""
-        return f"<{self.__class__.__name__}(id={self.id})>"
-    
-    def to_dict(self):
-        """Convert model instance to dictionary."""
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return f"<{self.__class__.__name__}>"
+
+def get_db_session():
+    """Get a database session (connection)."""
+    return db_get_db_session()

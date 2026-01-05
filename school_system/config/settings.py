@@ -31,3 +31,6 @@ class Settings:
         self.default_window_size = (1024, 768)
         self.default_font = ("Arial", 10)
         self.theme = "light"  # 'light' or 'dark'
+
+# Create a global settings instance
+settings = Settings()

@@ -293,6 +293,58 @@ def initialize_database():
                 FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE SET NULL
             )
         """)
+
+        # Distribution tables
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS distribution_sessions (
+                session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class TEXT NOT NULL,
+                stream TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                term TEXT NOT NULL,
+                created_by TEXT NOT NULL,
+                distributed_by TEXT,
+                status TEXT DEFAULT 'DRAFT'
+                    CHECK (status IN ('DRAFT', 'IN_PROGRESS', 'FINALIZED')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                finalized_at TIMESTAMP
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS distribution_students (
+                session_id INTEGER,
+                student_id TEXT,
+                book_id INTEGER DEFAULT NULL,
+                book_number TEXT DEFAULT NULL,
+                notes TEXT,
+                PRIMARY KEY (session_id, student_id),
+                FOREIGN KEY (session_id)
+                    REFERENCES distribution_sessions(session_id)
+                    ON DELETE CASCADE,
+                FOREIGN KEY (student_id)
+                    REFERENCES students(student_id)
+                    ON DELETE CASCADE,
+                FOREIGN KEY (book_id)
+                    REFERENCES books(id)
+                    ON DELETE SET NULL
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS distribution_import_logs (
+                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER,
+                file_name TEXT,
+                imported_by TEXT,
+                imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status TEXT,
+                message TEXT,
+                FOREIGN KEY (session_id)
+                    REFERENCES distribution_sessions(session_id)
+                    ON DELETE CASCADE
+            )
+        """)
         
         # Insert initial total_reams value
         cursor.execute("SELECT SUM(reams_count) FROM ream_entries")

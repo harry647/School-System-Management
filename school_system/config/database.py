@@ -5,10 +5,12 @@ import logging
 import sqlite3
 import tkinter as tk
 from tkinter import messagebox, simpledialog
+from sqlalchemy import create_engine
 
 logger = logging.getLogger('DatabaseConfig')
 logger.setLevel(logging.INFO)
 
+# DATABASE_CONFIG definition (moved before engine creation)
 DATABASE_CONFIG = {
     'engine': 'sqlite',
     'name': 'school.db',
@@ -34,6 +36,8 @@ DATABASE_CONFIG = {
     }
 }
 
+# SQLite doesn't use a connection pool, so we'll manage a single DB file
+DATABASE_FILE = "school.db"
 
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and PyInstaller."""
@@ -100,3 +104,7 @@ def prompt_for_db_config(config_file):
     except sqlite3.Error as e:
         messagebox.showerror("Connection Error", f"Invalid SQLite file path: {e}")
         return None
+
+# Now that load_db_config is defined, we can call it
+db_config = load_db_config()
+engine = create_engine(f"sqlite:///{db_config['database']}")
