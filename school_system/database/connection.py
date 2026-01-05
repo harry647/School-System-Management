@@ -142,6 +142,11 @@ def initialize_database():
             CREATE TABLE IF NOT EXISTS books (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 book_number TEXT NOT NULL UNIQUE,
+                title TEXT NOT NULL,
+                author TEXT NOT NULL,
+                category TEXT,
+                isbn TEXT,
+                publication_date TEXT,
                 available INTEGER DEFAULT 1,
                 revision INTEGER DEFAULT 0,
                 book_condition TEXT DEFAULT 'New'

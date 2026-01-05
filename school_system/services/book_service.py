@@ -58,10 +58,12 @@ class BookService:
         """
         logger.info(f"Creating a new book with data: {book_data}")
         ValidationUtils.validate_input(book_data.get('title'), "Book title cannot be empty")
+        ValidationUtils.validate_input(book_data.get('author'), "Book author cannot be empty")
+        ValidationUtils.validate_input(book_data.get('book_number'), "Book number cannot be empty")
         
         book = Book(**book_data)
         created_book = self.book_repository.create(book)
-        logger.info(f"Book created successfully with ID: {created_book.id}")
+        logger.info(f"Book created successfully with book_number: {created_book.book_number}")
         return created_book
 
     def update_book(self, book_id: int, book_data: dict) -> Optional[Book]:

@@ -87,3 +87,24 @@
 2026-01-05 19:53:57,057 - school_system - INFO - Main application window created
 2026-01-05 19:54:04,799 - school_system - INFO - Application closing from main window
 2026-01-05 19:54:04,834 - school_system - INFO - Database connection closed
+2026-01-05 20:53:16,729 - school_system - INFO - Initializing database tables
+2026-01-05 20:53:16,738 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 20:53:16,739 - school_system - INFO - Database connection established to school.db
+2026-01-05 20:55:26,212 - school_system - INFO - Initializing database tables
+2026-01-05 20:55:26,219 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 20:55:26,220 - school_system - INFO - Database connection established to school.db
+2026-01-05 20:58:56,915 - school_system - INFO - Initializing database tables
+2026-01-05 20:58:56,923 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 20:58:56,924 - school_system - INFO - Database connection established to school.db
+2026-01-05 20:59:52,447 - school_system - INFO - Initializing database tables
+2026-01-05 20:59:52,455 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 20:59:52,456 - school_system - INFO - Database connection established to school.db
+2026-01-05 21:00:40,882 - school_system - INFO - Initializing database tables
+2026-01-05 21:00:40,891 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 21:00:40,892 - school_system - INFO - Database connection established to school.db
+2026-01-05 21:01:19,939 - school_system - INFO - Initializing database tables
+2026-01-05 21:01:19,947 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 21:01:19,947 - school_system - INFO - Database connection established to school.db
+2026-01-05 21:03:48,173 - school_system - INFO - Initializing database tables
+2026-01-05 21:03:48,189 - school_system - INFO - Database initialized successfully with all updates
+2026-01-05 21:03:48,190 - school_system - INFO - Database connection established to school.db

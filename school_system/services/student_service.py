@@ -9,9 +9,9 @@ from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
 from school_system.services.import_export_service import ImportExportService
 from school_system.models.student import Student, ReamEntry, TotalReams
-from school_system.models.book import BorrowedBookStudent, DistributionStudent
+from school_system.models.book import DistributionStudent
 from school_system.database.repositories.student_repo import StudentRepository, ReamEntryRepository, TotalReamsRepository
-from school_system.database.repositories.book_repo import BorrowedBookStudentRepository, DistributionStudentRepository
+from school_system.database.repositories.book_repo import DistributionStudentRepository
 
 
 class StudentService:
@@ -97,87 +97,6 @@ class StudentService:
         self.student_repository.delete(student)
         return True
 
-    def get_all_borrowed_books_student(self) -> List[BorrowedBookStudent]:
-        """
-        Retrieve all borrowed books by students.
-
-        Returns:
-            A list of all BorrowedBookStudent objects.
-        """
-        borrowed_book_student_repository = BorrowedBookStudentRepository()
-        return borrowed_book_student_repository.get_all()
-
-    def get_borrowed_book_student_by_id(self, student_id: int) -> Optional[BorrowedBookStudent]:
-        """
-        Retrieve a borrowed book by student ID.
-
-        Args:
-            student_id: The ID of the student.
-
-        Returns:
-            The BorrowedBookStudent object if found, otherwise None.
-        """
-        borrowed_book_student_repository = BorrowedBookStudentRepository()
-        return borrowed_book_student_repository.get_by_id(student_id)
-
-    def create_borrowed_book_student(self, borrowed_data: dict) -> BorrowedBookStudent:
-        """
-        Create a new borrowed book record for a student.
-
-        Args:
-            borrowed_data: A dictionary containing borrowed book data.
-
-        Returns:
-            The created BorrowedBookStudent object.
-        """
-        logger.info(f"Creating a new borrowed book record for student with data: {borrowed_data}")
-        ValidationUtils.validate_input(borrowed_data.get('student_id'), "Student ID cannot be empty")
-        ValidationUtils.validate_input(borrowed_data.get('book_id'), "Book ID cannot be empty")
-
-        borrowed_book = BorrowedBookStudent(**borrowed_data)
-        borrowed_book_student_repository = BorrowedBookStudentRepository()
-        created_borrowed_book = borrowed_book_student_repository.create(borrowed_book)
-        logger.info(f"Borrowed book record created successfully for student ID: {created_borrowed_book.student_id}")
-        return created_borrowed_book
-
-    def update_borrowed_book_student(self, student_id: int, borrowed_data: dict) -> Optional[BorrowedBookStudent]:
-        """
-        Update an existing borrowed book record for a student.
-
-        Args:
-            student_id: The ID of the student whose borrowed book record to update.
-            borrowed_data: A dictionary containing updated borrowed book data.
-
-        Returns:
-            The updated BorrowedBookStudent object if successful, otherwise None.
-        """
-        borrowed_book_student_repository = BorrowedBookStudentRepository()
-        borrowed_book = borrowed_book_student_repository.get_by_id(student_id)
-        if not borrowed_book:
-            return None
-
-        for key, value in borrowed_data.items():
-            setattr(borrowed_book, key, value)
-
-        return borrowed_book_student_repository.update(borrowed_book)
-
-    def delete_borrowed_book_student(self, student_id: int) -> bool:
-        """
-        Delete a borrowed book record for a student.
-
-        Args:
-            student_id: The ID of the student whose borrowed book record to delete.
-
-        Returns:
-            True if the borrowed book record was deleted, otherwise False.
-        """
-        borrowed_book_student_repository = BorrowedBookStudentRepository()
-        borrowed_book = borrowed_book_student_repository.get_by_id(student_id)
-        if not borrowed_book:
-            return False
-
-        borrowed_book_student_repository.delete(borrowed_book)
-        return True
 
     def get_all_distribution_students(self) -> List[DistributionStudent]:
         """

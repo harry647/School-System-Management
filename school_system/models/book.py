@@ -5,9 +5,17 @@ class Book(BaseModel):
     __tablename__ = 'books'
     __pk__ = "book_number"
     
-    def __init__(self, book_number, available=1, revision=0, book_condition="New"):
+    def __init__(self, book_number, title, author, category=None,
+                 isbn=None, publication_date=None, available=1,
+                 revision=0, book_condition="New", id=None):
         super().__init__()
+        self.id = id
         self.book_number = book_number
+        self.title = title
+        self.author = author
+        self.category = category
+        self.isbn = isbn
+        self.publication_date = publication_date
         self.available = available
         self.revision = revision
         self.book_condition = book_condition
