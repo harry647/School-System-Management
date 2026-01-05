@@ -3,15 +3,16 @@ Student service for managing student-related operations.
 """
 
 from typing import List, Optional
+from datetime import datetime
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
 from school_system.services.import_export_service import ImportExportService
 from school_system.models.student import Student, ReamEntry, TotalReams
-from school_system.models.book import DistributionStudent
+from school_system.models.book import DistributionStudent, BorrowedBookStudent
 from school_system.database.repositories.student_repo import StudentRepository, ReamEntryRepository, TotalReamsRepository
-from school_system.database.repositories.book_repo import DistributionStudentRepository
+from school_system.database.repositories.book_repo import DistributionStudentRepository, BorrowedBookStudentRepository
 
 
 class StudentService:
@@ -225,6 +226,595 @@ class StudentService:
             students = self.student_repository.get_all()
             data = [student.__dict__ for student in students]
             return self.import_export_service.export_to_excel(data, filename)
-        except Exception as e:
-            logger.error(f"Error exporting students to Excel: {e}")
-            return False
+            except Exception as e:
+                logger.error(f"Error exporting students to Excel: {e}")
+                return False
+    
+        # Library-Related Methods
+    
+        def get_books_borrowed_by_student(self, student_id: int) -> List[BorrowedBookStudent]:
+            """
+            Get all books currently borrowed by a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of books currently borrowed by the student
+            """
+            borrowed_book_repository = BorrowedBookStudentRepository()
+            return borrowed_book_repository.find_by_field('student_id', student_id)
+    
+        def get_student_borrowing_history(self, student_id: int) -> List[BorrowedBookStudent]:
+            """
+            Get complete borrowing history for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of all borrowing records for the student
+            """
+            borrowed_book_repository = BorrowedBookStudentRepository()
+            return borrowed_book_repository.find_by_field('student_id', student_id)
+    
+        def get_student_current_borrowed_books(self, student_id: int) -> List[BorrowedBookStudent]:
+            """
+            Get books currently borrowed (not returned) by a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of currently borrowed books
+            """
+            borrowed_book_repository = BorrowedBookStudentRepository()
+            # Assuming there's a returned_on field that's NULL for currently borrowed books
+            return borrowed_book_repository.get_by_fields(student_id=student_id, returned_on=None)
+    
+        def get_student_overdue_books(self, student_id: int) -> List[BorrowedBookStudent]:
+            """
+            Get overdue books for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of overdue books
+            """
+            borrowed_book_repository = BorrowedBookStudentRepository()
+            # This would need implementation based on due dates
+            # For now, return empty list as placeholder
+            return []
+    
+        def get_student_borrowing_patterns(self, student_id: int) -> dict:
+            """
+            Analyze student's borrowing patterns and preferences.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Dictionary with borrowing pattern analysis
+            """
+            borrowing_history = self.get_student_borrowing_history(student_id)
+            patterns = {
+                'total_books_borrowed': len(borrowing_history),
+                'favorite_categories': [],
+                'favorite_authors': []
+            }
+            return patterns
+    
+        def record_student_reading_progress(self, progress_data: dict) -> dict:
+            """
+            Record reading progress for a student on a specific book.
+            
+            Args:
+                progress_data: Dictionary containing progress data
+                
+            Returns:
+                Dictionary with the recorded progress data
+            """
+            logger.info(f"Recording reading progress for student {progress_data.get('student_id')} on book {progress_data.get('book_id')}")
+            # This would need a proper repository and model for reading progress
+            # For now, return the data as placeholder
+            return progress_data
+    
+        def get_student_reading_progress(self, student_id: int, book_id: int = None) -> List[dict]:
+            """
+            Get reading progress for a student, optionally filtered by book.
+            
+            Args:
+                student_id: ID of the student
+                book_id: Optional book ID filter
+                
+            Returns:
+                List of reading progress records
+            """
+            # This would need proper implementation with a reading progress repository
+            return []
+    
+        def mark_book_as_read(self, student_id: int, book_id: int, completion_date: str) -> bool:
+            """
+            Mark a book as completed by a student.
+            
+            Args:
+                student_id: ID of the student
+                book_id: ID of the book
+                completion_date: Date when book was completed
+                
+            Returns:
+                True if successful, False otherwise
+            """
+            logger.info(f"Marking book {book_id} as read by student {student_id} on {completion_date}")
+            # This would need proper implementation
+            return True
+    
+        def get_student_reading_history(self, student_id: int) -> List[dict]:
+            """
+            Get complete reading history for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of completed books with dates
+            """
+            # This would need proper implementation
+            return []
+    
+        def get_student_reading_statistics(self, student_id: int) -> dict:
+            """
+            Get reading statistics for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Dictionary with reading statistics
+            """
+            reading_history = self.get_student_reading_history(student_id)
+            stats = {
+                'total_books_read': len(reading_history),
+                'total_pages_read': 0,
+                'average_reading_time': 0
+            }
+            return stats
+    
+        def get_student_library_usage(self, student_id: int) -> dict:
+            """
+            Get comprehensive library usage statistics for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Dictionary with library usage statistics
+            """
+            borrowing_history = self.get_student_borrowing_history(student_id)
+            stats = {
+                'total_books_borrowed': len(borrowing_history),
+                'total_library_visits': 0,
+                'average_books_per_visit': 0
+            }
+            return stats
+    
+        def get_student_library_visits(self, student_id: int, date_range: tuple = None) -> List[dict]:
+            """
+            Get library visit history for a student.
+            
+            Args:
+                student_id: ID of the student
+                date_range: Optional tuple of (start_date, end_date)
+                
+            Returns:
+                List of library visit records
+            """
+            # This would need proper implementation with a library visits repository
+            return []
+    
+        def get_student_favorite_categories(self, student_id: int) -> List[str]:
+            """
+            Get favorite book categories for a student based on borrowing history.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of favorite categories
+            """
+            borrowing_history = self.get_student_borrowing_history(student_id)
+            # This would need implementation to analyze categories from borrowed books
+            return []
+    
+        def get_student_favorite_authors(self, student_id: int) -> List[str]:
+            """
+            Get favorite authors for a student based on borrowing history.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of favorite authors
+            """
+            borrowing_history = self.get_student_borrowing_history(student_id)
+            # This would need implementation to analyze authors from borrowed books
+            return []
+    
+        def get_students_by_stream(self, stream: str) -> List[Student]:
+            """
+            Get students filtered by stream.
+            
+            Args:
+                stream: Stream to filter by
+                
+            Returns:
+                List of students in the specified stream
+            """
+            return self.student_repository.find_by_field('stream', stream)
+    
+        def get_student_library_activity_summary(self, student_id: int) -> dict:
+            """
+            Get a summary of student's library activity.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Dictionary with activity summary
+            """
+            summary = {
+                'total_books_borrowed': len(self.get_student_borrowing_history(student_id)),
+                'current_books_borrowed': len(self.get_student_current_borrowed_books(student_id)),
+                'overdue_books': len(self.get_student_overdue_books(student_id)),
+                'books_read': len(self.get_student_reading_history(student_id))
+            }
+            return summary
+    
+        # Ream-Related Methods
+    
+        def get_student_ream_balance(self, student_id: int) -> int:
+            """
+            Get the current ream balance for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Current ream balance
+            """
+            ream_entry_repository = ReamEntryRepository()
+            ream_entries = ream_entry_repository.find_by_field('student_id', student_id)
+            
+            balance = 0
+            for entry in ream_entries:
+                balance += entry.reams_count
+            
+            return balance
+    
+        def add_reams_to_student(self, student_id: int, reams_count: int, source: str = "Distribution") -> ReamEntry:
+            """
+            Add reams to a student's account with source tracking.
+            
+            Args:
+                student_id: ID of the student
+                reams_count: Number of reams to add
+                source: Source of the reams (Distribution, Purchase, Transfer, etc.)
+                
+            Returns:
+                The created ream entry
+            """
+            logger.info(f"Adding {reams_count} reams to student {student_id} from source: {source}")
+            
+            ream_entry = ReamEntry(
+                student_id=student_id,
+                reams_count=reams_count,
+                date_added=datetime.now().strftime('%Y-%m-%d')
+            )
+            
+            ream_entry_repository = ReamEntryRepository()
+            created_entry = ream_entry_repository.create(ream_entry)
+            
+            logger.info(f"Successfully added {reams_count} reams to student {student_id}")
+            return created_entry
+    
+        def record_ream_distribution(self, distribution_data: dict) -> dict:
+            """
+            Record a ream distribution event.
+            
+            Args:
+                distribution_data: Dictionary containing distribution data
+                
+            Returns:
+                Dictionary with the recorded distribution data
+            """
+            logger.info(f"Recording ream distribution: {distribution_data}")
+            # This would need proper implementation with a distribution repository
+            return distribution_data
+    
+        def get_student_ream_distribution_history(self, student_id: int) -> List[dict]:
+            """
+            Get ream distribution history for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of ream distribution records
+            """
+            # This would need proper implementation
+            return []
+    
+        def record_ream_usage(self, usage_data: dict) -> dict:
+            """
+            Record ream usage by a student.
+            
+            Args:
+                usage_data: Dictionary containing usage data
+                
+            Returns:
+                Dictionary with the recorded usage data
+            """
+            logger.info(f"Recording ream usage: {usage_data}")
+            # This would need proper implementation with a usage repository
+            return usage_data
+    
+        def get_student_ream_usage_history(self, student_id: int) -> List[dict]:
+            """
+            Get ream usage history for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                List of ream usage records
+            """
+            # This would need proper implementation
+            return []
+    
+        def get_student_ream_usage_by_purpose(self, student_id: int) -> dict:
+            """
+            Get ream usage breakdown by purpose for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Dictionary with usage breakdown by purpose
+            """
+            usage_history = self.get_student_ream_usage_history(student_id)
+            breakdown = {}
+            
+            for usage in usage_history:
+                purpose = usage.get('purpose', 'Unknown')
+                reams_used = usage.get('reams_used', 0)
+                breakdown[purpose] = breakdown.get(purpose, 0) + reams_used
+            
+            return breakdown
+    
+        def get_student_ream_transaction_history(self, student_id: int, date_range: tuple = None) -> List[ReamEntry]:
+            """
+            Get complete ream transaction history for a student.
+            
+            Args:
+                student_id: ID of the student
+                date_range: Optional tuple of (start_date, end_date)
+                
+            Returns:
+                List of ream transaction records
+            """
+            ream_entry_repository = ReamEntryRepository()
+            transactions = ream_entry_repository.find_by_field('student_id', student_id)
+            
+            # Filter by date range if provided
+            if date_range:
+                start_date, end_date = date_range
+                filtered_transactions = []
+                for transaction in transactions:
+                    if start_date <= transaction.date_added <= end_date:
+                        filtered_transactions.append(transaction)
+                return filtered_transactions
+            
+            return transactions
+    
+        def get_student_ream_summary(self, student_id: int) -> dict:
+            """
+            Get ream usage summary for a student.
+            
+            Args:
+                student_id: ID of the student
+                
+            Returns:
+                Dictionary with ream usage summary statistics
+            """
+            transactions = self.get_student_ream_transaction_history(student_id)
+            
+            if not transactions:
+                return {
+                    'current_balance': 0,
+                    'total_reams_added': 0,
+                    'total_reams_used': 0,
+                    'total_transactions': 0,
+                    'average_daily_usage': 0
+                }
+            
+            total_added = sum(t.reams_count for t in transactions if t.reams_count > 0)
+            total_used = abs(sum(t.reams_count for t in transactions if t.reams_count < 0))
+            current_balance = self.get_student_ream_balance(student_id)
+            
+            return {
+                'current_balance': current_balance,
+                'total_reams_added': total_added,
+                'total_reams_used': total_used,
+                'total_transactions': len(transactions),
+                'average_daily_usage': total_used / len(transactions) if transactions else 0
+            }
+    
+        def get_class_ream_usage(self, class_id: int) -> dict:
+            """
+            Get ream usage statistics for an entire class.
+            
+            Args:
+                class_id: ID of the class
+                
+            Returns:
+                Dictionary with class ream usage statistics
+            """
+            # This would need implementation to get students in a class
+            # For now, return placeholder data
+            return {
+                'total_class_usage': 0,
+                'average_per_student': 0,
+                'top_users': []
+            }
+    
+        def get_stream_ream_usage(self, stream: str) -> dict:
+            """
+            Get ream usage statistics for a specific stream.
+            
+            Args:
+                stream: Name of the stream
+                
+            Returns:
+                Dictionary with stream ream usage statistics
+            """
+            students_in_stream = self.get_students_by_stream(stream)
+            total_usage = 0
+            
+            for student in students_in_stream:
+                balance = self.get_student_ream_balance(student.student_id)
+                total_usage += balance
+            
+            return {
+                'stream': stream,
+                'total_students': len(students_in_stream),
+                'total_ream_usage': total_usage,
+                'average_per_student': total_usage / len(students_in_stream) if students_in_stream else 0
+            }
+    
+        def get_ream_usage_trends(self, time_period: str = "monthly") -> dict:
+            """
+            Get ream usage trends over time.
+            
+            Args:
+                time_period: Time period for trends (daily, weekly, monthly, yearly)
+                
+            Returns:
+                Dictionary with usage trends data
+            """
+            # This would need proper implementation with date analysis
+            return {
+                'time_period': time_period,
+                'trend_data': [],
+                'overall_trend': 'stable'
+            }
+    
+        def generate_ream_usage_report(self, report_type: str, parameters: dict = None) -> dict:
+            """
+            Generate a comprehensive ream usage report.
+            
+            Args:
+                report_type: Type of report to generate
+                parameters: Optional report parameters
+                
+            Returns:
+                Dictionary containing the generated report
+            """
+            report_data = {
+                'report_type': report_type,
+                'generated_on': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'parameters': parameters or {}
+            }
+            
+            if report_type == 'student_summary':
+                student_id = parameters.get('student_id')
+                if student_id:
+                    report_data['student_data'] = self.get_student_ream_summary(student_id)
+            
+            elif report_type == 'stream_summary':
+                stream = parameters.get('stream')
+                if stream:
+                    report_data['stream_data'] = self.get_stream_ream_usage(stream)
+            
+            return report_data
+    
+        def deduct_reams_from_student(self, student_id: int, reams_count: int, purpose: str = "Usage") -> ReamEntry:
+            """
+            Deduct reams from a student's account with purpose tracking.
+            
+            Args:
+                student_id: ID of the student
+                reams_count: Number of reams to deduct
+                purpose: Purpose of the deduction (Usage, Transfer, Loss, etc.)
+                
+            Returns:
+                The created ream entry
+            """
+            logger.info(f"Deducting {reams_count} reams from student {student_id} for purpose: {purpose}")
+            
+            # Use negative value to represent deduction
+            ream_entry = ReamEntry(
+                student_id=student_id,
+                reams_count=-reams_count,
+                date_added=datetime.now().strftime('%Y-%m-%d')
+            )
+            
+            ream_entry_repository = ReamEntryRepository()
+            created_entry = ream_entry_repository.create(ream_entry)
+            
+            logger.info(f"Successfully deducted {reams_count} reams from student {student_id}")
+            return created_entry
+    
+        def transfer_reams_between_students(self, from_student_id: int, to_student_id: int, reams_count: int, reason: str = "") -> bool:
+            """
+            Transfer reams between two students with reason tracking.
+            
+            Args:
+                from_student_id: ID of the student sending reams
+                to_student_id: ID of the student receiving reams
+                reams_count: Number of reams to transfer
+                reason: Reason for the transfer
+                
+            Returns:
+                True if transfer was successful, False otherwise
+            """
+            logger.info(f"Transferring {reams_count} reams from student {from_student_id} to student {to_student_id}")
+            
+            try:
+                # Deduct from source student
+                self.deduct_reams_from_student(from_student_id, reams_count, f"Transfer to {to_student_id}")
+                
+                # Add to destination student
+                self.add_reams_to_student(to_student_id, reams_count, f"Transfer from {from_student_id}")
+                
+                logger.info(f"Successfully transferred {reams_count} reams from student {from_student_id} to student {to_student_id}")
+                return True
+            except Exception as e:
+                logger.error(f"Error transferring reams: {e}")
+                return False
+    
+        def adjust_student_ream_balance(self, student_id: int, adjustment: int, reason: str) -> ReamEntry:
+            """
+            Adjust student ream balance with reason tracking.
+            
+            Args:
+                student_id: ID of the student
+                adjustment: Positive or negative adjustment amount
+                reason: Reason for the adjustment
+                
+            Returns:
+                The created ream entry
+            """
+            logger.info(f"Adjusting student {student_id} ream balance by {adjustment} for reason: {reason}")
+            
+            ream_entry = ReamEntry(
+                student_id=student_id,
+                reams_count=adjustment,
+                date_added=datetime.now().strftime('%Y-%m-%d')
+            )
+            
+            ream_entry_repository = ReamEntryRepository()
+            created_entry = ream_entry_repository.create(ream_entry)
+            
+            logger.info(f"Successfully adjusted student {student_id} ream balance by {adjustment}")
+            return created_entry
