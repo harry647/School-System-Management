@@ -1,15 +1,13 @@
 # main.py
 
 import logging
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, simpledialog
 import hashlib
 import os
 import json
 import sys
 import subprocess
 from datetime import datetime, timedelta, date
-from db_manager import DatabaseManager  
+from db_manager import DatabaseManager
 from gui_manager import GUIManager
 from library_logic import LibraryLogic
 from QRcode_Reader import QRCodeScannerGUI
@@ -21,6 +19,7 @@ import openpyxl
 import tempfile
 import threading
 import winsound
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 # Configure logging to a user-writable directory
 
@@ -116,8 +115,8 @@ class StartupWindow:
                 self.root.destroy()
 
 class LibraryManagementSystem:
-    def __init__(self, root, conn):
-        self.root = root
+    def __init__(self, main_window, conn):
+        self.main_window = main_window
         self.connection = conn  # Store the connection
         self.current_user = None
         self.logger = logging.getLogger('LibraryManagementSystem')
@@ -129,10 +128,8 @@ class LibraryManagementSystem:
             raise RuntimeError("Database connection is required")
 
         def start_main_app(conn):
-            self.root.deiconify()
-            self.root.title("HarLuFran InnoFlux SMS")
-            self.root.geometry("800x600")
-            self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+            self.main_window.setWindowTitle("HarLuFran InnoFlux SMS")
+            self.main_window.resize(800, 600)
             self.backup_timer = None
             self.dashboard_frame = None
             self.reminder_after_id = None
@@ -140,7 +137,7 @@ class LibraryManagementSystem:
 
             self.db_manager = DatabaseManager(self.connection)  # Pass the connection
             self.logic = LibraryLogic(self.db_manager)
-            self.gui = GUIManager(root, self)
+            self.gui = GUIManager(self.main_window, self)
             self.password = self.db_manager.load_password() or self._initialize_password()
             self.gui.login_frame = self.gui.create_login_window()
             self.logger.info("Login window launched successfully")
@@ -152,15 +149,27 @@ class LibraryManagementSystem:
             self.logger.info("Renewal key loaded successfully")
         except FileNotFoundError as fnf_err:
             self.logger.error(f"Renewal file not found: {fnf_err}")
-            messagebox.showerror("File Error", f"Renewal file not found: {fnf_err}")
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+            msg_box.setWindowTitle("File Error")
+            msg_box.setText(f"Renewal file not found: {fnf_err}")
+            msg_box.exec()
             self.renewal_key = None
         except json.JSONDecodeError as json_err:
             self.logger.error(f"Invalid JSON in renewal file: {json_err}")
-            messagebox.showerror("File Error", f"Invalid JSON in renewal file: {json_err}")
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+            msg_box.setWindowTitle("File Error")
+            msg_box.setText(f"Invalid JSON in renewal file: {json_err}")
+            msg_box.exec()
             self.renewal_key = None
         except Exception as e:
             self.logger.critical(f"Initialization failed: {e}")
-            messagebox.showerror("Initialization Error", f"Failed to initialize application: {e}")
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+            msg_box.setWindowTitle("Initialization Error")
+            msg_box.setText(f"Failed to initialize application: {e}")
+            msg_box.exec()
             raise
 
         try:
@@ -170,7 +179,11 @@ class LibraryManagementSystem:
             start_main_app(self.connection)
         except (FileNotFoundError, ValueError) as lic_err:
             self.logger.error(f"License check failed: {lic_err}")
-            messagebox.showerror("License Error", f"Failed to check license: {lic_err}")
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+            msg_box.setWindowTitle("License Error")
+            msg_box.setText(f"Failed to check license: {lic_err}")
+            msg_box.exec()
             raise
 
         
@@ -1301,21 +1314,32 @@ class LibraryManagementSystem:
     
 
 def main():
-    root = tk.Tk()
-    root.withdraw()  
-    conn = initialize_database()  
+    # Create QApplication instance first
+    qt_app = QApplication([])
+    
+    conn = initialize_database()
     if not conn or isinstance(conn, bool):
         logging.error("Failed to initialize database, exiting")
-        messagebox.showerror("Startup Error", "Failed to initialize database. Check logs.")
-        root.destroy()
+        # Use PyQt message box instead of tkinter
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Icon.Critical)
+        msg_box.setWindowTitle("Startup Error")
+        msg_box.setText("Failed to initialize database. Check logs.")
+        msg_box.exec()
         return
     try:
-        app = LibraryManagementSystem(root, conn)
-        root.mainloop()
+        # Create a PyQt main window instead of Tkinter
+        main_window = QMainWindow()
+        app = LibraryManagementSystem(main_window, conn)
+        main_window.show()
+        qt_app.exec()
     except RuntimeError as e:
         logging.error(f"Application startup failed: {e}")
-        messagebox.showerror("Startup Error", str(e))
-        root.destroy()
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Icon.Critical)
+        msg_box.setWindowTitle("Startup Error")
+        msg_box.setText(str(e))
+        msg_box.exec()
 
 if __name__ == "__main__":
     main()

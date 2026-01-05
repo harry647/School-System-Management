@@ -13,3 +13,4 @@ sounddevice
 schedule
 boto3
 pyMuPDF
+PyQt6
