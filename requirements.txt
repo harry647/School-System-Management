@@ -7,8 +7,9 @@ reportlab>=3.6.0
 pdf2image>=1.16.0
 cryptography>=38.0.0
 pyserial>=3.5
-pyinstaller==6.11.1
+pyinstaller
 SpeechRecognition
-PyAudio
+sounddevice
 schedule
 boto3
+pyMuPDF

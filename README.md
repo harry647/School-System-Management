@@ -1,5 +1,4 @@
-```markdown
-"School-System-Management" 
+# School-System-Management
 
 A Python-based application for managing school operations, including student records, library resources, and administrative tasks. Features include a graphical user interface (GUI), QR code scanning for data entry, and a database for persistent storage.
 
@@ -40,96 +39,147 @@ Follow these steps to set up the School System Management application on your lo
 
 2. **Set up a virtual environment**:
    - Create a virtual environment to isolate dependencies (recommended):
-. windows
-   '''bash
+   ```bash
    python -m venv venv
-  - Activate the virtual environment
-    '''bash
-    venv\Scripts\activate
-. On macOS/Linux:
-'''bash
-  source venv/bin/activate
+   ```
+   - Activate the virtual environment
+   ```bash
+   venv\Scripts\activate
+   ```
+   On macOS/Linux:
+   ```bash
+   source venv/bin/activate
+   ```
 
-3. **Install dependencies**: Install the required Python packages listed in requirements.txt:
-'''bash
+3. **Install dependencies**: 
+   Install the required Python packages listed in requirements.txt:
+   ```bash
    pip install -r requirements.txt
+   ```
    
-- Verify installation: Ensure all dependencies are installed correctly by checking the Python environment:
-- If no errors occur, the core libraries are installed. If errors arise, reinstall the dependencies or consult requirements.txt for specific versions.
+   **Note**: If you encounter issues with the `fitz` package, make sure to install PyMuPDF instead:
+   ```bash
+   pip uninstall fitz -y
+   pip install PyMuPDF
+   ```
 
-4. **Prepare for configuration** : The application requires a configuration file and database, which are not included in the repository for security reasons. Proceed to the section to set these up.
+4. **Prepare for configuration**: The application requires configuration files, which are not included in the repository for security reasons. Proceed to the Configuration section below.
 
-**Configuration**
-1. Sensitive files (e.g., config.json, database) are not included in the repository. You must create and configure them manually.
+## Configuration
+The application requires specific configuration files that are not included in the repository for security reasons. Follow these steps to set up the necessary files:
 
-2. Create a config.json file in the project root (School-System-Management/).
- - Use a template provided below:
-{
-  "database_config": {
-    "database": "school_database.db"
-  },
-}
+1. **Copy example configuration files**:
+   ```bash
+   cp renewal.json.example renewal.json
+   cp licence.json.example licence.json
+   ```
+
+2. **Configure renewal.json**:
+   Edit `renewal.json` and replace `YOUR_RENEWAL_KEY_HERE` with your actual renewal key:
+   ```json
+   {
+       "renewal_key": "YOUR_ACTUAL_RENEWAL_KEY"
+   }
+   ```
+
+3. **Configure licence.json**:
+   Edit `licence.json` and set the expiration date in YYYY-MM-DD format:
+   ```json
+   {
+       "expiration_date": "2025-12-31"
+   }
+   ```
+
+4. **Default Login Credentials**:
+   - Default Password: `harry123`
+   - You can change this after first login by creating a new user account
+
+**Note**: The database will be created automatically when you first run the application.
 
 ## Usage
 
 1. **Activate the virtual environment (if not already active)**:
-On Windows:
-'''bash
-  venv\Scripts\activate
+   On Windows:
+   ```bash
+   venv\Scripts\activate
+   ```
+   
+   On macOS/Linux:
+   ```bash
+   source venv/bin/activate
+   ```
 
-On macOS/Linux:
-'''bash
-source venv/bin/activate
-
-2.**Run the application**:
-'''bash
- python main.py
+2. **Run the application**:
+   ```bash
+   python main.py
+   ```
 
 3. **Use the GUI to**:
-- Add or update student records.
-- Manage library books and borrowing.
-- Deal with resource management
-- Scan QR codes for attendance or resource tracking.
-- Generate reports or view data.
-- Refer to help.txt for detailed instructions, shortcuts, or troubleshooting tips.
+   - Add or update student records.
+   - Manage library books and borrowing.
+   - Deal with resource management
+   - Scan QR codes for attendance or resource tracking.
+   - Generate reports or view data.
+   - Refer to help.txt for detailed instructions, shortcuts, or troubleshooting tips.
 
 ## Project Structure
+```
 School-System-Management/
-- ├── QRcode_Reader.py        # Handles QR code scanning
-- ├── db_manager.py           # Manages database operations
-- ├── db_utils.py             # Database utility functions
-- ├── gui_manager.py          # Manages the graphical interface
-- ├── library_logic.py        # Library system logic
-- ├── main.py                 # Application entry point
-- ├── setup_school.py         # Initializes the database
-- ├── requirements.txt        # Python dependencies
-- ├── README.md               # Project documentation
-- ├── .gitignore              # Git ignore rules
-- ├── help.txt                # User guide
-- ├── school_icon.ico         # Application icon
-  
-  **Note**: Sensitive files like config.json and the database (school_database.db) are not included. Create them as described above
+├── QRcode_Reader.py         # Handles QR code scanning
+├── db_manager.py            # Manages database operations
+├── db_utils.py              # Database utility functions
+├── gui_manager.py           # Manages the graphical interface
+├── library_logic.py         # Library system logic
+├── main.py                  # Application entry point
+├── setup_school.py          # Initializes the database
+├── requirements.txt         # Python dependencies
+├── README.md                # Project documentation
+├── renewal.json.example     # Example renewal configuration
+├── licence.json.example     # Example license configuration
+├── .gitignore               # Git ignore rules
+├── help.txt                 # User guide
+├── school_icon.ico          # Application icon
+```
+
+**Note**: Configuration files (`renewal.json`, `licence.json`) and the database are not included in the repository. Create them as described in the Configuration section above.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **ModuleNotFoundError: No module named 'frontend'**
+   - This occurs when the wrong `fitz` package is installed
+   - Solution: `pip uninstall fitz -y && pip install PyMuPDF`
+
+2. **Missing renewal.json or licence.json files**
+   - Copy from example files: `cp renewal.json.example renewal.json`
+   - Copy from example files: `cp licence.json.example licence.json`
+
+3. **Database connection issues**
+   - The database is created automatically on first run
+   - Ensure you have write permissions in the application directory
 
 ## Contributing
 Contributions are welcome! To contribute:
 
 1. Fork the repository.
 2. **Create a feature branch**:
-''' bash
- git checkout -b feature/your-feature
+   ```bash
+   git checkout -b feature/your-feature
+   ```
 
 3. **Commit your changes**:
-'''bash
-git commit -m "Add your feature"
+   ```bash
+   git commit -m "Add your feature"
+   ```
 
 4. **Push to your branch**:
-'''bash
-git push origin feature/your-feature
+   ```bash
+   git push origin feature/your-feature
+   ```
 
 5. **Open a pull request on GitHub**.
-- Please include tests and follow the project’s coding style.
+   - Please include tests and follow the project's coding style.
 
 ## License
 This project is licensed under the MIT License (pending addition of a LICENSE file). See the repository for details.
-
-

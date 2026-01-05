@@ -274,7 +274,7 @@ if __name__ == "__main__":
         "cryptography.hazmat.primitives.kdf.pbkdf2",
         "pyserial",
         "speech_recognition",
-        "pyaudio",
+        "sounddevice",
         "schedule",
         "boto3",
         "tkinter",
