@@ -458,11 +458,12 @@ class ModernProgressBar(QProgressBar):
         """)
 
 class ModernScrollArea(QScrollArea):
-    """Modern scroll area with custom styling"""
+    """Modern scroll area with custom styling and enhanced functionality"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_styling()
+        self.setup_scroll_behavior()
     
     def setup_styling(self):
         """Setup scroll area styling"""
@@ -510,6 +511,66 @@ class ModernScrollArea(QScrollArea):
                 width: 0px;
             }}
         """)
+    
+    def setup_scroll_behavior(self):
+        """Setup enhanced scroll behavior"""
+        # Enable smooth scrolling
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setWidgetResizable(True)
+        
+        # Install event filter for mouse wheel scrolling
+        self.installEventFilter(self)
+    
+    def eventFilter(self, obj, event):
+        """Handle mouse wheel events for smooth scrolling"""
+        if event.type() == event.Type.Wheel and obj is self:
+            # Get the current scroll position
+            current_pos = self.verticalScrollBar().value()
+            
+            # Calculate new position based on wheel delta
+            # Use a factor for smoother scrolling
+            delta = event.angleDelta().y()
+            new_pos = current_pos - delta
+            
+            # Apply smooth scrolling animation
+            scroll_animation = QPropertyAnimation(self.verticalScrollBar(), b"value")
+            scroll_animation.setDuration(200)  # 200ms animation
+            scroll_animation.setStartValue(current_pos)
+            scroll_animation.setEndValue(new_pos)
+            scroll_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
+            scroll_animation.start()
+            
+            return True
+        
+        return super().eventFilter(obj, event)
+    
+    def update_scrollbar_visibility(self):
+        """Update scrollbar visibility based on content size"""
+        if self.widget():
+            # Check if vertical scrollbar is needed
+            vertical_needed = self.widget().height() > self.height()
+            self.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded if vertical_needed
+                else Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+            )
+            
+            # Check if horizontal scrollbar is needed
+            horizontal_needed = self.widget().width() > self.width()
+            self.setHorizontalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded if horizontal_needed
+                else Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+            )
+    
+    def resizeEvent(self, event):
+        """Handle resize events to update scrollbar visibility"""
+        super().resizeEvent(event)
+        self.update_scrollbar_visibility()
+    
+    def showEvent(self, event):
+        """Handle show events to update scrollbar visibility"""
+        super().showEvent(event)
+        self.update_scrollbar_visibility()
 
 class Tooltip:
     """Modern tooltip widget"""
@@ -764,9 +825,24 @@ class GUIManager:
         content_layout.addWidget(self.content_area)
     
     def create_main_content(self):
-        """Create main content area"""
-        self.content_layout = QVBoxLayout(self.content_area)
+        """Create main content area with scrollable functionality"""
+        # Create a scroll area for the main content
+        self.scroll_area = ModernScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        
+        # Create the content widget that will be scrolled
+        self.content_widget = QWidget()
+        self.content_layout = QVBoxLayout(self.content_widget)
         self.content_layout.setContentsMargins(30, 30, 30, 30)
+        self.content_layout.setSpacing(20)
+        
+        # Set the content widget to the scroll area
+        self.scroll_area.setWidget(self.content_widget)
+        
+        # Create a layout for the content area and add the scroll area
+        content_area_layout = QVBoxLayout(self.content_area)
+        content_area_layout.setContentsMargins(0, 0, 0, 0)
+        content_area_layout.addWidget(self.scroll_area)
         
         # Show dashboard by default
         self.show_dashboard()
@@ -868,13 +944,18 @@ class GUIManager:
     
     def clear_content(self):
         """Clear main content area"""
+        # Clear the content widget layout
         for i in reversed(range(self.content_layout.count())):
             child = self.content_layout.itemAt(i).widget()
             if child:
                 child.setParent(None)
+        
+        # Reset scroll position to top
+        if self.scroll_area.verticalScrollBar():
+            self.scroll_area.verticalScrollBar().setValue(0)
     
     def show_dashboard(self):
-        """Show modern dashboard"""
+        """Show modern dashboard with scrollable content"""
         self.clear_content()
         
         # Dashboard title
@@ -939,7 +1020,11 @@ class GUIManager:
         actions_frame.layout().addWidget(actions_content)
         self.content_layout.addWidget(actions_frame)
         
+        # Add stretch to ensure proper scrolling behavior
         self.content_layout.addStretch()
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     def create_stat_card(self, title, value, color):
         """Create a modern statistics card"""
@@ -1030,7 +1115,7 @@ class GUIManager:
         return activity_widget
     
     def show_library(self):
-        """Show library management interface"""
+        """Show library management interface with scrollable content"""
         self.clear_content()
         
         # Title
@@ -1083,7 +1168,7 @@ class GUIManager:
         
         books_layout.addWidget(search_frame)
         
-        # Books table
+        # Books table with scrollable area
         books_table = ModernTableWidget()
         books_table.setColumnCount(6)
         books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Author", "Category", "Status", "Actions"])
@@ -1175,9 +1260,12 @@ class GUIManager:
         tab_widget.addTab(reports_tab, "📊 Reports")
         
         self.content_layout.addWidget(tab_widget)
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     def show_students(self):
-        """Show student management interface"""
+        """Show student management interface with scrollable content"""
         self.clear_content()
         
         # Title
@@ -1257,9 +1345,12 @@ class GUIManager:
         
         students_table.resizeColumnsToContents()
         self.content_layout.addWidget(students_table)
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     def show_teachers(self):
-        """Show teacher management interface"""
+        """Show teacher management interface with scrollable content"""
         self.clear_content()
         
         # Title
@@ -1340,9 +1431,12 @@ class GUIManager:
         
         teachers_table.resizeColumnsToContents()
         self.content_layout.addWidget(teachers_table)
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     def show_furniture(self):
-        """Show furniture management interface"""
+        """Show furniture management interface with scrollable content"""
         self.clear_content()
         
         # Title
@@ -1470,9 +1564,12 @@ class GUIManager:
         tab_widget.addTab(chairs_tab, "🪑 Chairs")
         
         self.content_layout.addWidget(tab_widget)
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     def show_reports(self):
-        """Show reports interface"""
+        """Show reports interface with scrollable content"""
         self.clear_content()
         
         # Title
@@ -1509,6 +1606,9 @@ class GUIManager:
         reports_content = QWidget()
         reports_content.setLayout(reports_grid)
         self.content_layout.addWidget(reports_content)
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     def create_report_card(self, title, description, callback):
         """Create a modern report card"""
@@ -1574,7 +1674,7 @@ class GUIManager:
         return card
     
     def show_settings(self):
-        """Show settings interface"""
+        """Show settings interface with scrollable content"""
         self.clear_content()
         
         # Title
@@ -1699,6 +1799,9 @@ class GUIManager:
         save_btn.setMaximumWidth(200)
         self.content_layout.addWidget(save_btn)
         self.content_layout.addStretch()
+        
+        # Update scrollbar visibility
+        self.scroll_area.update_scrollbar_visibility()
     
     # Quick action methods
     def quick_borrow_book(self):
