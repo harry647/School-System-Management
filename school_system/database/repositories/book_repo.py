@@ -90,6 +90,72 @@ class BorrowedBookStudentRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(BorrowedBookStudent)
+    
+    def get_borrowed_books_by_student(self, student_id: str) -> List[BorrowedBookStudent]:
+        """Get all books currently borrowed by a student."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_student
+                WHERE student_id = ? AND returned_on IS NULL
+            """, (student_id,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving borrowed books for student: {e}")
+    
+    def get_returned_books_by_student(self, student_id: str) -> List[BorrowedBookStudent]:
+        """Get all books returned by a student."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_student
+                WHERE student_id = ? AND returned_on IS NOT NULL
+            """, (student_id,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving returned books for student: {e}")
+    
+    def get_overdue_books(self, days_overdue: int = 14) -> List[BorrowedBookStudent]:
+        """Get all overdue books (not returned after the due date)."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_student
+                WHERE returned_on IS NULL
+                AND borrowed_on < DATE('now', ?)
+            """, (f'-{days_overdue} days',))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving overdue books: {e}")
+    
+    def return_book(self, student_id: str, book_id: int, return_condition: str = "Good",
+                   fine_amount: float = 0, returned_by: str = None) -> bool:
+        """Mark a book as returned by a student."""
+        try:
+            from datetime import date
+            cursor = self.db.cursor()
+            
+            # Update the borrow record
+            cursor.execute("""
+                UPDATE borrowed_books_student
+                SET returned_on = ?, return_condition = ?, fine_amount = ?, returned_by = ?
+                WHERE student_id = ? AND book_id = ? AND returned_on IS NULL
+            """, (date.today(), return_condition, fine_amount, returned_by, student_id, book_id))
+            
+            if cursor.rowcount == 0:
+                return False  # No book was updated (already returned or doesn't exist)
+            
+            # Mark the book as available
+            cursor.execute("UPDATE books SET available = 1 WHERE id = ?", (book_id,))
+            
+            self.db.commit()
+            return True
+        except Exception as e:
+            self.db.rollback()
+            raise DatabaseException(f"Error returning book: {e}")
 
 
 class BorrowedBookTeacherRepository(BaseRepository):
@@ -97,6 +163,57 @@ class BorrowedBookTeacherRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(BorrowedBookTeacher)
+    
+    def get_borrowed_books_by_teacher(self, teacher_id: str) -> List[BorrowedBookTeacher]:
+        """Get all books currently borrowed by a teacher."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_teacher
+                WHERE teacher_id = ? AND returned_on IS NULL
+            """, (teacher_id,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving borrowed books for teacher: {e}")
+    
+    def get_returned_books_by_teacher(self, teacher_id: str) -> List[BorrowedBookTeacher]:
+        """Get all books returned by a teacher."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_teacher
+                WHERE teacher_id = ? AND returned_on IS NOT NULL
+            """, (teacher_id,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving returned books for teacher: {e}")
+    
+    def return_book(self, teacher_id: str, book_id: int) -> bool:
+        """Mark a book as returned by a teacher."""
+        try:
+            from datetime import date
+            cursor = self.db.cursor()
+            
+            # Update the borrow record
+            cursor.execute("""
+                UPDATE borrowed_books_teacher
+                SET returned_on = ?
+                WHERE teacher_id = ? AND book_id = ? AND returned_on IS NULL
+            """, (date.today(), teacher_id, book_id))
+            
+            if cursor.rowcount == 0:
+                return False  # No book was updated (already returned or doesn't exist)
+            
+            # Mark the book as available
+            cursor.execute("UPDATE books SET available = 1 WHERE id = ?", (book_id,))
+            
+            self.db.commit()
+            return True
+        except Exception as e:
+            self.db.rollback()
+            raise DatabaseException(f"Error returning book: {e}")
 
 
 class QRBookRepository(BaseRepository):

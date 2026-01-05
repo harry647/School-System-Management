@@ -57,47 +57,106 @@ class BookTag(BaseModel):
 class BorrowedBookStudent(BaseModel):
     __tablename__ = 'borrowed_books_student'
     __pk__ = "student_id"
-    def __init__(self, student_id, book_id, borrowed_on, reminder_days=None):
+    def __init__(self, student_id, book_id, borrowed_on, reminder_days=None,
+                 returned_on=None, return_condition=None, fine_amount=0, returned_by=None):
         super().__init__()
         self.student_id = student_id
         self.book_id = book_id
         self.borrowed_on = borrowed_on
         self.reminder_days = reminder_days
+        self.returned_on = returned_on
+        self.return_condition = return_condition
+        self.fine_amount = fine_amount
+        self.returned_by = returned_by
     
     def save(self):
         """Save the borrowed book record to the database."""
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on, reminder_days) VALUES (?, ?, ?, ?)",
-            (self.student_id, self.book_id, self.borrowed_on, self.reminder_days)
+            "INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on, reminder_days, returned_on, return_condition, fine_amount, returned_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (self.student_id, self.book_id, self.borrowed_on, self.reminder_days, self.returned_on, self.return_condition, self.fine_amount, self.returned_by)
         )
         db.commit()
     
     def __repr__(self):
         return f"<BorrowedBookStudent(student_id={self.student_id}, book_id={self.book_id})>"
+    
+    def return_book(self, return_condition="Good", fine_amount=0, returned_by=None):
+        """Mark this borrowed book as returned and update return information."""
+        from datetime import date
+        db = get_db_session()
+        cursor = db.cursor()
+        
+        # Update the borrow record
+        cursor.execute(
+            """UPDATE borrowed_books_student
+               SET returned_on = ?, return_condition = ?, fine_amount = ?, returned_by = ?
+               WHERE student_id = ? AND book_id = ? AND returned_on IS NULL""",
+            (date.today(), return_condition, fine_amount, returned_by, self.student_id, self.book_id)
+        )
+        
+        # Mark the book as available
+        cursor.execute(
+            "UPDATE books SET available = 1 WHERE id = ?",
+            (self.book_id,)
+        )
+        
+        db.commit()
+        
+        # Update the model instance
+        self.returned_on = date.today()
+        self.return_condition = return_condition
+        self.fine_amount = fine_amount
+        self.returned_by = returned_by
 
 class BorrowedBookTeacher(BaseModel):
     __tablename__ = 'borrowed_books_teacher'
     __pk__ = "teacher_id"
-    def __init__(self, teacher_id, book_id, borrowed_on):
+    def __init__(self, teacher_id, book_id, borrowed_on, returned_on=None):
         super().__init__()
         self.teacher_id = teacher_id
         self.book_id = book_id
         self.borrowed_on = borrowed_on
+        self.returned_on = returned_on
     
     def save(self):
         """Save the borrowed book record to the database."""
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO borrowed_books_teacher (teacher_id, book_id, borrowed_on) VALUES (?, ?, ?)",
-            (self.teacher_id, self.book_id, self.borrowed_on)
+            "INSERT INTO borrowed_books_teacher (teacher_id, book_id, borrowed_on, returned_on) VALUES (?, ?, ?, ?)",
+            (self.teacher_id, self.book_id, self.borrowed_on, self.returned_on)
         )
         db.commit()
     
     def __repr__(self):
         return f"<BorrowedBookTeacher(teacher_id={self.teacher_id}, book_id={self.book_id})>"
+    
+    def return_book(self):
+        """Mark this borrowed book as returned by teacher."""
+        from datetime import date
+        db = get_db_session()
+        cursor = db.cursor()
+        
+        # Update the borrow record
+        cursor.execute(
+            """UPDATE borrowed_books_teacher
+               SET returned_on = ?
+               WHERE teacher_id = ? AND book_id = ? AND returned_on IS NULL""",
+            (date.today(), self.teacher_id, self.book_id)
+        )
+        
+        # Mark the book as available
+        cursor.execute(
+            "UPDATE books SET available = 1 WHERE id = ?",
+            (self.book_id,)
+        )
+        
+        db.commit()
+        
+        # Update the model instance
+        self.returned_on = date.today()
 
 class QRBook(BaseModel):
     __tablename__ = 'qr_books'

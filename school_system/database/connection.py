@@ -176,6 +176,10 @@ def initialize_database():
                 book_id INTEGER,
                 borrowed_on DATE,
                 reminder_days INTEGER DEFAULT NULL,
+                returned_on DATE DEFAULT NULL,
+                return_condition TEXT DEFAULT NULL,
+                fine_amount REAL DEFAULT 0,
+                returned_by TEXT DEFAULT NULL,
                 PRIMARY KEY (student_id, book_id, borrowed_on),
                 FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
                 FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
@@ -203,6 +207,7 @@ def initialize_database():
                 teacher_id TEXT,
                 book_id INTEGER,
                 borrowed_on DATE,
+                returned_on DATE DEFAULT NULL,
                 PRIMARY KEY (teacher_id, book_id, borrowed_on),
                 FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id) ON DELETE CASCADE,
                 FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE

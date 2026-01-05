@@ -889,54 +889,51 @@ class BookService:
             logger.error(f"Error getting books by teacher: {e}")
             return []
 
-    def return_book_student(self, student_id: int, book_id: int) -> bool:
+    def return_book_student(self, student_id: str, book_id: int,
+                          return_condition: str = "Good",
+                          fine_amount: float = 0,
+                          returned_by: str = None) -> bool:
         """
-        Handle book return process for students
+        Handle book return process for students with enhanced tracking
         
         Args:
             student_id: ID of the student returning the book
             book_id: ID of the book being returned
+            return_condition: Condition of the returned book (Good/Torn/Lost)
+            fine_amount: Fine amount to be charged
+            returned_by: Librarian username processing the return
             
         Returns:
             True if return was successful, False otherwise
         """
-        logger.info(f"Returning book {book_id} by student {student_id}")
+        logger.info(f"Returning book {book_id} by student {student_id} with condition: {return_condition}")
         
         try:
             borrowed_book_repo = BorrowedBookStudentRepository()
             
-            # Find the specific borrowing record
-            borrowings = borrowed_book_repo.find_by_field('student_id', student_id)
-            borrowing_to_delete = None
+            # Use the new return_book method from repository
+            success = borrowed_book_repo.return_book(
+                student_id,
+                book_id,
+                return_condition,
+                fine_amount,
+                returned_by
+            )
             
-            for borrowing in borrowings:
-                if borrowing.book_id == book_id:
-                    borrowing_to_delete = borrowing
-                    break
-            
-            if borrowing_to_delete:
-                # Delete the borrowing record
-                borrowed_book_repo.delete(borrowing_to_delete.student_id)
-                
-                # Mark the book as available
-                book = self.book_repository.get_by_id(book_id)
-                if book:
-                    book.available = 1
-                    self.book_repository.update(book)
-                
-                logger.info(f"Book {book_id} returned successfully by student {student_id}")
+            if success:
+                logger.info(f"Book {book_id} returned successfully by student {student_id} with fine: {fine_amount}")
                 return True
             else:
-                logger.warning(f"No borrowing record found for student {student_id} and book {book_id}")
+                logger.warning(f"No active borrowing record found for student {student_id} and book {book_id}")
                 return False
                 
         except Exception as e:
             logger.error(f"Error returning book by student: {e}")
             return False
 
-    def return_book_teacher(self, teacher_id: int, book_id: int) -> bool:
+    def return_book_teacher(self, teacher_id: str, book_id: int) -> bool:
         """
-        Handle book return process for teachers
+        Handle book return process for teachers with enhanced tracking
         
         Args:
             teacher_id: ID of the teacher returning the book
@@ -950,29 +947,14 @@ class BookService:
         try:
             borrowed_book_repo = BorrowedBookTeacherRepository()
             
-            # Find the specific borrowing record
-            borrowings = borrowed_book_repo.find_by_field('teacher_id', teacher_id)
-            borrowing_to_delete = None
+            # Use the new return_book method from repository
+            success = borrowed_book_repo.return_book(teacher_id, book_id)
             
-            for borrowing in borrowings:
-                if borrowing.book_id == book_id:
-                    borrowing_to_delete = borrowing
-                    break
-            
-            if borrowing_to_delete:
-                # Delete the borrowing record
-                borrowed_book_repo.delete(borrowing_to_delete.teacher_id)
-                
-                # Mark the book as available
-                book = self.book_repository.get_by_id(book_id)
-                if book:
-                    book.available = 1
-                    self.book_repository.update(book)
-                
+            if success:
                 logger.info(f"Book {book_id} returned successfully by teacher {teacher_id}")
                 return True
             else:
-                logger.warning(f"No borrowing record found for teacher {teacher_id} and book {book_id}")
+                logger.warning(f"No active borrowing record found for teacher {teacher_id} and book {book_id}")
                 return False
                 
         except Exception as e:
@@ -982,11 +964,11 @@ class BookService:
     def get_borrowing_history(self, user_id: int, user_type: str) -> List[Union[BorrowedBookStudent, BorrowedBookTeacher]]:
         """
         Get complete borrowing history for a user (student or teacher)
-        
+         
         Args:
             user_id: ID of the user
             user_type: 'student' or 'teacher'
-            
+             
         Returns:
             List of all borrowing records for the user
         """
@@ -1002,7 +984,99 @@ class BookService:
             else:
                 logger.warning(f"Invalid user type: {user_type}")
                 return []
-                
+                 
         except Exception as e:
             logger.error(f"Error getting borrowing history: {e}")
+            return []
+    
+    def get_currently_borrowed_books_student(self, student_id: str) -> List[BorrowedBookStudent]:
+        """
+        Get books currently borrowed by a student (not yet returned)
+        
+        Args:
+            student_id: ID of the student
+            
+        Returns:
+            List of currently borrowed books
+        """
+        logger.info(f"Getting currently borrowed books for student {student_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookStudentRepository()
+            return borrowed_book_repo.get_borrowed_books_by_student(student_id)
+        except Exception as e:
+            logger.error(f"Error getting currently borrowed books for student: {e}")
+            return []
+    
+    def get_returned_books_student(self, student_id: str) -> List[BorrowedBookStudent]:
+        """
+        Get books already returned by a student
+        
+        Args:
+            student_id: ID of the student
+            
+        Returns:
+            List of returned books with return details
+        """
+        logger.info(f"Getting returned books for student {student_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookStudentRepository()
+            return borrowed_book_repo.get_returned_books_by_student(student_id)
+        except Exception as e:
+            logger.error(f"Error getting returned books for student: {e}")
+            return []
+    
+    def get_currently_borrowed_books_teacher(self, teacher_id: str) -> List[BorrowedBookTeacher]:
+        """
+        Get books currently borrowed by a teacher (not yet returned)
+        
+        Args:
+            teacher_id: ID of the teacher
+            
+        Returns:
+            List of currently borrowed books
+        """
+        logger.info(f"Getting currently borrowed books for teacher {teacher_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookTeacherRepository()
+            return borrowed_book_repo.get_borrowed_books_by_teacher(teacher_id)
+        except Exception as e:
+            logger.error(f"Error getting currently borrowed books for teacher: {e}")
+            return []
+    
+    def get_returned_books_teacher(self, teacher_id: str) -> List[BorrowedBookTeacher]:
+        """
+        Get books already returned by a teacher
+        
+        Args:
+            teacher_id: ID of the teacher
+            
+        Returns:
+            List of returned books with return details
+        """
+        logger.info(f"Getting returned books for teacher {teacher_id}")
+        
+        try:
+            borrowed_book_repo = BorrowedBookTeacherRepository()
+            return borrowed_book_repo.get_returned_books_by_teacher(teacher_id)
+        except Exception as e:
+            logger.error(f"Error getting returned books for teacher: {e}")
+            return []
+    
+    def get_all_overdue_books(self) -> List[BorrowedBookStudent]:
+        """
+        Get all overdue books (not returned after 14 days)
+        
+        Returns:
+            List of overdue borrowed book records
+        """
+        logger.info("Getting all overdue books")
+        
+        try:
+            borrowed_book_repo = BorrowedBookStudentRepository()
+            return borrowed_book_repo.get_overdue_books()
+        except Exception as e:
+            logger.error(f"Error getting overdue books: {e}")
             return []

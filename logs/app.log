@@ -128,3 +128,12 @@
 2026-01-05 21:11:32,114 - school_system - INFO - Getting books borrowed by student 123
 2026-01-05 21:11:32,115 - school_system - INFO - Getting books borrowed by teacher 456
 2026-01-05 21:11:32,115 - school_system - INFO - Getting borrowing history for student 123
+2026-01-05 21:51:21,830 - school_system - INFO - Starting borrowed books tables migration...
+2026-01-05 21:51:21,832 - school_system - INFO - Migrating borrowed_books_student table...
+2026-01-05 21:51:21,894 - school_system - INFO - Added returned_on column to borrowed_books_student table
+2026-01-05 21:51:21,950 - school_system - INFO - Added return_condition column to borrowed_books_student table
+2026-01-05 21:51:22,006 - school_system - INFO - Added fine_amount column to borrowed_books_student table
+2026-01-05 21:51:22,060 - school_system - INFO - Added returned_by column to borrowed_books_student table
+2026-01-05 21:51:22,060 - school_system - INFO - Migrating borrowed_books_teacher table...
+2026-01-05 21:51:22,116 - school_system - INFO - Added returned_on column to borrowed_books_teacher table
+2026-01-05 21:51:22,116 - school_system - INFO - Borrowed books tables migration completed successfully
