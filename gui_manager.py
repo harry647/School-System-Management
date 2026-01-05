@@ -67,6 +67,64 @@ class ModernColors:
     GRADIENT_SECONDARY = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f093fb, stop:1 #f5576c)"
     GRADIENT_SUCCESS = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #4facfe, stop:1 #00f2fe)"
 
+class ModernLineEdit(QLineEdit):
+    """Fixed line edit with visible text"""
+    
+    def __init__(self, placeholder="", parent=None):
+        super().__init__(parent)
+        self.placeholder = placeholder
+        
+        # Set placeholder text
+        self.setPlaceholderText(placeholder)
+        
+        # Set palette explicitly to ensure text visibility
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Text, QColor("#000000"))
+        palette.setColor(QPalette.ColorRole.Base, QColor("#ffffff"))
+        palette.setColor(QPalette.ColorRole.Window, QColor("#ffffff"))
+        palette.setColor(QPalette.ColorRole.Window, QColor("#ffffff"))
+        palette.setColor(QPalette.ColorRole.Button, QColor("#ffffff"))
+        palette.setColor(QPalette.ColorRole.ButtonText, QColor("#000000"))
+        self.setPalette(palette)
+        
+        # Ensure background is filled and opaque
+        self.setAutoFillBackground(True)
+        
+        # Use minimal styling to ensure text visibility
+        self.setStyleSheet("""
+            QLineEdit {
+                padding: 12px 16px;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                background-color: #ffffff;
+                color: #000000;
+                font-size: 14px;
+                selection-background-color: #667eea;
+                selection-color: #ffffff;
+            }
+            QLineEdit:focus {
+                border-color: #667eea;
+                background-color: #ffffff;
+            }
+            QLineEdit::placeholder {
+                color: #718096;
+            }
+        """)
+        
+        print(f"ModernLineEdit created with placeholder: {placeholder}")
+        print(f"Text color: #000000 (forced black)")
+        print(f"Background color: #ffffff (forced white)")
+
+
+        
+        # Force a repaint to ensure visibility
+        self.update()
+    
+    def keyPressEvent(self, event):
+        """Handle key press events"""
+        super().keyPressEvent(event)
+        print(f"Key pressed: {event.text()}, current text: {self.text()}")
+
 class ModernButton(QPushButton):
     """Modern button with hover effects and custom styling"""
     
@@ -108,11 +166,9 @@ class ModernButton(QPushButton):
                 }}
                 QPushButton:hover {{
                     background: {ModernColors.PRIMARY_DARK};
-                    transform: translateY(-2px);
                 }}
                 QPushButton:pressed {{
                     background: {ModernColors.PRIMARY_DARK};
-                    transform: translateY(0px);
                 }}
                 QPushButton:disabled {{
                     background: {ModernColors.BORDER_MEDIUM};
@@ -189,20 +245,10 @@ class ModernButton(QPushButton):
     
     def enterEvent(self, event):
         """Handle mouse enter for hover effects"""
-        if self.button_type in ["primary", "secondary", "success", "danger"]:
-            # Create shadow effect
-            self.setStyleSheet(self.styleSheet() + f"""
-                QPushButton {{
-                    box-shadow: 0 8px 25px {ModernColors.SHADOW};
-                }}
-            """)
         super().enterEvent(event)
-    
+     
     def leaveEvent(self, event):
         """Handle mouse leave"""
-        self.setStyleSheet(self.styleSheet().replace(
-            f"box-shadow: 0 8px 25px {ModernColors.SHADOW};", ""
-        ))
         super().leaveEvent(event)
 
 class ModernCard(QFrame):
@@ -260,35 +306,6 @@ class ModernCard(QFrame):
             }}
         """)
         self.setFrameShape(QFrame.Shape.NoFrame)
-
-class ModernLineEdit(QLineEdit):
-    """Modern line edit with floating label effect"""
-    
-    def __init__(self, placeholder="", parent=None):
-        super().__init__(parent)
-        self.placeholder = placeholder
-        self.setup_styling()
-    
-    def setup_styling(self):
-        """Setup line edit styling"""
-        self.setStyleSheet(f"""
-            QLineEdit {{
-                padding: 12px 16px;
-                border: 2px solid {ModernColors.BORDER_LIGHT};
-                border-radius: 8px;
-                background: {ModernColors.BACKGROUND_CARD};
-                color: {ModernColors.TEXT_PRIMARY};
-                font-size: 14px;
-                selection-background-color: {ModernColors.PRIMARY};
-            }}
-            QLineEdit:focus {{
-                border-color: {ModernColors.PRIMARY};
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }}
-            QLineEdit::placeholder {{
-                color: {ModernColors.TEXT_MUTED};
-            }}
-        """)
 
 class ModernTableWidget(QTableWidget):
     """Modern table widget with improved styling"""
@@ -1902,6 +1919,21 @@ class GUIManager:
         if file_path:
             QMessageBox.information(self.main_window, "Export", f"Data exported successfully to {file_path}")
     
+    def handle_login(self, username, password, dialog):
+        """Handle login logic"""
+        try:
+            if self.app.logic.login(username, password):
+                self.app.current_user = username
+                dialog.accept()
+                # Show the main window after successful login
+                self.main_window.show()
+                self.show_dashboard()
+            else:
+                QMessageBox.warning(self.main_window, "Login Failed", "Invalid credentials")
+        except Exception as e:
+            self.logger.error(f"Failed to login: {e}")
+            QMessageBox.critical(self.main_window, "Login Error", f"Failed to login: {str(e)}")
+    
     def show_notifications(self):
         """Show notifications dialog"""
         QMessageBox.information(self.main_window, "Notifications", "No new notifications.")
@@ -1918,6 +1950,10 @@ class GUIManager:
                 border-radius: 12px;
             }}
         """)
+        
+        # Ensure the dialog is opaque
+        dialog.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+        dialog.setWindowOpacity(1.0)
         
         layout = QVBoxLayout(dialog)
         layout.setContentsMargins(40, 40, 40, 40)
@@ -1944,12 +1980,17 @@ class GUIManager:
         
         # Form fields
         username_input = ModernLineEdit("Username")
+        username_input.setFocus()
+        username_input.setClearButtonEnabled(True)
+        
         password_input = ModernLineEdit("Password")
         password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        password_input.setClearButtonEnabled(True)
         
         # Login button
         login_btn = ModernButton("Sign In", "primary", "large")
         login_btn.setMaximumWidth(200)
+        login_btn.clicked.connect(lambda: self.handle_login(username_input.text(), password_input.text(), dialog))
         
         # Layout
         layout.addWidget(title_label)
