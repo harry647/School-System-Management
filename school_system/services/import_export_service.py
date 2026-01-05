@@ -10,6 +10,7 @@ from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import FileOperationException
 from school_system.core.utils import ValidationUtils
+from fpdf import FPDF
 
 
 class ImportExportService:
@@ -150,4 +151,65 @@ class ImportExportService:
             return data
         except Exception as e:
             print(f"Error importing from Excel: {e}")
+            return []
+
+    def export_to_pdf(self, data: List[Dict], filename: str) -> bool:
+        """
+        Export data to a PDF file.
+        
+        Args:
+            data: The data to export.
+            filename: The name of the PDF file.
+            
+        Returns:
+            True if the export was successful, otherwise False.
+        """
+        logger.info(f"Exporting data to PDF file: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+        
+        try:
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            
+            if data:
+                # Add headers
+                headers = list(data[0].keys())
+                col_width = 40
+                
+                # Add headers
+                for header in headers:
+                    pdf.cell(col_width, 10, str(header), border=1)
+                pdf.ln()
+                
+                # Add data rows
+                for row in data:
+                    for header in headers:
+                        pdf.cell(col_width, 10, str(row.get(header, '')), border=1)
+                    pdf.ln()
+            
+            pdf.output(filename)
+            logger.info(f"Data exported successfully to {filename}")
+            return True
+        except Exception as e:
+            logger.error(f"Error exporting to PDF: {e}")
+            return False
+
+    def import_from_pdf(self, filename: str) -> List[Dict]:
+        """
+        Import data from a PDF file.
+        
+        Args:
+            filename: The name of the PDF file.
+            
+        Returns:
+            The imported data as a list of dictionaries.
+        """
+        try:
+            # Note: PDF import is complex and typically requires OCR or specific formatting.
+            # This is a placeholder for a more advanced implementation.
+            logger.warning("PDF import is not fully implemented. Consider using CSV or Excel for data import.")
+            return []
+        except Exception as e:
+            logger.error(f"Error importing from PDF: {e}")
             return []

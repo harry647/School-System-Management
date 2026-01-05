@@ -898,47 +898,47 @@ class BookService:
                 cursor.execute("SELECT book_number, book_id FROM books WHERE available = 1")
                 available_books = {row[0]: row[1] for row in cursor.fetchall()}
                 
-                with open(file_path, newline="", encoding="utf-8") as f:
-                    reader = csv.DictReader(f)
-                    batch = []
+                # Use import_export_service for efficient CSV reading
+                data = self.import_export_service.import_from_csv(file_path)
+                batch = []
+                
+                for row in data:
+                    total_records += 1
                     
-                    for row in reader:
-                        total_records += 1
-                        
-                        if not row["book_number"]:
-                            continue  # Skip blanks
-                        
-                        book_number = row["book_number"]
-                        student_id = row["student_id"]
-                        
-                        # Check if book is available
-                        if book_number in available_books:
-                            book_id = available_books[book_number]
-                            batch.append((book_number, book_id, session_id, student_id))
-                            
-                            # Remove from available books to prevent duplicate assignment
-                            del available_books[book_number]
-                            
-                            if len(batch) >= batch_size:
-                                # Process batch
-                                cursor.executemany("""
-                                    UPDATE distribution_students
-                                    SET book_number = ?, book_id = ?
-                                    WHERE session_id = ? AND student_id = ?
-                                """, batch)
-                                success_count += len(batch)
-                                batch = []
-                        else:
-                            errors.append(f"Invalid book: {book_number}")
+                    if not row.get("book_number"):
+                        continue  # Skip blanks
                     
-                    # Process remaining records in the final batch
-                    if batch:
-                        cursor.executemany("""
-                            UPDATE distribution_students
-                            SET book_number = ?, book_id = ?
-                            WHERE session_id = ? AND student_id = ?
-                        """, batch)
-                        success_count += len(batch)
+                    book_number = row["book_number"]
+                    student_id = row["student_id"]
+                    
+                    # Check if book is available
+                    if book_number in available_books:
+                        book_id = available_books[book_number]
+                        batch.append((book_number, book_id, session_id, student_id))
+                        
+                        # Remove from available books to prevent duplicate assignment
+                        del available_books[book_number]
+                        
+                        if len(batch) >= batch_size:
+                            # Process batch
+                            cursor.executemany("""
+                                UPDATE distribution_students
+                                SET book_number = ?, book_id = ?
+                                WHERE session_id = ? AND student_id = ?
+                            """, batch)
+                            success_count += len(batch)
+                            batch = []
+                    else:
+                        errors.append(f"Invalid book: {book_number}")
+                
+                # Process remaining records in the final batch
+                if batch:
+                    cursor.executemany("""
+                        UPDATE distribution_students
+                        SET book_number = ?, book_id = ?
+                        WHERE session_id = ? AND student_id = ?
+                    """, batch)
+                    success_count += len(batch)
                 
                 # Log the import
                 status = "SUCCESS" if not errors else "PARTIAL"
