@@ -12,6 +12,13 @@ from typing import Optional
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.database import get_db_session
+from school_system.database.repositories import (
+    StudentRepository, TeacherRepository, BookRepository, UserRepository,
+    FurnitureRepository
+)
+from school_system.models import (
+    Student, Teacher, Book, User, Furniture
+)
 from school_system.core.exceptions import DatabaseException
 from school_system.gui.windows import LoginWindow, MainWindow
 
