@@ -6,8 +6,16 @@ from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import AuthenticationException
 from school_system.core.utils import validate_input
-from school_system.models.user import User
+from school_system.models.user import User, UserSetting, ShortFormMapping
 from school_system.database.repositories.user_repository import UserRepository
+from school_system.database.repositories.user_setting_repository import UserSettingRepository
+from school_system.database.repositories.short_form_mapping_repository import ShortFormMappingRepository
+from school_system.models.session import UserSession
+from school_system.database.repositories.session_repository import UserSessionRepository
+from school_system.models.audit_log import AuditLog
+from school_system.database.repositories.audit_log_repository import AuditLogRepository
+from school_system.models.user_activity import UserActivity
+from school_system.database.repositories.user_activity_repository import UserActivityRepository
 
 
 class AuthService:
@@ -15,6 +23,11 @@ class AuthService:
 
     def __init__(self):
         self.user_repository = UserRepository()
+        self.user_setting_repository = UserSettingRepository()
+        self.short_form_mapping_repository = ShortFormMappingRepository()
+        self.user_session_repository = UserSessionRepository()
+        self.audit_log_repository = AuditLogRepository()
+        self.user_activity_repository = UserActivityRepository()
 
     def authenticate_user(self, username: str, password: str) -> User:
         """
@@ -59,3 +72,310 @@ class AuthService:
         if not user:
             raise AuthenticationException("User does not exist")
         return user.role
+
+    def get_user_setting(self, user_id: int) -> Optional[UserSetting]:
+        """
+        Get the user setting for a specific user.
+
+        Args:
+            user_id: The ID of the user.
+
+        Returns:
+            The UserSetting object if found, otherwise None.
+        """
+        logger.info(f"Retrieving user setting for user ID: {user_id}")
+        return self.user_setting_repository.get_by_id(user_id)
+
+    def create_user_setting(self, user_id: int, reminder_frequency: str = "daily", sound_enabled: bool = True) -> UserSetting:
+        """
+        Create a new user setting.
+
+        Args:
+            user_id: The ID of the user.
+            reminder_frequency: The frequency of reminders.
+            sound_enabled: Whether sound is enabled.
+
+        Returns:
+            The created UserSetting object.
+        """
+        logger.info(f"Creating user setting for user ID: {user_id}")
+        validate_input(user_id, "User ID cannot be empty")
+        
+        user_setting = UserSetting(user_id=user_id, reminder_frequency=reminder_frequency, sound_enabled=sound_enabled)
+        created_setting = self.user_setting_repository.create(user_setting)
+        logger.info(f"User setting created successfully for user ID: {user_id}")
+        return created_setting
+
+    def update_user_setting(self, user_id: int, reminder_frequency: str = None, sound_enabled: bool = None) -> Optional[UserSetting]:
+        """
+        Update an existing user setting.
+
+        Args:
+            user_id: The ID of the user.
+            reminder_frequency: The frequency of reminders.
+            sound_enabled: Whether sound is enabled.
+
+        Returns:
+            The updated UserSetting object if successful, otherwise None.
+        """
+        logger.info(f"Updating user setting for user ID: {user_id}")
+        user_setting = self.user_setting_repository.get_by_id(user_id)
+        if not user_setting:
+            return None
+
+        if reminder_frequency:
+            user_setting.reminder_frequency = reminder_frequency
+        if sound_enabled is not None:
+            user_setting.sound_enabled = sound_enabled
+
+        updated_setting = self.user_setting_repository.update(user_setting)
+        logger.info(f"User setting updated successfully for user ID: {user_id}")
+        return updated_setting
+
+    def get_short_form_mapping(self, short_form: str) -> Optional[ShortFormMapping]:
+        """
+        Get a short form mapping by its short form.
+
+        Args:
+            short_form: The short form to look up.
+
+        Returns:
+            The ShortFormMapping object if found, otherwise None.
+        """
+        logger.info(f"Retrieving short form mapping for: {short_form}")
+        return self.short_form_mapping_repository.get_by_id(short_form)
+
+    def create_short_form_mapping(self, short_form: str, full_name: str, mapping_type: str) -> ShortFormMapping:
+        """
+        Create a new short form mapping.
+
+        Args:
+            short_form: The short form.
+            full_name: The full name.
+            mapping_type: The type of mapping.
+
+        Returns:
+            The created ShortFormMapping object.
+        """
+        logger.info(f"Creating short form mapping for: {short_form}")
+        validate_input(short_form, "Short form cannot be empty")
+        validate_input(full_name, "Full name cannot be empty")
+        validate_input(mapping_type, "Mapping type cannot be empty")
+        
+        short_form_mapping = ShortFormMapping(short_form=short_form, full_name=full_name, type=mapping_type)
+        created_mapping = self.short_form_mapping_repository.create(short_form_mapping)
+        logger.info(f"Short form mapping created successfully for: {short_form}")
+        return created_mapping
+
+    def update_short_form_mapping(self, short_form: str, full_name: str = None, mapping_type: str = None) -> Optional[ShortFormMapping]:
+        """
+        Update an existing short form mapping.
+
+        Args:
+            short_form: The short form to update.
+            full_name: The new full name.
+            mapping_type: The new mapping type.
+
+        Returns:
+            The updated ShortFormMapping object if successful, otherwise None.
+        """
+        logger.info(f"Updating short form mapping for: {short_form}")
+        short_form_mapping = self.short_form_mapping_repository.get_by_id(short_form)
+        if not short_form_mapping:
+            return None
+
+        if full_name:
+            short_form_mapping.full_name = full_name
+        if mapping_type:
+            short_form_mapping.type = mapping_type
+
+        updated_mapping = self.short_form_mapping_repository.update(short_form_mapping)
+        logger.info(f"Short form mapping updated successfully for: {short_form}")
+        return updated_mapping
+
+    def request_password_reset(self, username: str) -> bool:
+        """
+        Request a password reset for a user.
+
+        Args:
+            username: The username of the user.
+
+        Returns:
+            True if the password reset request was successful, otherwise False.
+        """
+        logger.info(f"Requesting password reset for user: {username}")
+        validate_input(username, "Username cannot be empty")
+        
+        user = self.user_repository.get_user_by_username(username)
+        if not user:
+            logger.warning(f"Password reset requested for non-existent user: {username}")
+            return False
+
+        # Logic to generate and send a password reset token
+        reset_token = self._generate_reset_token(username)
+        logger.info(f"Password reset token generated for user: {username}")
+        
+        # Log the password reset request in the audit log
+        self.audit_log_repository.create(
+            AuditLog(
+                user_id=user.username,
+                action="password_reset_request",
+                details=f"Password reset requested for user: {username}"
+            )
+        )
+        
+        return True
+
+    def _generate_reset_token(self, username: str) -> str:
+        """
+        Generate a password reset token.
+
+        Args:
+            username: The username of the user.
+
+        Returns:
+            The generated reset token.
+        """
+        # Placeholder for token generation logic
+        return f"RESET_TOKEN_{username}"
+
+    def update_user_role(self, username: str, new_role: str) -> bool:
+        """
+        Update the role of a user.
+
+        Args:
+            username: The username of the user.
+            new_role: The new role to assign.
+
+        Returns:
+            True if the role was updated successfully, otherwise False.
+        """
+        logger.info(f"Updating role for user: {username} to {new_role}")
+        validate_input(username, "Username cannot be empty")
+        validate_input(new_role, "New role cannot be empty")
+        
+        user = self.user_repository.get_user_by_username(username)
+        if not user:
+            logger.warning(f"User not found for role update: {username}")
+            return False
+
+        user.role = new_role
+        self.user_repository.update(user)
+        
+        # Log the role update in the audit log
+        self.audit_log_repository.create(
+            AuditLog(
+                user_id=user.username,
+                action="role_update",
+                details=f"Role updated from {user.role} to {new_role} for user: {username}"
+            )
+        )
+        
+        logger.info(f"Role updated successfully for user: {username}")
+        return True
+
+    def create_user_session(self, username: str, ip_address: str) -> UserSession:
+        """
+        Create a new user session.
+
+        Args:
+            username: The username of the user.
+            ip_address: The IP address of the user.
+
+        Returns:
+            The created UserSession object.
+        """
+        logger.info(f"Creating session for user: {username}")
+        validate_input(username, "Username cannot be empty")
+        validate_input(ip_address, "IP address cannot be empty")
+        
+        session = UserSession(username=username, ip_address=ip_address)
+        created_session = self.user_session_repository.create(session)
+        
+        # Log the session creation in the audit log
+        self.audit_log_repository.create(
+            AuditLog(
+                user_id=username,
+                action="session_create",
+                details=f"Session created for user: {username} from IP: {ip_address}"
+            )
+        )
+        
+        logger.info(f"Session created successfully for user: {username}")
+        return created_session
+
+    def expire_user_session(self, session_id: int) -> bool:
+        """
+        Expire a user session.
+
+        Args:
+            session_id: The ID of the session to expire.
+
+        Returns:
+            True if the session was expired successfully, otherwise False.
+        """
+        logger.info(f"Expiring session with ID: {session_id}")
+        
+        session = self.user_session_repository.get_by_id(session_id)
+        if not session:
+            logger.warning(f"Session not found for expiration: {session_id}")
+            return False
+
+        session.is_active = False
+        self.user_session_repository.update(session)
+        
+        # Log the session expiration in the audit log
+        self.audit_log_repository.create(
+            AuditLog(
+                user_id=session.username,
+                action="session_expire",
+                details=f"Session expired for user: {session.username}"
+            )
+        )
+        
+        logger.info(f"Session expired successfully with ID: {session_id}")
+        return True
+
+    def log_user_action(self, username: str, action: str, details: str) -> AuditLog:
+        """
+        Log a user action for audit purposes.
+
+        Args:
+            username: The username of the user.
+            action: The action performed.
+            details: Additional details about the action.
+
+        Returns:
+            The created AuditLog object.
+        """
+        logger.info(f"Logging action for user: {username}")
+        validate_input(username, "Username cannot be empty")
+        validate_input(action, "Action cannot be empty")
+        
+        audit_log = AuditLog(user_id=username, action=action, details=details)
+        created_log = self.audit_log_repository.create(audit_log)
+        
+        logger.info(f"Action logged successfully for user: {username}")
+        return created_log
+
+    def track_user_activity(self, username: str, activity_type: str, details: str) -> UserActivity:
+        """
+        Track a user activity.
+
+        Args:
+            username: The username of the user.
+            activity_type: The type of activity.
+            details: Additional details about the activity.
+
+        Returns:
+            The created UserActivity object.
+        """
+        logger.info(f"Tracking activity for user: {username}")
+        validate_input(username, "Username cannot be empty")
+        validate_input(activity_type, "Activity type cannot be empty")
+        
+        user_activity = UserActivity(username=username, activity_type=activity_type, details=details)
+        created_activity = self.user_activity_repository.create(user_activity)
+        
+        logger.info(f"Activity tracked successfully for user: {username}")
+        return created_activity

@@ -345,6 +345,39 @@ def initialize_database():
                     ON DELETE CASCADE
             )
         """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                details TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(username) ON DELETE CASCADE
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_activities (
+                activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                activity_type TEXT NOT NULL,
+                details TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+            )
+        """)
         
         # Insert initial total_reams value
         cursor.execute("SELECT SUM(reams_count) FROM ream_entries")
