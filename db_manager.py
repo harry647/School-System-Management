@@ -183,7 +183,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def save_book(self, book_id, tags=None):
+    def save_book(self, book_number, tags=None):
         """Save or update a book in the database with optional tags."""
         conn = self._create_connection()
         if not conn:
@@ -192,12 +192,12 @@ class DatabaseManager:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                INSERT OR REPLACE INTO books (book_id, available, book_condition)
+                INSERT OR REPLACE INTO books (book_number, available, book_condition)
                 VALUES (?, 1, 'New')
-            """, (book_id,))
+            """, (book_number,))
             if tags:
                 for tag in tags:
-                    cursor.execute("INSERT OR IGNORE INTO book_tags (book_id, tag) VALUES (?, ?)", (book_id, tag))
+                    cursor.execute("INSERT OR IGNORE INTO book_tags (book_id, tag) VALUES (?, ?)", (cursor.lastrowid, tag))
             conn.commit()
             return True
         except SQLiteError as e:
@@ -207,7 +207,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def save_revision_book(self, book_id, tags=None, condition=None):
+    def save_revision_book(self, book_number, tags=None, condition=None):
         """Save or update a revision book in the database."""
         conn = self._create_connection()
         if not conn:
@@ -215,11 +215,11 @@ class DatabaseManager:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT OR REPLACE INTO books (book_id, available, revision, book_condition) VALUES (?, 1, 1, ?)",
-                           (book_id, condition or 'New'))
+            cursor.execute("INSERT OR REPLACE INTO books (book_number, available, revision, book_condition) VALUES (?, 1, 1, ?)",
+                           (book_number, condition or 'New'))
             if tags:
                 for tag in tags:
-                    cursor.execute("INSERT OR IGNORE INTO book_tags (book_id, tag) VALUES (?, ?)", (book_id, tag.strip()))
+                    cursor.execute("INSERT OR IGNORE INTO book_tags (book_id, tag) VALUES (?, ?)", (cursor.lastrowid, tag.strip()))
             conn.commit()
             return True
         except SQLiteError as e:
@@ -230,14 +230,14 @@ class DatabaseManager:
             cursor.close()
 
     def load_books(self):
-        """Load all book IDs from the database."""
+        """Load all book numbers from the database."""
         conn = self._create_connection()
         if not conn:
             return []
 
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT book_id FROM books")
+            cursor.execute("SELECT book_number FROM books")
             return [row[0] for row in cursor.fetchall()]
         except SQLiteError as e:
             messagebox.showerror("Database Error", f"Error loading books: {e}")
@@ -253,10 +253,10 @@ class DatabaseManager:
 
         cursor = conn.cursor()
         try:
-            query = "SELECT DISTINCT book_id FROM books b"
+            query = "SELECT DISTINCT b.id FROM books b"
             params = []
             if tag_filter:
-                query += " JOIN book_tags bt ON b.book_id = bt.book_id WHERE bt.tag = ?"
+                query += " JOIN book_tags bt ON b.id = bt.book_id WHERE bt.tag = ?"
                 params.append(tag_filter)
             cursor.execute(query, params)
             return [row[0] for row in cursor.fetchall()]
@@ -266,7 +266,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def borrow_book_teacher(self, teacher_id, book_id, borrowed_on, condition="New"):
+    def borrow_book_teacher(self, teacher_id, book_number, borrowed_on, condition="New"):
         """Record a book borrowed by a teacher."""
         conn = self._create_connection()
         if not conn:
@@ -279,14 +279,20 @@ class DatabaseManager:
                 messagebox.showerror("Error", "Teacher ID not found.")
                 return False
 
-            cursor.execute("SELECT available FROM books WHERE book_id = ?", (book_id,))
+            cursor.execute("SELECT id, available FROM books WHERE book_number = ?", (book_number,))
             book_record = cursor.fetchone()
-            if book_record and not book_record[0]:
+            if book_record and not book_record[1]:
                 messagebox.showerror("Error", "Book is currently unavailable.")
                 return False
 
-            cursor.execute("INSERT OR REPLACE INTO books (book_id, available, book_condition) VALUES (?, 0, ?)",
-                           (book_id, condition))
+            if not book_record:
+                cursor.execute("INSERT INTO books (book_number, available, book_condition) VALUES (?, 0, ?)",
+                               (book_number, condition))
+                book_id = cursor.lastrowid
+            else:
+                book_id = book_record[0]
+                cursor.execute("UPDATE books SET available = 0, book_condition = ? WHERE id = ?",
+                               (condition, book_id))
             cursor.execute("INSERT INTO borrowed_books_teacher (teacher_id, book_id, borrowed_on) VALUES (?, ?, ?)",
                            (teacher_id, book_id, borrowed_on))
             conn.commit()
@@ -298,7 +304,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def borrow_book_student(self, student_id, book_ids, borrowed_on, reminder_days=None, condition="New"):
+    def borrow_book_student(self, student_id, book_numbers, borrowed_on, reminder_days=None, condition="New"):
         """Record books borrowed by a student."""
         conn = self._create_connection()
         if not conn:
@@ -312,34 +318,36 @@ class DatabaseManager:
             if not cursor.fetchone():
                 return False, "Student ID not found."
 
-            for book_id in book_ids:
-                cursor.execute("SELECT available FROM books WHERE book_id = ?", (book_id,))
+            for book_number in book_numbers:
+                cursor.execute("SELECT id, available FROM books WHERE book_number = ?", (book_number,))
                 book_record = cursor.fetchone()
 
                 if not book_record:
-                    cursor.execute("INSERT INTO books (book_id, available, book_condition) VALUES (?, 0, ?)",
-                                   (book_id, condition))
+                    cursor.execute("INSERT INTO books (book_number, available, book_condition) VALUES (?, 0, ?)",
+                                   (book_number, condition))
+                    book_id = cursor.lastrowid
                     cursor.execute("INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on, reminder_days) VALUES (?, ?, ?, ?)",
                                    (student_id, book_id, borrowed_on, reminder_days))
-                    results["success"].append(book_id)
-                elif not book_record[0]:
+                    results["success"].append(book_number)
+                elif not book_record[1]:
                     cursor.execute("""
                         SELECT s.student_id, s.name, s.stream
                         FROM students s
                         JOIN borrowed_books_student bbs ON s.student_id = bbs.student_id
                         WHERE bbs.book_id = ?
-                    """, (book_id,))
+                    """, (book_record[0],))
                     borrower = cursor.fetchone()
                     if borrower:
-                        results["already_borrowed"].append(f"Book ID '{book_id}' is already borrowed by Student ID: {borrower[0]}, Name: {borrower[1]}, Stream: {borrower[2]}")
+                        results["already_borrowed"].append(f"Book '{book_number}' is already borrowed by Student ID: {borrower[0]}, Name: {borrower[1]}, Stream: {borrower[2]}")
                     else:
-                        results["errors"].append(f"Book ID '{book_id}' is unavailable, but no borrower found.")
+                        results["errors"].append(f"Book '{book_number}' is unavailable, but no borrower found.")
                 else:
-                    cursor.execute("UPDATE books SET available = 0, book_condition = ? WHERE book_id = ?",
+                    book_id = book_record[0]
+                    cursor.execute("UPDATE books SET available = 0, book_condition = ? WHERE id = ?",
                                    (condition, book_id))
                     cursor.execute("INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on, reminder_days) VALUES (?, ?, ?, ?)",
                                    (student_id, book_id, borrowed_on, reminder_days))
-                    results["success"].append(book_id)
+                    results["success"].append(book_number)
 
             conn.commit()
             error_message = "\n".join(results["errors"]) if results["errors"] else ""
@@ -355,7 +363,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def return_book_teacher(self, teacher_id, book_id, condition=None):
+    def return_book_teacher(self, teacher_id, book_number, condition=None):
         """Record the return of a book by a teacher."""
         conn = self._create_connection()
         if not conn:
@@ -368,13 +376,20 @@ class DatabaseManager:
                 messagebox.showerror("Error", "Teacher ID not found.")
                 return False
 
+            cursor.execute("SELECT id FROM books WHERE book_number = ?", (book_number,))
+            book_record = cursor.fetchone()
+            if not book_record:
+                messagebox.showerror("Error", "Book not found.")
+                return False
+            book_id = book_record[0]
+
             cursor.execute("DELETE FROM borrowed_books_teacher WHERE teacher_id = ? AND book_id = ?", (teacher_id, book_id))
             if cursor.rowcount == 0:
                 messagebox.showerror("Error", "No borrowing record found for this teacher and book.")
                 return False
 
             params = [1] + ([condition] if condition else []) + [book_id]
-            cursor.execute(f"UPDATE books SET available = ?{' , book_condition = ?' if condition else ''} WHERE book_id = ?", params)
+            cursor.execute(f"UPDATE books SET available = ?{' , book_condition = ?' if condition else ''} WHERE id = ?", params)
             conn.commit()
             return True
         except SQLiteError as e:
@@ -384,7 +399,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def return_book_student(self, student_id, book_id, condition=None):
+    def return_book_student(self, student_id, book_number, condition=None):
         """Record the return of a book by a student."""
         conn = self._create_connection()
         if not conn:
@@ -392,13 +407,20 @@ class DatabaseManager:
 
         cursor = conn.cursor()
         try:
+            cursor.execute("SELECT id FROM books WHERE book_number = ?", (book_number,))
+            book_record = cursor.fetchone()
+            if not book_record:
+                messagebox.showerror("Error", "Book not found.")
+                return False
+            book_id = book_record[0]
+
             cursor.execute("DELETE FROM borrowed_books_student WHERE student_id = ? AND book_id = ?", (student_id, book_id))
             if cursor.rowcount == 0:
                 messagebox.showerror("Error", "No borrowing record found for this student and book.")
                 return False
 
             params = [1] + ([condition] if condition else []) + [book_id]
-            cursor.execute(f"UPDATE books SET available = ?{' , book_condition = ?' if condition else ''} WHERE book_id = ?", params)
+            cursor.execute(f"UPDATE books SET available = ?{' , book_condition = ?' if condition else ''} WHERE id = ?", params)
             conn.commit()
             return True
         except SQLiteError as e:
@@ -652,25 +674,25 @@ class DatabaseManager:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT bbs.student_id, s.name AS student_name, s.stream, bbs.book_id, bbs.borrowed_on, b.book_condition
+                SELECT bbs.student_id, s.name AS student_name, s.stream, b.book_number, bbs.borrowed_on, b.book_condition
                 FROM borrowed_books_student bbs
                 JOIN students s ON bbs.student_id = s.student_id
-                JOIN books b ON bbs.book_id = b.book_id
+                JOIN books b ON bbs.book_id = b.id
                 WHERE b.available = 0
                 ORDER BY s.stream, bbs.student_id
             """)
-            students = [{"student_id": row[0], "student_name": row[1], "stream": row[2], "book_id": row[3], "borrowed_on": row[4], "book_condition": row[5]}
+            students = [{"student_id": row[0], "student_name": row[1], "stream": row[2], "book_number": row[3], "borrowed_on": row[4], "book_condition": row[5]}
                         for row in cursor.fetchall()]
 
             cursor.execute("""
-                SELECT bbt.teacher_id, t.teacher_name, bbt.book_id, bbt.borrowed_on, b.book_condition
+                SELECT bbt.teacher_id, t.teacher_name, b.book_number, bbt.borrowed_on, b.book_condition
                 FROM borrowed_books_teacher bbt
                 JOIN teachers t ON bbt.teacher_id = t.teacher_id
-                JOIN books b ON bbt.book_id = b.book_id
+                JOIN books b ON bbt.book_id = b.id
                 WHERE b.available = 0
                 ORDER BY t.teacher_id
             """)
-            teachers = [{"teacher_id": row[0], "teacher_name": row[1], "book_id": row[2], "borrowed_on": row[3], "book_condition": row[4]}
+            teachers = [{"teacher_id": row[0], "teacher_name": row[1], "book_number": row[2], "borrowed_on": row[3], "book_condition": row[4]}
                         for row in cursor.fetchall()]
 
             return {"students": students, "teachers": teachers}
@@ -680,7 +702,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def load_books_from_excel(self, book_ids, conditions=None):
+    def load_books_from_excel(self, book_numbers, conditions=None):
         """Load books from a list with optional conditions."""
         conn = self._create_connection()
         if not conn:
@@ -689,12 +711,12 @@ class DatabaseManager:
         cursor = conn.cursor()
         try:
             book_count = 0
-            for i, book_id in enumerate(book_ids):
+            for i, book_number in enumerate(book_numbers):
                 condition = conditions[i] if conditions and i < len(conditions) else "New"
                 if condition not in ["New", "Good", "Damaged"]:
                     condition = "New"
-                cursor.execute("INSERT OR REPLACE INTO books (book_id, available, book_condition) VALUES (?, 1, ?)",
-                               (book_id, condition))
+                cursor.execute("INSERT OR REPLACE INTO books (book_number, available, book_condition) VALUES (?, 1, ?)",
+                               (book_number, condition))
                 book_count += 1
             conn.commit()
             self.logger.info(f"Loaded {book_count} books from Excel")
@@ -775,9 +797,9 @@ class DatabaseManager:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT bbs.book_id, bbs.borrowed_on, bbs.reminder_days
+                SELECT b.book_number, bbs.borrowed_on, bbs.reminder_days
                 FROM borrowed_books_student bbs
-                JOIN books b ON bbs.book_id = b.book_id
+                JOIN books b ON bbs.book_id = b.id
                 WHERE bbs.student_id = ? AND b.revision = 1 AND b.available = 0
             """, (student_id,))
             return [(row[0], row[1], row[2]) for row in cursor.fetchall()]
@@ -805,18 +827,18 @@ class DatabaseManager:
             cursor.close()
 
     def get_revision_books(self):
-        """Fetch all revision book IDs."""
+        """Fetch all revision book numbers."""
         return self.load_revision_books()  # Alias for consistency
 
     def load_revision_books(self):
-        """Load all revision book IDs."""
+        """Load all revision book numbers."""
         conn = self._create_connection()
         if not conn:
             return []
 
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT book_id FROM books WHERE revision = 1")
+            cursor.execute("SELECT book_number FROM books WHERE revision = 1")
             return [row[0] for row in cursor.fetchall()]
         except SQLiteError as e:
             messagebox.showerror("Database Error", f"Error loading revision books: {e}")
@@ -832,10 +854,10 @@ class DatabaseManager:
 
         cursor = conn.cursor()
         try:
-            query = "SELECT DISTINCT b.book_id FROM books b"
+            query = "SELECT DISTINCT b.book_number FROM books b"
             params = []
             if tag_filter:
-                query += " JOIN book_tags bt ON b.book_id = bt.book_id WHERE b.revision = 1 AND bt.tag = ?"
+                query += " JOIN book_tags bt ON b.id = bt.book_id WHERE b.revision = 1 AND bt.tag = ?"
                 params.append(tag_filter)
             else:
                 query += " WHERE b.revision = 1"
@@ -856,10 +878,10 @@ class DatabaseManager:
         cursor = conn.cursor()
         try:
             query = """
-                SELECT s.student_id, s.name, s.stream, bbs.book_id, bbs.borrowed_on, bbs.reminder_days
+                SELECT s.student_id, s.name, s.stream, b.book_number, bbs.borrowed_on, bbs.reminder_days
                 FROM borrowed_books_student bbs
                 JOIN students s ON bbs.student_id = s.student_id
-                JOIN books b ON bbs.book_id = b.book_id
+                JOIN books b ON bbs.book_id = b.id
                 WHERE b.revision = 1 AND b.available = 0
             """
             params = []
@@ -909,14 +931,14 @@ class DatabaseManager:
 
         cursor = conn.cursor()
         try:
-            query = "SELECT book_id, book_condition FROM books WHERE book_condition IN ('New', 'Good', 'Damaged')"
+            query = "SELECT book_number, book_condition FROM books WHERE book_condition IN ('New', 'Good', 'Damaged')"
             params = []
             if condition_filter:
                 query += " AND book_condition = ?"
                 params.append(condition_filter)
             cursor.execute(query, params)
-            for book_id, condition in cursor.fetchall():
-                books_by_condition[condition].append(book_id)
+            for book_number, condition in cursor.fetchall():
+                books_by_condition[condition].append(book_number)
             return books_by_condition
         except SQLiteError as e:
             messagebox.showerror("Database Error", f"Error fetching books by condition: {e}")
@@ -972,7 +994,7 @@ class DatabaseManager:
         cursor = conn.cursor()
         try:
             tables = {
-                "books": "SELECT book_id, available, book_condition FROM books",
+                "books": "SELECT id, book_number, available, book_condition FROM books",
                 "users": "SELECT username, password, role FROM users",
                 "borrowed_books_student": "SELECT student_id, book_id, borrowed_on, reminder_days FROM borrowed_books_student",
                 "borrowed_books_teacher": "SELECT teacher_id, book_id, borrowed_on FROM borrowed_books_teacher",
@@ -991,7 +1013,7 @@ class DatabaseManager:
             data = {}
             for table, query in tables.items():
                 cursor.execute(query)
-                rows = [{"book_id": row[0], "available": bool(row[1]), "book_condition": row[2]} if table == "books" else
+                rows = [{"id": row[0], "book_number": row[1], "available": bool(row[2]), "book_condition": row[3]} if table == "books" else
                         dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
                 data[table] = rows
             return data
@@ -1053,8 +1075,8 @@ class DatabaseManager:
                 continue
             if table == "books":
                 for row in rows:
-                    cursor.execute("INSERT OR REPLACE INTO books (book_id, available, book_condition) VALUES (?, ?, ?)",
-                                   (row["book_id"], row.get("available", True), row.get("book_condition", "Good")))
+                    cursor.execute("INSERT OR REPLACE INTO books (id, book_number, available, book_condition) VALUES (?, ?, ?, ?)",
+                                   (row["id"], row["book_number"], row.get("available", True), row.get("book_condition", "Good")))
             elif table == "users":
                 for row in rows:
                     cursor.execute("INSERT OR REPLACE INTO users (username, password, role) VALUES (?, ?, ?)",

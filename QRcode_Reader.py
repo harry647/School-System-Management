@@ -26,8 +26,8 @@ except ImportError:
     qrcode = None
 
 # Constants
-MAX_BOOK_ID_LENGTH = 50
-MIN_BOOK_ID_LENGTH = 3
+MAX_book_number_LENGTH = 50
+MIN_book_number_LENGTH = 3
 VALID_FORM_RANGE = (1, 12)
 MAX_STUDENT_ID_LENGTH = 20
 MIN_STUDENT_ID_LENGTH = 3
@@ -64,7 +64,7 @@ class QRCodeBookManager:
             cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS qr_books (
-                    book_id TEXT PRIMARY KEY,
+                    book_number TEXT PRIMARY KEY,
                     details TEXT,
                     added_date TEXT
                 )
@@ -72,11 +72,11 @@ class QRCodeBookManager:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS qr_borrow_log (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    book_id TEXT,
+                    book_number TEXT,
                     student_id TEXT,
                     borrow_date TEXT,
                     return_date TEXT,
-                    FOREIGN KEY (book_id) REFERENCES qr_books(book_id) ON DELETE CASCADE,
+                    FOREIGN KEY (book_number) REFERENCES qr_books(book_number) ON DELETE CASCADE,
                     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE SET NULL
                 )
             """)
@@ -92,11 +92,11 @@ class QRCodeBookManager:
         if not scanned_data:
             raise ValueError("No data provided in QR code.")
         if scanned_data.startswith("BOOK-ID:"):
-            book_id = scanned_data[len("BOOK-ID:"):].strip()
-            if not (MIN_BOOK_ID_LENGTH <= len(book_id) <= MAX_BOOK_ID_LENGTH and book_id.replace('-', '').isalnum()):
-                raise ValueError(f"Simple format ID must be {MIN_BOOK_ID_LENGTH}-{MAX_BOOK_ID_LENGTH} alphanumeric characters (hyphens allowed)")
-            book_info = {"Format": "Simple", "ID": book_id}
-            return book_id, book_info
+            book_number = scanned_data[len("BOOK-ID:"):].strip()
+            if not (MIN_book_number_LENGTH <= len(book_number) <= MAX_book_number_LENGTH and book_number.replace('-', '').isalnum()):
+                raise ValueError(f"Simple format ID must be {MIN_book_number_LENGTH}-{MAX_book_number_LENGTH} alphanumeric characters (hyphens allowed)")
+            book_info = {"Format": "Simple", "ID": book_number}
+            return book_number, book_info
         data_parts = scanned_data.split('/')
         if len(data_parts) != 5:
             raise ValueError("Expected format: 'Class/Subject/Form/Numberofbooks/Year' or 'BOOK-ID:unique_id'")
@@ -127,9 +127,9 @@ class QRCodeBookManager:
         max_year = current_year + 10
         if not (1900 <= year_val <= max_year):
             raise ValueError(f"Year must be 1900-{max_year}")
-        book_id = f"{book_class}/{subject}/{form}/{number_of_books}/{year}"
+        book_number = f"{book_class}/{subject}/{form}/{number_of_books}/{year}"
         book_info["Format"] = "Original"
-        return book_id, book_info
+        return book_number, book_info
 
     def add_new_book(self):
         """Add a new book via QR code, syncing with main books table."""
@@ -137,23 +137,23 @@ class QRCodeBookManager:
         if not scanned_data:
             return "No QR code detected or scanning cancelled."
         try:
-            book_id, book_info = self._validate_qr_format(scanned_data)
+            book_number, book_info = self._validate_qr_format(scanned_data)
             conn = self.db_manager._create_connection()
             if not conn:
                 return "Error: Database connection failed."
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT book_id FROM qr_books WHERE book_id = ?", (book_id,))
+                cursor.execute("SELECT book_number FROM qr_books WHERE book_number = ?", (book_number,))
                 if cursor.fetchone():
-                    return f"Error: Book with ID '{book_id}' already exists in QR books."
-                cursor.execute("INSERT INTO qr_books (book_id, details, added_date) VALUES (?, ?, ?)",
-                               (book_id, json.dumps(book_info), datetime.datetime.now().isoformat()))
-                cursor.execute("INSERT OR IGNORE INTO books (book_id, available) VALUES (?, 1)",
-                               (book_id,))
+                    return f"Error: Book with ID '{book_number}' already exists in QR books."
+                cursor.execute("INSERT INTO qr_books (book_number, details, added_date) VALUES (?, ?, ?)",
+                               (book_number, json.dumps(book_info), datetime.datetime.now().isoformat()))
+                cursor.execute("INSERT OR IGNORE INTO books (book_number, available) VALUES (?, 1)",
+                               (book_number,))
                 conn.commit()
-                self.last_operation_result = book_id
+                self.last_operation_result = book_number
                 details_str = ", ".join(f"{k}: {v}" for k, v in book_info.items() if k != "Format")
-                return f"Book '{details_str}' added successfully with ID: {book_id} (Format: {book_info['Format']})"
+                return f"Book '{details_str}' added successfully with ID: {book_number} (Format: {book_info['Format']})"
             finally:
                 self.db_manager._close_connection(conn)
         except ValueError as ve:
@@ -169,8 +169,8 @@ class QRCodeBookManager:
             if not scanned_data or scanned_data.lower() == "q":
                 break
             try:
-                book_id, book_info = self._validate_qr_format(scanned_data)
-                books_to_add.append((book_id, book_info))
+                book_number, book_info = self._validate_qr_format(scanned_data)
+                books_to_add.append((book_number, book_info))
             except ValueError as ve:
                 return f"Invalid QR code: {ve}"
         if not books_to_add:
@@ -180,14 +180,14 @@ class QRCodeBookManager:
             return "Error: Database connection failed."
         try:
             cursor = conn.cursor()
-            for book_id, book_info in books_to_add:
-                cursor.execute("SELECT book_id FROM qr_books WHERE book_id = ?", (book_id,))
+            for book_number, book_info in books_to_add:
+                cursor.execute("SELECT book_number FROM qr_books WHERE book_number = ?", (book_number,))
                 if cursor.fetchone():
                     continue
-                cursor.execute("INSERT INTO qr_books (book_id, details, added_date) VALUES (?, ?, ?)",
-                               (book_id, json.dumps(book_info), datetime.datetime.now().isoformat()))
-                cursor.execute("INSERT OR IGNORE INTO books (book_id, available) VALUES (?, 1)",
-                               (book_id,))
+                cursor.execute("INSERT INTO qr_books (book_number, details, added_date) VALUES (?, ?, ?)",
+                               (book_number, json.dumps(book_info), datetime.datetime.now().isoformat()))
+                cursor.execute("INSERT OR IGNORE INTO books (book_number, available) VALUES (?, 1)",
+                               (book_number,))
             conn.commit()
             self.last_operation_result = books_to_add
             return f"Successfully added {len(books_to_add)} books."
@@ -201,16 +201,16 @@ class QRCodeBookManager:
         """Undo the last add book operation."""
         if not self.last_operation_result or isinstance(self.last_operation_result, list):
             return "Nothing to undo."
-        book_id = self.last_operation_result
+        book_number = self.last_operation_result
         conn = self.db_manager._create_connection()
         if not conn:
             return "Error: Database connection failed."
         try:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM qr_books WHERE book_id = ?", (book_id,))
-            cursor.execute("DELETE FROM books WHERE book_id = ?", (book_id,))
+            cursor.execute("DELETE FROM qr_books WHERE book_number = ?", (book_number,))
+            cursor.execute("DELETE FROM books WHERE book_number = ?", (book_number,))
             conn.commit()
-            return f"Undo: Removed book with ID '{book_id}'."
+            return f"Undo: Removed book with ID '{book_number}'."
         except SQLiteError as e:
             conn.rollback()
             return f"Undo failed: {e}"
@@ -227,9 +227,9 @@ class QRCodeBookManager:
             return "Error: Database connection failed."
         try:
             cursor = conn.cursor()
-            for book_id, _ in books_to_remove:
-                cursor.execute("DELETE FROM qr_books WHERE book_id = ?", (book_id,))
-                cursor.execute("DELETE FROM books WHERE book_id = ?", (book_id,))
+            for book_number, _ in books_to_remove:
+                cursor.execute("DELETE FROM qr_books WHERE book_number = ?", (book_number,))
+                cursor.execute("DELETE FROM books WHERE book_number = ?", (book_number,))
             conn.commit()
             return f"Undo: Removed {len(books_to_remove)} books."
         except SQLiteError as e:
@@ -246,7 +246,7 @@ class QRCodeBookManager:
         if not student_id or not (MIN_STUDENT_ID_LENGTH <= len(student_id.strip()) <= MAX_STUDENT_ID_LENGTH and student_id.strip().isalnum()):
             return f"Error: Student ID must be {MIN_STUDENT_ID_LENGTH}-{MAX_STUDENT_ID_LENGTH} alphanumeric characters."
         try:
-            book_id, book_info = self._validate_qr_format(scanned_data)
+            book_number, book_info = self._validate_qr_format(scanned_data)
             conn = self.db_manager._create_connection()
             if not conn:
                 return "Error: Database connection failed."
@@ -255,23 +255,23 @@ class QRCodeBookManager:
                 cursor.execute("SELECT COUNT(*) FROM qr_borrow_log WHERE student_id = ? AND return_date IS NULL", (student_id,))
                 if cursor.fetchone()[0] >= MAX_BORROW_LIMIT:
                     return f"Error: Student ID '{self._mask_student_id(student_id)}' has reached the borrow limit of {MAX_BORROW_LIMIT} books."
-                cursor.execute("SELECT book_id FROM qr_books WHERE book_id = ?", (book_id,))
+                cursor.execute("SELECT book_number FROM qr_books WHERE book_number = ?", (book_number,))
                 if not cursor.fetchone():
-                    return f"Error: Book with ID '{book_id}' not found in QR books."
-                cursor.execute("SELECT available FROM books WHERE book_id = ?", (book_id,))
+                    return f"Error: Book with ID '{book_number}' not found in QR books."
+                cursor.execute("SELECT available FROM books WHERE book_number = ?", (book_number,))
                 book_record = cursor.fetchone()
                 if not book_record or not book_record[0]:
-                    return f"Error: Book with ID '{book_id}' is unavailable."
-                cursor.execute("UPDATE books SET available = 0 WHERE book_id = ?", (book_id,))
+                    return f"Error: Book with ID '{book_number}' is unavailable."
+                cursor.execute("UPDATE books SET available = 0 WHERE book_number = ?", (book_number,))
                 now = datetime.datetime.now().isoformat()
-                cursor.execute("INSERT INTO qr_borrow_log (book_id, student_id, borrow_date) VALUES (?, ?, ?)",
-                               (book_id, student_id, now))
-                cursor.execute("INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on) VALUES (?, ?, ?)",
-                               (student_id, book_id, datetime.date.today().isoformat()))
+                cursor.execute("INSERT INTO qr_borrow_log (book_number, student_id, borrow_date) VALUES (?, ?, ?)",
+                               (book_number, student_id, now))
+                cursor.execute("INSERT INTO borrowed_books_student (student_id, book_number, borrowed_on) VALUES (?, ?, ?)",
+                               (student_id, book_number, datetime.date.today().isoformat()))
                 conn.commit()
-                self.last_operation_result = (book_id, student_id)
+                self.last_operation_result = (book_number, student_id)
                 details_str = ", ".join(f"{k}: {v}" for k, v in book_info.items() if k != "Format")
-                return f"Book '{details_str}' borrowed successfully with ID: {book_id} for Student ID: {self._mask_student_id(student_id)}"
+                return f"Book '{details_str}' borrowed successfully with ID: {book_number} for Student ID: {self._mask_student_id(student_id)}"
             finally:
                 self.db_manager._close_connection(conn)
         except ValueError as ve:
@@ -283,19 +283,19 @@ class QRCodeBookManager:
         """Undo the last borrow book operation."""
         if not self.last_operation_result or isinstance(self.last_operation_result, list):
             return "Nothing to undo."
-        book_id, student_id = self.last_operation_result
+        book_number, student_id = self.last_operation_result
         conn = self.db_manager._create_connection()
         if not conn:
             return "Error: Database connection failed."
         try:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM qr_borrow_log WHERE book_id = ? AND student_id = ? AND return_date IS NULL",
-                           (book_id, student_id))
-            cursor.execute("UPDATE books SET available = 1 WHERE book_id = ?", (book_id,))
-            cursor.execute("DELETE FROM borrowed_books_student WHERE book_id = ? AND student_id = ?",
-                           (book_id, student_id))
+            cursor.execute("DELETE FROM qr_borrow_log WHERE book_number = ? AND student_id = ? AND return_date IS NULL",
+                           (book_number, student_id))
+            cursor.execute("UPDATE books SET available = 1 WHERE book_number = ?", (book_number,))
+            cursor.execute("DELETE FROM borrowed_books_student WHERE book_number = ? AND student_id = ?",
+                           (book_number, student_id))
             conn.commit()
-            return f"Undo: Cancelled borrow of book '{book_id}' for Student ID: {self._mask_student_id(student_id)}."
+            return f"Undo: Cancelled borrow of book '{book_number}' for Student ID: {self._mask_student_id(student_id)}."
         except SQLiteError as e:
             conn.rollback()
             return f"Undo failed: {e}"
@@ -308,27 +308,27 @@ class QRCodeBookManager:
         if not scanned_data:
             return "No QR code detected or scanning cancelled."
         try:
-            book_id, book_info = self._validate_qr_format(scanned_data)
+            book_number, book_info = self._validate_qr_format(scanned_data)
             conn = self.db_manager._create_connection()
             if not conn:
                 return "Error: Database connection failed."
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT book_id, student_id FROM qr_borrow_log WHERE book_id = ? AND return_date IS NULL", (book_id,))
+                cursor.execute("SELECT book_number, student_id FROM qr_borrow_log WHERE book_number = ? AND return_date IS NULL", (book_number,))
                 borrow_record = cursor.fetchone()
                 if not borrow_record:
-                    return f"Error: Book with ID '{book_id}' is not currently borrowed."
+                    return f"Error: Book with ID '{book_number}' is not currently borrowed."
                 student_id = borrow_record[1]
                 now = datetime.datetime.now().isoformat()
-                cursor.execute("UPDATE qr_borrow_log SET return_date = ? WHERE book_id = ? AND return_date IS NULL",
-                               (now, book_id))
-                cursor.execute("UPDATE books SET available = 1 WHERE book_id = ?", (book_id,))
-                cursor.execute("DELETE FROM borrowed_books_student WHERE book_id = ? AND student_id = ?",
-                               (book_id, student_id))
+                cursor.execute("UPDATE qr_borrow_log SET return_date = ? WHERE book_number = ? AND return_date IS NULL",
+                               (now, book_number))
+                cursor.execute("UPDATE books SET available = 1 WHERE book_number = ?", (book_number,))
+                cursor.execute("DELETE FROM borrowed_books_student WHERE book_number = ? AND student_id = ?",
+                               (book_number, student_id))
                 conn.commit()
-                self.last_operation_result = (book_id, student_id)
+                self.last_operation_result = (book_number, student_id)
                 details_str = ", ".join(f"{k}: {v}" for k, v in book_info.items() if k != "Format")
-                return f"Book '{details_str}' returned successfully with ID: {book_id} by Student ID: {self._mask_student_id(student_id)}"
+                return f"Book '{details_str}' returned successfully with ID: {book_number} by Student ID: {self._mask_student_id(student_id)}"
             finally:
                 self.db_manager._close_connection(conn)
         except ValueError as ve:
@@ -340,19 +340,19 @@ class QRCodeBookManager:
         """Undo the last return book operation."""
         if not self.last_operation_result or isinstance(self.last_operation_result, list):
             return "Nothing to undo."
-        book_id, student_id = self.last_operation_result
+        book_number, student_id = self.last_operation_result
         conn = self.db_manager._create_connection()
         if not conn:
             return "Error: Database connection failed."
         try:
             cursor = conn.cursor()
-            cursor.execute("UPDATE qr_borrow_log SET return_date = NULL WHERE book_id = ? AND student_id = ?",
-                           (book_id, student_id))
-            cursor.execute("UPDATE books SET available = 0 WHERE book_id = ?", (book_id,))
-            cursor.execute("INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on) VALUES (?, ?, ?)",
-                           (student_id, book_id, datetime.date.today().isoformat()))
+            cursor.execute("UPDATE qr_borrow_log SET return_date = NULL WHERE book_number = ? AND student_id = ?",
+                           (book_number, student_id))
+            cursor.execute("UPDATE books SET available = 0 WHERE book_number = ?", (book_number,))
+            cursor.execute("INSERT INTO borrowed_books_student (student_id, book_number, borrowed_on) VALUES (?, ?, ?)",
+                           (student_id, book_number, datetime.date.today().isoformat()))
             conn.commit()
-            return f"Undo: Re-borrowed book '{book_id}' for Student ID: {self._mask_student_id(student_id)}."
+            return f"Undo: Re-borrowed book '{book_number}' for Student ID: {self._mask_student_id(student_id)}."
         except SQLiteError as e:
             conn.rollback()
             return f"Undo failed: {e}"
@@ -369,19 +369,19 @@ class QRCodeBookManager:
                 try:
                     cursor = conn.cursor()
                     cursor.execute("""
-                        SELECT qb.book_id, qb.details, qb.added_date, s.stream
+                        SELECT qb.book_number, qb.details, qb.added_date, s.stream
                         FROM qr_books qb
                         LEFT JOIN (
-                            SELECT book_id, student_id
+                            SELECT book_number, student_id
                             FROM qr_borrow_log
                             WHERE return_date IS NULL
                             ORDER BY borrow_date DESC
-                        ) qbl ON qb.book_id = qbl.book_id
+                        ) qbl ON qb.book_number = qbl.book_number
                         LEFT JOIN students s ON qbl.student_id = s.student_id
                     """)
                     return [
                         {
-                            'book_id': row[0],
+                            'book_number': row[0],
                             'details': json.loads(row[1]),
                             'added_date': row[2],
                             'stream': row[3] if row[3] else "N/A"
@@ -406,13 +406,13 @@ class QRCodeBookManager:
                 try:
                     cursor = conn.cursor()
                     cursor.execute("""
-                        SELECT qbl.book_id, qbl.student_id, qbl.borrow_date, qbl.return_date, s.stream
+                        SELECT qbl.book_number, qbl.student_id, qbl.borrow_date, qbl.return_date, s.stream
                         FROM qr_borrow_log qbl
                         LEFT JOIN students s ON qbl.student_id = s.student_id
                     """)
                     return [
                         {
-                            'book_id': row[0],
+                            'book_number': row[0],
                             'student_id': row[1],
                             'borrow_date': row[2],
                             'return_date': row[3] if row[3] else "Not Returned",
@@ -443,14 +443,14 @@ class QRCodeBookManager:
                         return f"Error: Student ID '{self._mask_student_id(student_id)}' not found."
                     student_name, stream = student_record
                     cursor.execute("""
-                        SELECT qb.book_id, qb.details, qbl.borrow_date, qbl.return_date
+                        SELECT qb.book_number, qb.details, qbl.borrow_date, qbl.return_date
                         FROM qr_borrow_log qbl
-                        JOIN qr_books qb ON qbl.book_id = qb.book_id
+                        JOIN qr_books qb ON qbl.book_number = qb.book_number
                         WHERE qbl.student_id = ?
                     """, (student_id,))
                     borrowed_books = [
                         {
-                            'book_id': row[0],
+                            'book_number': row[0],
                             'details': json.loads(row[1]),
                             'borrow_date': row[2],
                             'return_date': row[3] if row[3] else "Not Returned"
@@ -481,7 +481,7 @@ class QRCodeBookManager:
                 try:
                     cursor = conn.cursor()
                     cursor.execute("""
-                        SELECT qbl.book_id, qbl.student_id, s.name, qbl.borrow_date, s.stream
+                        SELECT qbl.book_number, qbl.student_id, s.name, qbl.borrow_date, s.stream
                         FROM qr_borrow_log qbl
                         JOIN students s ON qbl.student_id = s.student_id
                         WHERE qbl.return_date IS NULL
@@ -489,7 +489,7 @@ class QRCodeBookManager:
                     """)
                     return [
                         {
-                            'book_id': row[0],
+                            'book_number': row[0],
                             'student_id': row[1],
                             'student_name': row[2],
                             'borrow_date': row[3],
@@ -654,7 +654,7 @@ class QRCodeBookManager:
             borrow_log = self.view_borrow_log()
             book_counts = {}
             for log in borrow_log:
-                book_counts[log['book_id']] = book_counts.get(log['book_id'], 0) + 1
+                book_counts[log['book_number']] = book_counts.get(log['book_number'], 0) + 1
             if not book_counts:
                 return "No borrowing data available."
             most_popular = max(book_counts.items(), key=lambda x: x[1])
@@ -683,7 +683,7 @@ class QRCodeBookManager:
             with open(backup_file, "w") as f:
                 f.write("-- SQLite database backup\n")
                 for book in self.view_book_data():
-                    f.write(f"INSERT OR REPLACE INTO qr_books (book_id, details, added_date) VALUES ('{book['book_id']}', '{json.dumps(book['details'])}', '{book['added_date']}');\n")
+                    f.write(f"INSERT OR REPLACE INTO qr_books (book_number, details, added_date) VALUES ('{book['book_number']}', '{json.dumps(book['details'])}', '{book['added_date']}');\n")
             return f"Database backed up to {backup_file}"
         except Exception as e:
             return f"Error during backup: {e}"
@@ -1337,7 +1337,7 @@ class QRCodeScannerGUI(ttk.Frame):
                 for book in book_data:
                     details_str = ", ".join(f"{k}: {v}" for k, v in book['details'].items() if k != "Format")
                     export_data.append({
-                        "Book ID": book['book_id'],
+                        "Book ID": book['book_number'],
                         "Details": details_str,
                         "Added Date": book['added_date'],
                         "Stream": book['stream']
@@ -1428,7 +1428,7 @@ class QRCodeScannerGUI(ttk.Frame):
                 export_data.clear()
                 for log_entry in borrow_log:
                     export_data.append({
-                        "Book ID": log_entry['book_id'],
+                        "Book ID": log_entry['book_number'],
                         "Student ID": self.book_manager._mask_student_id(log_entry['student_id']),
                         "Borrow Date": log_entry['borrow_date'],
                         "Return Date": log_entry['return_date'],
@@ -1524,9 +1524,9 @@ class QRCodeScannerGUI(ttk.Frame):
                     # Populate Treeview and prepare export data
                     for book in result['borrowed_books']:
                         details_str = ", ".join(f"{k}: {v}" for k, v in book['details'].items() if k != "Format")
-                        tree.insert("", tk.END, values=(book['book_id'], details_str, book['borrow_date'], book['return_date']))
+                        tree.insert("", tk.END, values=(book['book_number'], details_str, book['borrow_date'], book['return_date']))
                         export_data.append({
-                            "Book ID": book['book_id'],
+                            "Book ID": book['book_number'],
                             "Details": details_str,
                             "Borrow Date": book['borrow_date'],
                             "Return Date": book['return_date']
@@ -1562,7 +1562,7 @@ class QRCodeScannerGUI(ttk.Frame):
                             else:
                                 for book in result['borrowed_books']:
                                     details_str = ", ".join(f"{k}: {v}" for k, v in book['details'].items() if k != "Format")
-                                    file.write(f"  Book ID: {book['book_id']}\n")
+                                    file.write(f"  Book ID: {book['book_number']}\n")
                                     file.write(f"    Details: {details_str}\n")
                                     file.write(f"    Borrow Date: {book['borrow_date']}\n")
                                     file.write(f"    Return Date: {book['return_date']}\n")
@@ -1660,7 +1660,7 @@ class QRCodeScannerGUI(ttk.Frame):
                     borrow_date = datetime.datetime.strptime(book['borrow_date'], "%Y-%m-%d %H:%M:%S")
                     days_overdue = (datetime.datetime.now() - borrow_date).days
                     export_data.append({
-                        "Book ID": book['book_id'],
+                        "Book ID": book['book_number'],
                         "Student ID": book['student_id'],
                         "Student Name": book['student_name'],
                         "Borrow Date": book['borrow_date'],
@@ -1668,7 +1668,7 @@ class QRCodeScannerGUI(ttk.Frame):
                         "Days Overdue": str(days_overdue) if days_overdue > 0 else "0"
                     })
                     tree.insert("", tk.END, values=(
-                        book['book_id'],
+                        book['book_number'],
                         book['student_id'],
                         book['student_name'],
                         book['borrow_date'],
@@ -1750,7 +1750,7 @@ class QRCodeScannerGUI(ttk.Frame):
                     messagebox.showwarning("Selection Error", "Please select a book to return.", parent=view_window)
                     return
 
-                book_id = tree.item(selected_item, "values")[0]
+                book_number = tree.item(selected_item, "values")[0]
                 student_id = tree.item(selected_item, "values")[1]
 
                 def undo_return():
@@ -1758,24 +1758,24 @@ class QRCodeScannerGUI(ttk.Frame):
                         with self.book_manager.create_db_connection() as mydb:
                             with mydb.cursor() as cursor:
                                 cursor.execute(
-                                    "UPDATE qr_borrow_log SET return_date = NULL WHERE book_id = %s AND student_id = %s",
-                                    (book_id, student_id)
+                                    "UPDATE qr_borrow_log SET return_date = NULL WHERE book_number = %s AND student_id = %s",
+                                    (book_number, student_id)
                                 )
-                                cursor.execute("UPDATE books SET available = FALSE WHERE book_id = %s", (book_id,))
+                                cursor.execute("UPDATE books SET available = FALSE WHERE book_number = %s", (book_number,))
                                 cursor.execute(
-                                    "INSERT INTO borrowed_books_student (student_id, book_id, borrowed_on) VALUES (%s, %s, %s)",
-                                    (student_id, book_id, datetime.date.today())
+                                    "INSERT INTO borrowed_books_student (student_id, book_number, borrowed_on) VALUES (%s, %s, %s)",
+                                    (student_id, book_number, datetime.date.today())
                                 )
                                 mydb.commit()
                         return lambda: self.book_manager.return_book()  # Redo action
                     return undo
 
-                if messagebox.askyesno("Confirm Return", f"Return book {book_id} for student {student_id}?", parent=view_window):
+                if messagebox.askyesno("Confirm Return", f"Return book {book_number} for student {student_id}?", parent=view_window):
                     result, _, _ = self.book_manager.return_book()  # Simulate scanning by directly calling return_book
                     if "Error" not in result:
                         self.undo_stack.append(undo_return())
                         self.redo_stack.clear()
-                        self._update_feedback(f"Book {book_id} returned successfully by Student ID: {student_id}")
+                        self._update_feedback(f"Book {book_number} returned successfully by Student ID: {student_id}")
                         refresh_data()  # Refresh the list after returning
                     else:
                         self._update_feedback(result)
@@ -1830,8 +1830,8 @@ class QRCodeScannerGUI(ttk.Frame):
             # Simple format inputs
             simple_frame = ttk.Frame(input_frame)
             ttk.Label(simple_frame, text="Book ID:").pack(anchor="w")
-            book_id_entry = ttk.Entry(simple_frame)
-            book_id_entry.pack(fill="x", pady=5)
+            book_number_entry = ttk.Entry(simple_frame)
+            book_number_entry.pack(fill="x", pady=5)
 
             # Original format inputs
             original_frame = ttk.Frame(input_frame)
@@ -1879,12 +1879,12 @@ class QRCodeScannerGUI(ttk.Frame):
                 """Generates the QR code and displays a preview."""
                 try:
                     if format_var.get() == "Simple":
-                        book_id = book_id_entry.get().strip()
-                        if not book_id or not (MIN_BOOK_ID_LENGTH <= len(book_id) <= MAX_BOOK_ID_LENGTH and book_id.replace('-', '').isalnum()):
-                            self._update_feedback(f"Invalid Book ID: Must be {MIN_BOOK_ID_LENGTH}-{MAX_BOOK_ID_LENGTH} alphanumeric characters.")
-                            messagebox.showerror("Input Error", f"Book ID must be {MIN_BOOK_ID_LENGTH}-{MAX_BOOK_ID_LENGTH} alphanumeric characters.", parent=qr_window)
+                        book_number = book_number_entry.get().strip()
+                        if not book_number or not (MIN_book_number_LENGTH <= len(book_number) <= MAX_book_number_LENGTH and book_number.replace('-', '').isalnum()):
+                            self._update_feedback(f"Invalid Book ID: Must be {MIN_book_number_LENGTH}-{MAX_book_number_LENGTH} alphanumeric characters.")
+                            messagebox.showerror("Input Error", f"Book ID must be {MIN_book_number_LENGTH}-{MAX_book_number_LENGTH} alphanumeric characters.", parent=qr_window)
                             return
-                        book_details = {"Format": "Simple", "ID": book_id}
+                        book_details = {"Format": "Simple", "ID": book_number}
                     else:
                         class_name = class_entry.get().strip()
                         subject = subject_entry.get().strip()
@@ -2097,7 +2097,7 @@ class QRCodeScannerGUI(ttk.Frame):
                 tree.delete(*tree.get_children())  # Clear existing entries
                 for book in overdue_books:
                     export_data.append({
-                        "Book ID": book['book_id'],
+                        "Book ID": book['book_number'],
                         "Student ID": book['student_id'],
                         "Student Name": book['student_name'],
                         "Borrow Date": book['borrow_date'],
@@ -2105,7 +2105,7 @@ class QRCodeScannerGUI(ttk.Frame):
                         "Days Overdue": str(book['days_overdue'])
                     })
                     tree.insert("", tk.END, values=(
-                        book['book_id'],
+                        book['book_number'],
                         book['student_id'],
                         book['student_name'],
                         book['borrow_date'],
@@ -2319,7 +2319,7 @@ class QRCodeScannerGUI(ttk.Frame):
                         f.write(f"Unreturned Books Report - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                         f.write(f"Total Unreturned Books: {len(unreturned_data)}\n\n")
                         for book in unreturned_data:
-                            f.write(f"Book ID: {book['book_id']}\n")
+                            f.write(f"Book ID: {book['book_number']}\n")
                             f.write(f"  Student ID: {book['student_id']}\n")
                             f.write(f"  Student Name: {book['student_name']}\n")
                             f.write(f"  Borrow Date: {book['borrow_date']}\n")

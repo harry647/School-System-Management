@@ -120,8 +120,9 @@ def initialize_database():
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS books (
-                book_id TEXT PRIMARY KEY,
-                available INTEGER,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,   -- SYSTEM ID
+                book_number TEXT NOT NULL UNIQUE,        -- HUMAN book number (accession)
+                available INTEGER DEFAULT 1,
                 revision INTEGER DEFAULT 0,  -- Added from update schema
                 book_condition TEXT DEFAULT 'New'
             )
@@ -137,22 +138,22 @@ def initialize_database():
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS book_tags (  -- Added from update schema
-                book_id TEXT,
+                book_id INTEGER,
                 tag TEXT,
                 PRIMARY KEY (book_id, tag),
-                FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
+                FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
             )
         """)
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS borrowed_books_student (
                 student_id TEXT,
-                book_id TEXT,
+                book_id INTEGER,
                 borrowed_on DATE,
-                reminder_days INTEGER DEFAULT NULL,  
+                reminder_days INTEGER DEFAULT NULL,
                 PRIMARY KEY (student_id, book_id, borrowed_on),
                 FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
-                FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
+                FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
             )
         """)
 
@@ -175,11 +176,11 @@ def initialize_database():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS borrowed_books_teacher (
                 teacher_id TEXT,
-                book_id TEXT,
+                book_id INTEGER,
                 borrowed_on DATE,
                 PRIMARY KEY (teacher_id, book_id, borrowed_on),
                 FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id) ON DELETE CASCADE,
-                FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
+                FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
             )
         """)
 

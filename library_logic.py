@@ -101,10 +101,10 @@ class LibraryLogic:
         try:
             workbook = openpyxl.load_workbook(file_path)
             sheet = workbook.active
-            book_ids = [str(row[0].value) for row in sheet.iter_rows(min_row=2) if row[0].value]
+            book_numbers = [str(row[0].value) for row in sheet.iter_rows(min_row=2) if row[0].value]
             conditions = [str(row[1].value) if len(row) > 1 and row[1].value else "New" 
                          for row in sheet.iter_rows(min_row=2) if row[0].value]
-            book_count = self.db_manager.load_books_from_excel(book_ids, conditions)
+            book_count = self.db_manager.load_books_from_excel(book_numbers, conditions)
             if book_count > 0:
                 messagebox.showinfo("Success", f"{book_count} books loaded successfully!")
                 return True
@@ -191,13 +191,13 @@ class LibraryLogic:
             messagebox.showerror("Database Error", f"Failed to add teacher: {db_err}")
             return False
 
-    def add_new_book(self, book_id):
+    def add_new_book(self, book_number):
         """Add a new book."""
         try:
-            if not book_id:
+            if not book_number:
                 messagebox.showerror("Error", "Please enter Book ID.")
                 return False
-            return self.db_manager.save_book(book_id)
+            return self.db_manager.save_book(book_number)
         except TypeError as type_err:
             messagebox.showerror("Error", f"Invalid input type for book: {type_err}")
             return False
@@ -205,15 +205,15 @@ class LibraryLogic:
             messagebox.showerror("Database Error", f"Failed to add book: {db_err}")
             return False
 
-    def add_book_with_tags(self, book_id, tags=None):
+    def add_book_with_tags(self, book_number, tags=None):
         """Add a new book with optional tags."""
         try:
-            if not book_id:
+            if not book_number:
                 messagebox.showerror("Error", "Please enter Book ID.")
                 return False
             if tags:
                 tags = [tag.strip() for tag in tags.split(",") if tag.strip()]
-            return self.db_manager.save_book(book_id, tags)
+            return self.db_manager.save_book(book_number, tags)
         except TypeError as type_err:
             messagebox.showerror("Error", f"Invalid input type for book: {type_err}")
             return False
@@ -221,10 +221,10 @@ class LibraryLogic:
             messagebox.showerror("Database Error", f"Failed to add book: {db_err}")
             return False
 
-    def tag_book(self, book_id, tags):
+    def tag_book(self, book_number, tags):
         """Add tags to an existing book."""
         try:
-            if not book_id:
+            if not book_number:
                 messagebox.showerror("Error", "Please enter Book ID.")
                 return False
             tags = [tag.strip() for tag in tags.split(",") if tag.strip()]
@@ -234,7 +234,7 @@ class LibraryLogic:
             cursor = conn.cursor()
             try:
                 for tag in tags:
-                    cursor.execute("INSERT OR IGNORE INTO book_tags (book_id, tag) VALUES (?, ?)", (book_id, tag))
+                    cursor.execute("INSERT OR IGNORE INTO book_tags (book_number, tag) VALUES (?, ?)", (book_number, tag))
                 conn.commit()
                 return True
             except SQLiteError as db_err:
@@ -247,16 +247,16 @@ class LibraryLogic:
             messagebox.showerror("Error", f"Invalid input type for tags: {type_err}")
             return False
 
-    def borrow_book_student(self, student_id, book_ids, reminder_days=None, condition="New"):
+    def borrow_book_student(self, student_id, book_numbers, reminder_days=None, condition="New"):
         """Handle a student borrowing books."""
         try:
-            if not all([student_id, book_ids, condition]):
+            if not all([student_id, book_numbers, condition]):
                 messagebox.showerror("Error", "Please fill in all fields, including condition.")
                 return False
             if condition not in ["New", "Good", "Damaged"]:
                 messagebox.showerror("Error", "Invalid condition selected.")
                 return False
-            success, feedback = self.db_manager.borrow_book_student(student_id, book_ids, date.today(), reminder_days, condition)
+            success, feedback = self.db_manager.borrow_book_student(student_id, book_numbers, date.today(), reminder_days, condition)
             if success:
                 messagebox.showinfo("Borrowing Result", feedback)
             else:
@@ -266,30 +266,30 @@ class LibraryLogic:
             messagebox.showerror("Error", f"Invalid reminder days: {val_err}")
             return False
 
-    def borrow_book_teacher(self, teacher_id, book_id, condition="New"):
+    def borrow_book_teacher(self, teacher_id, book_number, condition="New"):
         """Handle a teacher borrowing a book."""
         try:
-            if not all([teacher_id, book_id, condition]):
+            if not all([teacher_id, book_number, condition]):
                 messagebox.showerror("Error", "Please fill in all fields, including condition.")
                 return False
             if condition not in ["New", "Good", "Damaged"]:
                 messagebox.showerror("Error", "Invalid condition selected.")
                 return False
-            return self.db_manager.borrow_book_teacher(teacher_id, book_id, date.today(), condition)
+            return self.db_manager.borrow_book_teacher(teacher_id, book_number, date.today(), condition)
         except TypeError as type_err:
             messagebox.showerror("Error", f"Invalid input type for borrowing: {type_err}")
             return False
 
-    def return_book_teacher(self, teacher_id, book_id, condition=None):
+    def return_book_teacher(self, teacher_id, book_number, condition=None):
         """Handle a teacher returning a book."""
         try:
-            if not all([teacher_id, book_id]):
+            if not all([teacher_id, book_number]):
                 messagebox.showerror("Error", "Please fill in all fields.")
                 return False
             if condition and condition not in ["New", "Good", "Damaged"]:
                 messagebox.showerror("Error", "Invalid condition selected.")
                 return False
-            return self.db_manager.return_book_teacher(teacher_id, book_id, condition)
+            return self.db_manager.return_book_teacher(teacher_id, book_number, condition)
         except TypeError as type_err:
             messagebox.showerror("Error", f"Invalid input type for returning: {type_err}")
             return False
@@ -318,8 +318,8 @@ class LibraryLogic:
         try:
             with open("book_list.txt", "w") as file:
                 file.write("BOOKS IN THE LIBRARY:\n\n")
-                for book_id in books:
-                    file.write(f"ID: {book_id}\n")
+                for book_number in books:
+                    file.write(f"ID: {book_number}\n")
             return True
         except (FileNotFoundError, PermissionError, IOError) as file_err:
             messagebox.showerror("File Error", f"Failed to write books to file: {file_err}")
@@ -368,7 +368,7 @@ class LibraryLogic:
                                f"Locker ID: {locker_id or 'Not assigned'}\n"
                                f"Chair ID: {chair_id or 'Not assigned'}\n"
                                "Borrowed Books:\n")
-                result_text += "\n".join(f" - Book ID: {book_id}" for book_id in borrowed_books) if borrowed_books else " - No borrowed books found."
+                result_text += "\n".join(f" - Book ID: {book_number}" for book_number in borrowed_books) if borrowed_books else " - No borrowed books found."
                 result_text += "\n\n"
 
             result_label.config(text=result_text.strip())
@@ -805,8 +805,8 @@ class LibraryLogic:
                 messagebox.showinfo("Information", "No books selected to return.")
                 return False
 
-            for book_id in selected_books:
-                self.db_manager.return_book_student(student_id, book_id, condition)
+            for book_number in selected_books:
+                self.db_manager.return_book_student(student_id, book_number, condition)
             messagebox.showinfo("Success", "Selected books returned successfully!")
 
             self._clear_book_list(book_list_frame)
@@ -827,11 +827,11 @@ class LibraryLogic:
             self._clear_book_list(book_list_frame)
             self.current_borrowed_books = borrowed_books
             self.check_vars = []
-            for i, book_id in enumerate(borrowed_books):
+            for i, book_number in enumerate(borrowed_books):
                 check_var = tk.IntVar()
                 self.check_vars.append(check_var)
                 tk.Checkbutton(book_list_frame, variable=check_var).grid(row=i, column=0, padx=5, pady=2)
-                tk.Label(book_list_frame, text=f"Book ID: {book_id} (Condition: To be assessed)").grid(row=i, column=1, padx=5, pady=2)
+                tk.Label(book_list_frame, text=f"Book ID: {book_number} (Condition: To be assessed)").grid(row=i, column=1, padx=5, pady=2)
         except AttributeError as attr_err:
             messagebox.showerror("Error", f"Failed to display borrowed books: {attr_err}")
 
@@ -872,13 +872,13 @@ class LibraryLogic:
         except AttributeError as attr_err:
             messagebox.showerror("Error", f"Failed to update borrow window: {attr_err}")
 
-    def add_book_to_borrow(self, book_id, book_listbox):
+    def add_book_to_borrow(self, book_number, book_listbox):
         try:
-            if not book_id:
+            if not book_number:
                 messagebox.showerror("Error", "Please enter a book ID.")
                 return
-            self.borrowed_books.append(book_id)
-            #print(f"After adding {book_id}: {self.borrowed_books}")  # Debug
+            self.borrowed_books.append(book_number)
+            #print(f"After adding {book_number}: {self.borrowed_books}")  # Debug
             self._update_borrow_list(book_listbox)
         except AttributeError as attr_err:
             messagebox.showerror("Error", f"Failed to add book to borrow list: {attr_err}")
@@ -918,16 +918,16 @@ class LibraryLogic:
             if not isinstance(book_listbox, tk.Listbox):
                 raise AttributeError(f"Expected Listbox, got {type(book_listbox)}")
             book_listbox.delete(0, tk.END)
-            for i, book_id in enumerate(self.borrowed_books):
-                book_listbox.insert(tk.END, f"{i + 1}) Book ID: {book_id}")
+            for i, book_number in enumerate(self.borrowed_books):
+                book_listbox.insert(tk.END, f"{i + 1}) Book ID: {book_number}")
         except AttributeError as attr_err:
             messagebox.showerror("Error", f"Failed to update borrow list: {attr_err}")
 
     # Revision Books Control Logic
-    def save_revision_book(self, book_id, tags):
+    def save_revision_book(self, book_number, tags):
         """Save a revision book with tags."""
         try:
-            if not book_id:
+            if not book_number:
                 messagebox.showerror("Error", "Please enter Book ID.")
                 return False
             if tags and not isinstance(tags, list):
@@ -936,19 +936,19 @@ class LibraryLogic:
             if tags and any(not isinstance(tag, str) for tag in tags):
                 messagebox.showerror("Error", "All tags must be strings.")
                 return False
-            return self.db_manager.save_revision_book(book_id, tags)
+            return self.db_manager.save_revision_book(book_number, tags)
         except TypeError as type_err:
-            self.logger.error(f"Invalid input type for revision book {book_id}: {type_err}")
+            self.logger.error(f"Invalid input type for revision book {book_number}: {type_err}")
             messagebox.showerror("Error", f"Invalid input type: {type_err}")
             return False
         except Exception as e:
-            self.logger.error(f"Error saving revision book {book_id}: {e}")
+            self.logger.error(f"Error saving revision book {book_number}: {e}")
             return False
 
-    def borrow_revision_book(self, student_id, book_id, reminder_days, condition):
+    def borrow_revision_book(self, student_id, book_number, reminder_days, condition):
         """Borrow a revision book for a student."""
         try:
-            if not all([student_id, book_id, condition]):
+            if not all([student_id, book_number, condition]):
                 self.logger.error("Missing required fields")
                 return False
             if condition not in ["New", "Good", "Damaged"]:
@@ -959,15 +959,15 @@ class LibraryLogic:
                 self.logger.error("Reminder days must be positive")
                 return False
 
-            success, feedback = self.db_manager.borrow_book_student(student_id, [book_id], date.today(), reminder_days, condition)
+            success, feedback = self.db_manager.borrow_book_student(student_id, [book_number], date.today(), reminder_days, condition)
             if success:
-                self.logger.info(f"Book {book_id} borrowed by {student_id}: {feedback}")
+                self.logger.info(f"Book {book_number} borrowed by {student_id}: {feedback}")
                 return True
             else:
-                self.logger.error(f"Failed to borrow book {book_id}: {feedback}")
+                self.logger.error(f"Failed to borrow book {book_number}: {feedback}")
                 return False
         except (ValueError, SQLiteError) as e:
-            self.logger.error(f"Error borrowing book {book_id}: {e}")
+            self.logger.error(f"Error borrowing book {book_number}: {e}")
             return False
 
     def return_revision_book(self, student_id, book_list_frame):
@@ -1012,8 +1012,8 @@ class LibraryLogic:
         """Display borrowed revision books in the frame."""
         self._clear_revision_book_list(book_list_frame)
         if borrowed_books:
-            for book_id, borrowed_on, reminder_days in borrowed_books:
-                book_info = f"Book ID: {book_id}, Borrowed On: {borrowed_on}, Reminder Days: {reminder_days}"
+            for book_number, borrowed_on, reminder_days in borrowed_books:
+                book_info = f"Book ID: {book_number}, Borrowed On: {borrowed_on}, Reminder Days: {reminder_days}"
                 check_var = tk.IntVar()
                 check_button = tk.Checkbutton(book_list_frame, text=book_info, variable=check_var)
                 check_button.var = check_var
@@ -1039,8 +1039,8 @@ class LibraryLogic:
                 messagebox.showinfo("Information", "No books selected to return.")
                 return False
 
-            for book_id in selected_books:
-                self.db_manager.return_revision_book(student_id, book_id, condition)
+            for book_number in selected_books:
+                self.db_manager.return_revision_book(student_id, book_number, condition)
             messagebox.showinfo("Success", "Selected revision books returned successfully!")
 
             if book_list_frame.winfo_children():
@@ -1312,10 +1312,10 @@ class LibraryLogic:
         try:
             queries = {
                 "student": "DELETE FROM students WHERE student_id = ?",
-                "book": "DELETE FROM books WHERE book_id = ?",
-                "borrowed_book_student": "DELETE FROM borrowed_books_student WHERE student_id = ? AND book_id = ?",
+                "book": "DELETE FROM books WHERE book_number = ?",
+                "borrowed_book_student": "DELETE FROM borrowed_books_student WHERE student_id = ? AND book_number = ?",
                 "teacher": "DELETE FROM teachers WHERE teacher_id = ?",
-                "borrowed_book_teacher": "DELETE FROM borrowed_books_teacher WHERE teacher_id = ? AND book_id = ?",
+                "borrowed_book_teacher": "DELETE FROM borrowed_books_teacher WHERE teacher_id = ? AND book_number = ?",
                 "ream_entry": "DELETE FROM ream_entries WHERE id = ?"
             }
             if entity_type not in queries:
@@ -1333,7 +1333,7 @@ class LibraryLogic:
         finally:
             self.db_manager._close_connection(conn)
 
-    def search_book_borrow_details(self, book_id):
+    def search_book_borrow_details(self, book_number):
         """Search for borrowing details of a book by its ID."""
         conn = self.db_manager._create_connection()
         if not conn:
@@ -1346,13 +1346,13 @@ class LibraryLogic:
                 SELECT s.student_id, s.name, bbs.borrowed_on
                 FROM borrowed_books_student bbs
                 JOIN students s ON bbs.student_id = s.student_id
-                WHERE bbs.book_id = ?
-            """, (book_id,))
+                WHERE bbs.book_number = ?
+            """, (book_number,))
             student_result = cursor.fetchone()
 
             if student_result:
                 return {
-                    "book_id": book_id,
+                    "book_number": book_number,
                     "borrower_type": "student",
                     "borrower_id": student_result[0],
                     "borrower_name": student_result[1],
@@ -1363,24 +1363,24 @@ class LibraryLogic:
                 SELECT t.teacher_id, t.teacher_name, bbt.borrowed_on
                 FROM borrowed_books_teacher bbt
                 JOIN teachers t ON bbt.teacher_id = t.teacher_id
-                WHERE bbt.book_id = ?
-            """, (book_id,))
+                WHERE bbt.book_number = ?
+            """, (book_number,))
             teacher_result = cursor.fetchone()
             if teacher_result:
                 return {
-                    "book_id": book_id,
+                    "book_number": book_number,
                     "borrower_type": "teacher",
                     "borrower_id": teacher_result[0],
                     "borrower_name": teacher_result[1],
                     "borrowed_on": teacher_result[2]
                 }
 
-            cursor.execute("SELECT book_id FROM books WHERE book_id = ?", (book_id,))
+            cursor.execute("SELECT book_number FROM books WHERE book_number = ?", (book_number,))
             if cursor.fetchone():
-                return {"book_id": book_id, "borrower_type": "none", "message": "Book is not currently borrowed"}
+                return {"book_number": book_number, "borrower_type": "none", "message": "Book is not currently borrowed"}
             return None
         except SQLiteError as e:
-            self.logger.error(f"Error searching book {book_id}: {e}")
+            self.logger.error(f"Error searching book {book_number}: {e}")
             return None
         finally:
             self.db_manager._close_connection(conn)
