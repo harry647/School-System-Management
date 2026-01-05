@@ -2,6 +2,8 @@
 from .base import BaseModel
 
 class Teacher(BaseModel):
+    __tablename__ = 'teachers'
+    
     def __init__(self, teacher_id, teacher_name):
         super().__init__()
         self.teacher_id = teacher_id

@@ -23,67 +23,74 @@ class BaseRepository(Generic[T]):
     def get_by_id(self, id: int) -> Optional[T]:
         """Get entity by ID."""
         try:
-            # This would work with SQLAlchemy models
-            # For now, implementing basic functionality
+            cursor = self.db.cursor()
+            cursor.execute(f"SELECT * FROM {self.model.__tablename__} WHERE id = ?", (id,))
+            result = cursor.fetchone()
+            if result:
+                return self.model(**dict(zip([column[0] for column in cursor.description], result)))
             return None
         except Exception as e:
             raise DatabaseException(f"Error retrieving entity by ID: {e}")
-    
+
     def get_all(self) -> List[T]:
         """Get all entities."""
         try:
-            # This would work with SQLAlchemy models
-            # For now, implementing basic functionality
-            return []
+            cursor = self.db.cursor()
+            cursor.execute(f"SELECT * FROM {self.model.__tablename__}")
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
         except Exception as e:
             raise DatabaseException(f"Error retrieving all entities: {e}")
-    
+
     def create(self, **kwargs) -> T:
         """Create a new entity."""
         try:
-            # This would work with SQLAlchemy models
-            # For now, implementing basic functionality
-            return None
+            cursor = self.db.cursor()
+            columns = ', '.join(kwargs.keys())
+            placeholders = ', '.join(['?'] * len(kwargs))
+            cursor.execute(f"INSERT INTO {self.model.__tablename__} ({columns}) VALUES ({placeholders})", tuple(kwargs.values()))
+            self.db.commit()
+            return self.model(**kwargs)
         except Exception as e:
             raise DatabaseException(f"Error creating entity: {e}")
-    
+
     def update(self, id: int, **kwargs) -> Optional[T]:
         """Update an existing entity."""
         try:
-            instance = self.get_by_id(id)
-            if instance:
-                for key, value in kwargs.items():
-                    setattr(instance, key, value)
-            return instance
+            cursor = self.db.cursor()
+            set_clause = ', '.join([f"{key} = ?" for key in kwargs.keys()])
+            cursor.execute(f"UPDATE {self.model.__tablename__} SET {set_clause} WHERE id = ?", (*kwargs.values(), id))
+            self.db.commit()
+            return self.get_by_id(id)
         except Exception as e:
             raise DatabaseException(f"Error updating entity: {e}")
-    
+
     def delete(self, id: int) -> bool:
         """Delete an entity."""
         try:
-            instance = self.get_by_id(id)
-            if instance:
-                # SQLAlchemy delete operation would go here
-                return True
-            return False
+            cursor = self.db.cursor()
+            cursor.execute(f"DELETE FROM {self.model.__tablename__} WHERE id = ?", (id,))
+            self.db.commit()
+            return cursor.rowcount > 0
         except Exception as e:
             raise DatabaseException(f"Error deleting entity: {e}")
-    
+
     def find_by_field(self, field_name: str, value) -> List[T]:
         """Find entities by a specific field."""
         try:
-            # This would work with SQLAlchemy models
-            # For now, implementing basic functionality
-            return []
+            cursor = self.db.cursor()
+            cursor.execute(f"SELECT * FROM {self.model.__tablename__} WHERE {field_name} = ?", (value,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
         except Exception as e:
             raise DatabaseException(f"Error finding entities by field: {e}")
-    
+
     def count(self) -> int:
         """Count all entities."""
         try:
-            # This would work with SQLAlchemy models
-            # For now, implementing basic functionality
-            return 0
+            cursor = self.db.cursor()
+            cursor.execute(f"SELECT COUNT(*) FROM {self.model.__tablename__}")
+            return cursor.fetchone()[0]
         except Exception as e:
             raise DatabaseException(f"Error counting entities: {e}")
 
@@ -93,7 +100,8 @@ class StudentRepository(BaseRepository):
     """Repository for student operations."""
     
     def __init__(self):
-        super().__init__(None)  # Will be set when SQLAlchemy models are available
+        from ...models.student import Student
+        super().__init__(Student)
     
     def validate_student_data(self, student_id: str, name: str, stream: str) -> bool:
         """Validate student data before operations."""
@@ -110,7 +118,8 @@ class TeacherRepository(BaseRepository):
     """Repository for teacher operations."""
     
     def __init__(self):
-        super().__init__(None)  # Will be set when SQLAlchemy models are available
+        from ...models.teacher import Teacher
+        super().__init__(Teacher)
     
     def validate_teacher_data(self, teacher_id: str, teacher_name: str) -> bool:
         """Validate teacher data before operations."""
@@ -126,7 +135,8 @@ class BookRepository(BaseRepository):
     """Repository for book operations."""
     
     def __init__(self):
-        super().__init__(None)  # Will be set when SQLAlchemy models are available
+        from ...models.book import Book
+        super().__init__(Book)
     
     def validate_book_data(self, book_number: str, available: bool = True) -> bool:
         """Validate book data before operations."""
@@ -141,7 +151,8 @@ class UserRepository(BaseRepository):
     """Repository for user operations."""
     
     def __init__(self):
-        super().__init__(None)  # Will be set when SQLAlchemy models are available
+        from ...models.user import User
+        super().__init__(User)
     
     def validate_user_data(self, username: str, password: str) -> bool:
         """Validate user data before operations."""

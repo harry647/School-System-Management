@@ -3,6 +3,8 @@ from datetime import datetime
 from school_system.database.connection import get_db_session as db_get_db_session
 
 class BaseModel:
+    __tablename__ = None
+    
     def __init__(self):
         self.created_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()

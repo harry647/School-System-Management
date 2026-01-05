@@ -2,6 +2,8 @@
 from .base import BaseModel
 
 class User(BaseModel):
+    __tablename__ = 'users'
+    
     def __init__(self, username, password, role="student"):
         super().__init__()
         self.username = username
@@ -22,6 +24,7 @@ class User(BaseModel):
         return f"<User(username={self.username}, role={self.role})>"
 
 class UserSetting(BaseModel):
+    __tablename__ = 'settings'
     def __init__(self, user_id, reminder_frequency="daily", sound_enabled=1):
         super().__init__()
         self.user_id = user_id
@@ -42,6 +45,7 @@ class UserSetting(BaseModel):
         return f"<UserSetting(user_id={self.user_id}, reminder_frequency={self.reminder_frequency})>"
 
 class ShortFormMapping(BaseModel):
+    __tablename__ = 'short_form_mappings'
     def __init__(self, short_form, full_name, type):
         super().__init__()
         self.short_form = short_form

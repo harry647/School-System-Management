@@ -2,6 +2,8 @@
 from .base import BaseModel
 
 class Student(BaseModel):
+    __tablename__ = 'students'
+    
     def __init__(self, student_id, name, stream):
         super().__init__()
         self.student_id = student_id
@@ -22,6 +24,7 @@ class Student(BaseModel):
         return f"<Student(student_id={self.student_id}, name={self.name})>"
 
 class ReamEntry(BaseModel):
+    __tablename__ = 'ream_entries'
     def __init__(self, student_id, reams_count, date_added=None):
         super().__init__()
         self.student_id = student_id
@@ -42,6 +45,7 @@ class ReamEntry(BaseModel):
         return f"<ReamEntry(student_id={self.student_id}, reams_count={self.reams_count})>"
 
 class TotalReams(BaseModel):
+    __tablename__ = 'total_reams'
     def __init__(self, total_available=0):
         super().__init__()
         self.total_available = total_available

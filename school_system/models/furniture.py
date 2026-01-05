@@ -2,6 +2,7 @@
 from .base import BaseModel
 
 class Chair(BaseModel):
+    __tablename__ = 'chairs'
     def __init__(self, chair_id, location=None, form=None, color="Black", cond="Good", assigned=0):
         super().__init__()
         self.chair_id = chair_id
@@ -25,6 +26,7 @@ class Chair(BaseModel):
         return f"<Chair(chair_id={self.chair_id}, location={self.location})>"
 
 class Locker(BaseModel):
+    __tablename__ = 'lockers'
     def __init__(self, locker_id, location=None, form=None, color="Black", cond="Good", assigned=0):
         super().__init__()
         self.locker_id = locker_id
@@ -48,6 +50,7 @@ class Locker(BaseModel):
         return f"<Locker(locker_id={self.locker_id}, location={self.location})>"
 
 class FurnitureCategory(BaseModel):
+    __tablename__ = 'furniture_categories'
     def __init__(self, category_name, total_count=0, needs_repair=0):
         super().__init__()
         self.category_name = category_name
@@ -68,6 +71,7 @@ class FurnitureCategory(BaseModel):
         return f"<FurnitureCategory(category_name={self.category_name}, total_count={self.total_count})>"
 
 class LockerAssignment(BaseModel):
+    __tablename__ = 'locker_assignments'
     def __init__(self, student_id, locker_id, assigned_date=None):
         super().__init__()
         self.student_id = student_id
@@ -88,6 +92,7 @@ class LockerAssignment(BaseModel):
         return f"<LockerAssignment(student_id={self.student_id}, locker_id={self.locker_id})>"
 
 class ChairAssignment(BaseModel):
+    __tablename__ = 'chair_assignments'
     def __init__(self, student_id, chair_id, assigned_date=None):
         super().__init__()
         self.student_id = student_id
