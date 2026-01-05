@@ -7,6 +7,7 @@ from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
+from school_system.services.import_export_service import ImportExportService
 from school_system.database.repositories.book_repo import BookRepository
 from school_system.database.repositories.student_repo import StudentRepository
 
@@ -17,6 +18,7 @@ class ReportService:
     def __init__(self):
         self.book_repository = BookRepository()
         self.student_repository = StudentRepository()
+        self.import_export_service = ImportExportService()
 
     def generate_report(self, report_type: str, parameters: Dict) -> Report:
         """
@@ -73,3 +75,42 @@ class ReportService:
         """
         books = self.book_repository.get_all()
         return [{"book": book} for book in books]
+
+    def export_report_to_excel(self, report_data: List[Dict], filename: str) -> bool:
+        """
+        Export report data to an Excel file.
+
+        Args:
+            report_data: The report data to export.
+            filename: The name of the Excel file.
+
+        Returns:
+            True if the export was successful, otherwise False.
+        """
+        logger.info(f"Exporting report to Excel file: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+        
+        try:
+            return self.import_export_service.export_to_excel(report_data, filename)
+        except Exception as e:
+            logger.error(f"Error exporting report to Excel: {e}")
+            return False
+
+    def import_report_from_excel(self, filename: str) -> List[Dict]:
+        """
+        Import report data from an Excel file.
+
+        Args:
+            filename: The name of the Excel file.
+
+        Returns:
+            The imported report data as a list of dictionaries.
+        """
+        logger.info(f"Importing report from Excel file: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+        
+        try:
+            return self.import_export_service.import_from_excel(filename)
+        except Exception as e:
+            logger.error(f"Error importing report from Excel: {e}")
+            return []
