@@ -22,6 +22,10 @@ class UserRepository(BaseRepository):
         except Exception as e:
             raise Exception(f"User validation failed: {e}")
 
+    def get_user_by_username(self, username: str):
+        """Get user by username."""
+        return self.get_by_fields(username=username)
+
 
 class UserSettingRepository(BaseRepository):
     """Repository for user setting operations."""

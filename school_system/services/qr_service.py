@@ -7,8 +7,8 @@ from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
-from school_system.models.book import QRBook
-from school_system.database.repositories.book_repo import QRBookRepository
+from school_system.models.book import QRBook, QRBorrowLog
+from school_system.database.repositories.book_repo import QRBookRepository, QRBorrowLogRepository
 
 
 class QRService:

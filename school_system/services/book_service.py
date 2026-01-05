@@ -7,8 +7,14 @@ from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
-from school_system.models.book import Book
-from school_system.database.repositories.book_repo import BookRepository
+
+from school_system.models.book import (Book, BookTag, BorrowedBookStudent, BorrowedBookTeacher,
+ DistributionSession, DistributionStudent, DistributionImportLog)
+
+from school_system.database.repositories.book_repo import (BookRepository,
+        BookTagRepository, BorrowedBookStudentRepository, BorrowedBookTeacherRepository,
+        DistributionSessionRepository,DistributionStudentRepository, DistributionImportLogRepository)
+
 
 
 class BookService:

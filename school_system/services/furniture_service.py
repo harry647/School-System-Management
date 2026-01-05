@@ -7,8 +7,8 @@ from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
-from school_system.models.furniture import Chair
-from school_system.database.repositories.furniture_repo import ChairRepository
+from school_system.models.furniture import Chair, Locker, FurnitureCategory, LockerAssignment, ChairAssignment
+from school_system.database.repositories.furniture_repo import ChairRepository, LockerRepository, FurnitureCategoryRepository, LockerAssignmentRepository, ChairAssignmentRepository
 
 
 class FurnitureService:

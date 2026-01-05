@@ -5,11 +5,14 @@ class User(BaseModel):
     __tablename__ = 'users'
     __pk__ = "username"
     
-    def __init__(self, username, password, role="student"):
+    def __init__(self, username, password, role="student", **kwargs):
         super().__init__()
         self.username = username
         self.password = password
         self.role = role
+        # Handle additional fields that might be returned from database
+        for key, value in kwargs.items():
+            setattr(self, key, value)
     
     def save(self):
         """Save the user to the database."""
@@ -20,6 +23,11 @@ class User(BaseModel):
             (self.username, self.password, self.role)
         )
         db.commit()
+
+    def check_password(self, password: str) -> bool:
+        """Check if the provided password matches the user's password."""
+        from ..core.utils import HashUtils
+        return HashUtils.verify_password(password, self.password)
     
     def __repr__(self):
         return f"<User(username={self.username}, role={self.role})>"

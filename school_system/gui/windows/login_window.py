@@ -9,8 +9,8 @@ from tkinter import ttk, messagebox
 from typing import Callable, Optional
 
 from school_system.config.logging import logger
-from school_system.database import create_db_connection, close_db_connection
-from school_system.core.utils import HashUtils
+from school_system.services.auth_service import AuthService
+from school_system.core.exceptions import AuthenticationError
 
 
 class LoginWindow:
@@ -29,6 +29,7 @@ class LoginWindow:
         self.window: Optional[tk.Toplevel] = None
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
+        self.auth_service = AuthService()
         
         self._create_window()
         self._setup_widgets()
@@ -104,76 +105,21 @@ class LoginWindow:
             messagebox.showerror("Error", "Please enter both username and password")
             return
         
-        # Authenticate user
-        if self._authenticate_user(username, password):
+        try:
+            # Authenticate user using AuthService
+            user = self.auth_service.authenticate_user(username, password)
             logger.info(f"User {username} logged in successfully")
             self.window.destroy()
-            # Get user role
-            role = self._get_user_role(username)
+            # Get user role using AuthService
+            role = self.auth_service.get_user_role(username)
             self.on_success(username, role)
-        else:
+        except AuthenticationError:
             messagebox.showerror("Error", "Invalid username or password")
             logger.warning(f"Failed login attempt for user: {username}")
-    
-    def _authenticate_user(self, username: str, password: str) -> bool:
-        """
-        Authenticate user against database.
-        
-        Args:
-            username: The username to authenticate
-            password: The password to verify
-            
-        Returns:
-            True if authentication successful, False otherwise
-        """
-        try:
-            conn = create_db_connection()
-            if not conn:
-                return False
-            
-            cursor = conn.cursor()
-            cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
-            result = cursor.fetchone()
-            close_db_connection(conn)
-            
-            if result:
-                stored_password = result[0]
-                return HashUtils.verify_password(password, stored_password)
-            
-            return False
-            
         except Exception as e:
-            logger.error(f"Authentication error: {e}")
-            return False
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            logger.error(f"Login error for user {username}: {str(e)}")
     
-    def _get_user_role(self, username: str) -> str:
-        """
-        Get user role from database.
-        
-        Args:
-            username: The username
-            
-        Returns:
-            The user role or 'student' as default
-        """
-        try:
-            conn = create_db_connection()
-            if not conn:
-                return 'student'
-            
-            cursor = conn.cursor()
-            cursor.execute("SELECT role FROM users WHERE username = ?", (username,))
-            result = cursor.fetchone()
-            close_db_connection(conn)
-            
-            if result:
-                return result[0]
-            
-            return 'student'
-            
-        except Exception as e:
-            logger.error(f"Error getting user role: {e}")
-            return 'student'
     
     def _on_closing(self):
         """Handle window closing."""

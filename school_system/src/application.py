@@ -14,10 +14,10 @@ from school_system.config.settings import Settings
 from school_system.database import get_db_session
 from school_system.database.repositories import (
     StudentRepository, TeacherRepository, BookRepository, UserRepository,
-    FurnitureRepository
+    ChairRepository, LockerRepository, FurnitureCategoryRepository
 )
 from school_system.models import (
-    Student, Teacher, Book, User, Furniture
+    Student, Teacher, Book, User, Chair, Locker, FurnitureCategory
 )
 from school_system.core.exceptions import DatabaseException
 from school_system.gui.windows import LoginWindow, MainWindow
