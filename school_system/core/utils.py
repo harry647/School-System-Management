@@ -128,9 +128,19 @@ class FileUtils:
         return os.path.splitext(file_path)[1].lower()
 
 
+class ValidationUtils:
+    """Validation utility functions."""
+     
+    @staticmethod
+    def validate_input(value: Any, error_message: str) -> None:
+        """Validate that input value is not None or empty."""
+        if value is None or (isinstance(value, str) and not value.strip()):
+            raise ValueError(error_message)
+     
+ 
 class DataUtils:
     """Data utility functions."""
-    
+     
     @staticmethod
     def filter_dict(data: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
         """Filter dictionary to include only specified keys."""

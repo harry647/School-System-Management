@@ -6,16 +6,16 @@ from typing import Optional
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
-from school_system.core.utils import validate_input
-from school_system.models.qr import QRCode
-from school_system.database.repositories.qr_repository import QRRepository
+from school_system.core.utils import ValidationUtils
+from school_system.models.book import QRBook
+from school_system.database.repositories.book_repo import QRBookRepository
 
 
 class QRService:
     """Service for managing QR code-related operations."""
-
+ 
     def __init__(self):
-        self.qr_repository = QRRepository()
+        self.qr_book_repository = QRBookRepository()
 
     def generate_qr_code(self, data: str) -> str:
         """
@@ -28,7 +28,7 @@ class QRService:
             The generated QR code as a string.
         """
         logger.info(f"Generating QR code for data: {data}")
-        validate_input(data, "Data for QR code cannot be empty")
+        ValidationUtils.validate_input(data, "Data for QR code cannot be empty")
         
         # Logic to generate QR code
         qr_code = self._generate_qr(data)
@@ -48,28 +48,28 @@ class QRService:
         # Placeholder for QR generation logic
         return f"QR_CODE_{data}"
 
-    def save_qr_code(self, qr_code: str, metadata: dict) -> QRCode:
+    def save_qr_book(self, qr_book: str, metadata: dict) -> QRBook:
         """
-        Save a QR code to the database.
+        Save a QR book to the database.
 
         Args:
-            qr_code: The QR code to save.
-            metadata: Additional metadata for the QR code.
+            qr_book: The QR book to save.
+            metadata: Additional metadata for the QR book.
 
         Returns:
-            The saved QRCode object.
+            The saved QRBook object.
         """
-        qr = QRCode(qr_code=qr_code, **metadata)
-        return self.qr_repository.create(qr)
-
-    def get_qr_code_by_id(self, qr_id: int) -> Optional[QRCode]:
+        qr = QRBook(qr_book=qr_book, **metadata)
+        return self.qr_book_repository.create(qr)
+ 
+    def get_qr_book_by_id(self, qr_id: int) -> Optional[QRBook]:
         """
-        Retrieve a QR code by its ID.
+        Retrieve a QR book by its ID.
 
         Args:
-            qr_id: The ID of the QR code.
+            qr_id: The ID of the QR book.
 
         Returns:
-            The QRCode object if found, otherwise None.
+            The QRBook object if found, otherwise None.
         """
-        return self.qr_repository.get_by_id(qr_id)
+        return self.qr_book_repository.get_by_id(qr_id)

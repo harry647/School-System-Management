@@ -36,3 +36,8 @@ class ConfigurationError(SchoolSystemException):
 class ServiceError(SchoolSystemException):
     """Service layer error."""
     pass
+
+
+class FileOperationException(SchoolSystemException):
+    """File operation error."""
+    pass

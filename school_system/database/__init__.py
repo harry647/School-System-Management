@@ -13,13 +13,11 @@ from .connection import (
     db_connection
 )
 
-from .repositories.base import (
-    BaseRepository,
-    StudentRepository,
-    TeacherRepository,
-    BookRepository,
-    UserRepository
-)
+from .repositories.base import BaseRepository
+from .repositories.student_repo import StudentRepository
+from .repositories.teacher_repo import TeacherRepository
+from .repositories.book_repo import BookRepository
+from .repositories.user_repo import UserRepository
 
 __all__ = [
     'DatabaseConnection',

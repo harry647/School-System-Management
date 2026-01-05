@@ -8,7 +8,7 @@ from typing import List, Dict
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import FileOperationException
-from school_system.core.utils import validate_input
+from school_system.core.utils import ValidationUtils
 
 
 class ImportExportService:
@@ -26,7 +26,7 @@ class ImportExportService:
             True if the export was successful, otherwise False.
         """
         logger.info(f"Exporting data to CSV file: {filename}")
-        validate_input(filename, "Filename cannot be empty")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
         
         try:
             with open(filename, mode='w', newline='', encoding='utf-8') as file:

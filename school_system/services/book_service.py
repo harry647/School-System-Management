@@ -6,9 +6,9 @@ from typing import List, Optional
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
-from school_system.core.utils import validate_input
+from school_system.core.utils import ValidationUtils
 from school_system.models.book import Book
-from school_system.database.repositories.book_repository import BookRepository
+from school_system.database.repositories.book_repo import BookRepository
 
 
 class BookService:
@@ -49,7 +49,7 @@ class BookService:
             The created Book object.
         """
         logger.info(f"Creating a new book with data: {book_data}")
-        validate_input(book_data.get('title'), "Book title cannot be empty")
+        ValidationUtils.validate_input(book_data.get('title'), "Book title cannot be empty")
         
         book = Book(**book_data)
         created_book = self.book_repository.create(book)

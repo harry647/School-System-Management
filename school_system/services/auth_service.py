@@ -4,18 +4,18 @@ Authentication service for handling user authentication and authorization.
 
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
-from school_system.core.exceptions import AuthenticationException
-from school_system.core.utils import validate_input
+from school_system.core.exceptions import AuthenticationError
+from school_system.core.utils import ValidationUtils
 from school_system.models.user import User, UserSetting, ShortFormMapping
-from school_system.database.repositories.user_repository import UserRepository
-from school_system.database.repositories.user_setting_repository import UserSettingRepository
-from school_system.database.repositories.short_form_mapping_repository import ShortFormMappingRepository
+from school_system.database.repositories.user_repo import UserRepository
+from school_system.database.repositories.user_repo import UserSettingRepository
+from school_system.database.repositories.user_repo import ShortFormMappingRepository
 from school_system.models.session import UserSession
-from school_system.database.repositories.session_repository import UserSessionRepository
+from school_system.database.repositories.session_repo import UserSessionRepository
 from school_system.models.audit_log import AuditLog
-from school_system.database.repositories.audit_log_repository import AuditLogRepository
+from school_system.database.repositories.audit_log_repo import AuditLogRepository
 from school_system.models.user_activity import UserActivity
-from school_system.database.repositories.user_activity_repository import UserActivityRepository
+from school_system.database.repositories.user_activity_repo import UserActivityRepository
 
 
 class AuthService:
@@ -41,16 +41,16 @@ class AuthService:
             The authenticated User object.
 
         Raises:
-            AuthenticationException: If authentication fails.
+            AuthenticationError: If authentication fails.
         """
         logger.info(f"Attempting to authenticate user: {username}")
-        validate_input(username, "Username cannot be empty")
-        validate_input(password, "Password cannot be empty")
-        
+        ValidationUtils.validate_input(username, "Username cannot be empty")
+        ValidationUtils.validate_input(password, "Password cannot be empty")
+         
         user = self.user_repository.get_user_by_username(username)
         if not user or not user.check_password(password):
             logger.warning(f"Failed authentication attempt for user: {username}")
-            raise AuthenticationException("Invalid username or password")
+            raise AuthenticationError("Invalid username or password")
         
         logger.info(f"User {username} authenticated successfully")
         return user
@@ -66,11 +66,11 @@ class AuthService:
             The role of the user.
 
         Raises:
-            AuthenticationException: If the user does not exist.
+            AuthenticationError: If the user does not exist.
         """
         user = self.user_repository.get_user_by_username(username)
         if not user:
-            raise AuthenticationException("User does not exist")
+            raise AuthenticationError("User does not exist")
         return user.role
 
     def get_user_setting(self, user_id: int) -> Optional[UserSetting]:
@@ -99,7 +99,7 @@ class AuthService:
             The created UserSetting object.
         """
         logger.info(f"Creating user setting for user ID: {user_id}")
-        validate_input(user_id, "User ID cannot be empty")
+        ValidationUtils.validate_input(user_id, "User ID cannot be empty")
         
         user_setting = UserSetting(user_id=user_id, reminder_frequency=reminder_frequency, sound_enabled=sound_enabled)
         created_setting = self.user_setting_repository.create(user_setting)
@@ -158,9 +158,9 @@ class AuthService:
             The created ShortFormMapping object.
         """
         logger.info(f"Creating short form mapping for: {short_form}")
-        validate_input(short_form, "Short form cannot be empty")
-        validate_input(full_name, "Full name cannot be empty")
-        validate_input(mapping_type, "Mapping type cannot be empty")
+        ValidationUtils.validate_input(short_form, "Short form cannot be empty")
+        ValidationUtils.validate_input(full_name, "Full name cannot be empty")
+        ValidationUtils.validate_input(mapping_type, "Mapping type cannot be empty")
         
         short_form_mapping = ShortFormMapping(short_form=short_form, full_name=full_name, type=mapping_type)
         created_mapping = self.short_form_mapping_repository.create(short_form_mapping)
@@ -204,7 +204,7 @@ class AuthService:
             True if the password reset request was successful, otherwise False.
         """
         logger.info(f"Requesting password reset for user: {username}")
-        validate_input(username, "Username cannot be empty")
+        ValidationUtils.validate_input(username, "Username cannot be empty")
         
         user = self.user_repository.get_user_by_username(username)
         if not user:
@@ -251,8 +251,8 @@ class AuthService:
             True if the role was updated successfully, otherwise False.
         """
         logger.info(f"Updating role for user: {username} to {new_role}")
-        validate_input(username, "Username cannot be empty")
-        validate_input(new_role, "New role cannot be empty")
+        ValidationUtils.validate_input(username, "Username cannot be empty")
+        ValidationUtils.validate_input(new_role, "New role cannot be empty")
         
         user = self.user_repository.get_user_by_username(username)
         if not user:
@@ -286,8 +286,8 @@ class AuthService:
             The created UserSession object.
         """
         logger.info(f"Creating session for user: {username}")
-        validate_input(username, "Username cannot be empty")
-        validate_input(ip_address, "IP address cannot be empty")
+        ValidationUtils.validate_input(username, "Username cannot be empty")
+        ValidationUtils.validate_input(ip_address, "IP address cannot be empty")
         
         session = UserSession(username=username, ip_address=ip_address)
         created_session = self.user_session_repository.create(session)
@@ -349,8 +349,8 @@ class AuthService:
             The created AuditLog object.
         """
         logger.info(f"Logging action for user: {username}")
-        validate_input(username, "Username cannot be empty")
-        validate_input(action, "Action cannot be empty")
+        ValidationUtils.validate_input(username, "Username cannot be empty")
+        ValidationUtils.validate_input(action, "Action cannot be empty")
         
         audit_log = AuditLog(user_id=username, action=action, details=details)
         created_log = self.audit_log_repository.create(audit_log)
@@ -371,8 +371,8 @@ class AuthService:
             The created UserActivity object.
         """
         logger.info(f"Tracking activity for user: {username}")
-        validate_input(username, "Username cannot be empty")
-        validate_input(activity_type, "Activity type cannot be empty")
+        ValidationUtils.validate_input(username, "Username cannot be empty")
+        ValidationUtils.validate_input(activity_type, "Activity type cannot be empty")
         
         user_activity = UserActivity(username=username, activity_type=activity_type, details=details)
         created_activity = self.user_activity_repository.create(user_activity)

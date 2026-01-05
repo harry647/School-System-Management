@@ -6,9 +6,9 @@ from typing import List, Optional
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
-from school_system.core.utils import validate_input
+from school_system.core.utils import ValidationUtils
 from school_system.models.teacher import Teacher
-from school_system.database.repositories.teacher_repository import TeacherRepository
+from school_system.database.repositories.teacher_repo import TeacherRepository
 
 
 class TeacherService:
@@ -49,7 +49,7 @@ class TeacherService:
             The created Teacher object.
         """
         logger.info(f"Creating a new teacher with data: {teacher_data}")
-        validate_input(teacher_data.get('name'), "Teacher name cannot be empty")
+        ValidationUtils.validate_input(teacher_data.get('name'), "Teacher name cannot be empty")
         
         teacher = Teacher(**teacher_data)
         created_teacher = self.teacher_repository.create(teacher)
