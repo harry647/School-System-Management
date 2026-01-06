@@ -4,12 +4,13 @@ Main application window for the School System Management.
 This module provides the main GUI interface for the school system.
 """
 
-from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, 
+from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
                              QHBoxLayout, QTabWidget, QFrame, QMessageBox, QMenuBar)
 from PyQt6.QtCore import Qt
 from typing import Optional, Callable
 
 from school_system.config.logging import logger
+from school_system.gui.windows.user_window import UserWindow
 
 
 class MainWindow(QMainWindow):
@@ -84,6 +85,11 @@ class MainWindow(QMainWindow):
             teachers_menu.addAction("View Teachers", self._show_teachers)
             teachers_menu.addAction("Add Teacher", self._add_teacher)
             teachers_menu.addAction("Manage Teachers", self._manage_teachers)
+
+        # Users menu (admin only)
+        if self.role == 'admin':
+            users_menu = menubar.addMenu("Users")
+            users_menu.addAction("User Management", self._show_user_management)
         
         # Books menu
         books_menu = menubar.addMenu("Books")
@@ -280,6 +286,14 @@ class MainWindow(QMainWindow):
     def _manage_teachers(self):
         """Manage teachers functionality."""
         QMessageBox.information(self, "Manage Teachers", "Manage teachers functionality coming soon!")
+
+    def _show_user_management(self):
+        """Show user management window."""
+        try:
+            user_window = UserWindow(self, self.username, self.role)
+            user_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open user management: {str(e)}")
     
     def _show_books(self):
         """Show books functionality."""
