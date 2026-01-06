@@ -754,10 +754,10 @@ class BookService:
             """, (posted_by, session_id))
 
             self.db.commit()
-    
-            except Exception:
-                self.db.rollback()
-                raise
+        
+        except Exception:
+            self.db.rollback()
+            raise
     
         def undo_distribution_session(self, session_id: int) -> bool:
             """
@@ -983,7 +983,7 @@ class BookService:
         """
         logger.info(f"Exporting books to Excel file: {filename}")
         ValidationUtils.validate_input(filename, "Filename cannot be empty")
-         
+        
         try:
             books = self.book_repository.get_all()
             data = [book.__dict__ for book in books]
@@ -1312,11 +1312,11 @@ class BookService:
     def get_borrowing_history(self, user_id: int, user_type: str) -> List[Union[BorrowedBookStudent, BorrowedBookTeacher]]:
         """
         Get complete borrowing history for a user (student or teacher)
-         
+        
         Args:
             user_id: ID of the user
             user_type: 'student' or 'teacher'
-             
+            
         Returns:
             List of all borrowing records for the user
         """
@@ -1332,7 +1332,7 @@ class BookService:
             else:
                 logger.warning(f"Invalid user type: {user_type}")
                 return []
-                 
+            
         except Exception as e:
             logger.error(f"Error getting borrowing history: {e}")
             return []

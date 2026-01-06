@@ -226,9 +226,9 @@ class StudentService:
             students = self.student_repository.get_all()
             data = [student.__dict__ for student in students]
             return self.import_export_service.export_to_excel(data, filename)
-            except Exception as e:
-                logger.error(f"Error exporting students to Excel: {e}")
-                return False
+        except Exception as e:
+            logger.error(f"Error exporting students to Excel: {e}")
+            return False
     
         # Library-Related Methods
     
@@ -238,7 +238,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of books currently borrowed by the student
             """
@@ -251,7 +251,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of all borrowing records for the student
             """
@@ -264,7 +264,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of currently borrowed books
             """
@@ -278,7 +278,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of overdue books
             """
@@ -293,7 +293,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Dictionary with borrowing pattern analysis
             """
@@ -311,7 +311,7 @@ class StudentService:
             
             Args:
                 progress_data: Dictionary containing progress data
-                
+                 
             Returns:
                 Dictionary with the recorded progress data
             """
@@ -327,7 +327,7 @@ class StudentService:
             Args:
                 student_id: ID of the student
                 book_id: Optional book ID filter
-                
+                 
             Returns:
                 List of reading progress records
             """
@@ -342,7 +342,7 @@ class StudentService:
                 student_id: ID of the student
                 book_id: ID of the book
                 completion_date: Date when book was completed
-                
+                 
             Returns:
                 True if successful, False otherwise
             """
@@ -356,7 +356,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of completed books with dates
             """
@@ -369,7 +369,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Dictionary with reading statistics
             """
@@ -387,7 +387,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Dictionary with library usage statistics
             """
@@ -406,7 +406,7 @@ class StudentService:
             Args:
                 student_id: ID of the student
                 date_range: Optional tuple of (start_date, end_date)
-                
+                 
             Returns:
                 List of library visit records
             """
@@ -419,7 +419,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of favorite categories
             """
@@ -433,7 +433,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of favorite authors
             """
@@ -447,7 +447,7 @@ class StudentService:
             
             Args:
                 stream: Stream to filter by
-                
+                 
             Returns:
                 List of students in the specified stream
             """
@@ -459,7 +459,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Dictionary with activity summary
             """
@@ -479,7 +479,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Current ream balance
             """
@@ -500,7 +500,7 @@ class StudentService:
                 student_id: ID of the student
                 reams_count: Number of reams to add
                 source: Source of the reams (Distribution, Purchase, Transfer, etc.)
-                
+                 
             Returns:
                 The created ream entry
             """
@@ -524,7 +524,7 @@ class StudentService:
             
             Args:
                 distribution_data: Dictionary containing distribution data
-                
+                 
             Returns:
                 Dictionary with the recorded distribution data
             """
@@ -538,7 +538,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of ream distribution records
             """
@@ -551,7 +551,7 @@ class StudentService:
             
             Args:
                 usage_data: Dictionary containing usage data
-                
+                 
             Returns:
                 Dictionary with the recorded usage data
             """
@@ -565,7 +565,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 List of ream usage records
             """
@@ -578,7 +578,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Dictionary with usage breakdown by purpose
             """
@@ -599,7 +599,7 @@ class StudentService:
             Args:
                 student_id: ID of the student
                 date_range: Optional tuple of (start_date, end_date)
-                
+                 
             Returns:
                 List of ream transaction records
             """
@@ -623,7 +623,7 @@ class StudentService:
             
             Args:
                 student_id: ID of the student
-                
+                 
             Returns:
                 Dictionary with ream usage summary statistics
             """
@@ -656,7 +656,7 @@ class StudentService:
             
             Args:
                 class_id: ID of the class
-                
+                 
             Returns:
                 Dictionary with class ream usage statistics
             """
@@ -674,7 +674,7 @@ class StudentService:
             
             Args:
                 stream: Name of the stream
-                
+                 
             Returns:
                 Dictionary with stream ream usage statistics
             """
@@ -698,7 +698,7 @@ class StudentService:
             
             Args:
                 time_period: Time period for trends (daily, weekly, monthly, yearly)
-                
+                 
             Returns:
                 Dictionary with usage trends data
             """
@@ -716,7 +716,7 @@ class StudentService:
             Args:
                 report_type: Type of report to generate
                 parameters: Optional report parameters
-                
+                 
             Returns:
                 Dictionary containing the generated report
             """
@@ -746,7 +746,7 @@ class StudentService:
                 student_id: ID of the student
                 reams_count: Number of reams to deduct
                 purpose: Purpose of the deduction (Usage, Transfer, Loss, etc.)
-                
+                 
             Returns:
                 The created ream entry
             """
@@ -774,7 +774,7 @@ class StudentService:
                 to_student_id: ID of the student receiving reams
                 reams_count: Number of reams to transfer
                 reason: Reason for the transfer
-                
+                 
             Returns:
                 True if transfer was successful, False otherwise
             """
@@ -801,7 +801,7 @@ class StudentService:
                 student_id: ID of the student
                 adjustment: Positive or negative adjustment amount
                 reason: Reason for the adjustment
-                
+                 
             Returns:
                 The created ream entry
             """

@@ -5,8 +5,8 @@ This module contains the SchoolSystemApplication class that manages the main GUI
 and coordinates between different components of the application.
 """
 
-import tkinter as tk
-from tkinter import ttk, messagebox
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QMessageBox
+from PyQt6.QtCore import Qt
 from typing import Optional
 
 from school_system.config.logging import logger
@@ -21,67 +21,54 @@ from school_system.models import (
 )
 from school_system.core.exceptions import DatabaseException
 from school_system.gui.windows import LoginWindow, MainWindow
+from school_system.gui.dialogs.message_dialog import show_error_message, show_info_message
 
 
 class SchoolSystemApplication:
     """Main application class that manages the school system GUI."""
     
-    def __init__(self, root: tk.Tk):
-        """
-        Initialize the application.
-        
-        Args:
-            root: The root Tkinter window
-        """
-        self.root = root
+    def __init__(self):
+        """Initialize the application."""
         self.settings = Settings()
         self.current_user: Optional[str] = None
         self.main_window: Optional[MainWindow] = None
+        self.login_window: Optional[LoginWindow] = None
         
-        self._setup_window()
-        self._setup_menu()
+        # Create the main application window
+        self._create_main_window()
+        
+        # Show login window
         self._show_login()
     
-    def _setup_window(self):
-        """Configure the main application window."""
-        self.root.title(self.settings.app_name)
-        self.root.geometry(f"{self.settings.default_window_size[0]}x{self.settings.default_window_size[1]}")
-        self.root.minsize(800, 600)
+    def _create_main_window(self):
+        """Create the main application window."""
+        from PyQt6.QtWidgets import QApplication
+        self.app = QApplication.instance() or QApplication([])
         
-        # Set window icon if available
-        try:
-            # You can add an icon file here if needed
-            # self.root.iconbitmap("path/to/icon.ico")
-            pass
-        except Exception as e:
-            logger.warning(f"Could not set window icon: {e}")
+        self.main_widget = QMainWindow()
+        self.main_widget.setWindowTitle(self.settings.app_name)
+        self.main_widget.setGeometry(
+            self.settings.default_window_size[0],
+            self.settings.default_window_size[1],
+            self.settings.default_window_size[0],
+            self.settings.default_window_size[1]
+        )
+        self.main_widget.setMinimumSize(800, 600)
         
-        # Configure window closing
-        self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
-    
-    def _setup_menu(self):
-        """Create the application menu bar."""
-        menubar = tk.Menu(self.root)
-        self.root.config(menu=menubar)
+        # Handle window closing
+        self.main_widget.closeEvent = self._on_closing
         
-        # File menu
-        file_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Exit", command=self._on_closing)
-        
-        # Help menu
-        help_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Help", menu=help_menu)
-        help_menu.add_command(label="About", command=self._show_about)
+        logger.info("Main application window created")
     
     def _show_login(self):
         """Display the login window."""
         try:
-            login_window = LoginWindow(self.root, self._on_login_success)
+            self.login_window = LoginWindow(self.main_widget, self._on_login_success)
+            self.login_window.show()
             logger.info("Login window displayed")
         except Exception as e:
             logger.error(f"Failed to create login window: {e}")
-            messagebox.showerror("Error", f"Failed to display login window: {e}")
+            show_error_message("Error", f"Failed to display login window: {e}", self.main_widget)
     
     def _on_login_success(self, username: str, role: str):
         """
@@ -94,24 +81,30 @@ class SchoolSystemApplication:
         self.current_user = username
         logger.info(f"User {username} logged in with role {role}")
         
+        # Close login window
+        if self.login_window:
+            self.login_window.close()
+            self.login_window = None
+        
         # Create and display the main window
         try:
-            self.main_window = MainWindow(self.root, username, role, self._on_logout)
+            self.main_window = MainWindow(self.main_widget, username, role, self._on_logout)
             logger.info("Main application window created")
         except Exception as e:
             logger.error(f"Failed to create main window: {e}")
-            messagebox.showerror("Error", f"Failed to create main window: {e}")
+            show_error_message("Error", f"Failed to create main window: {e}", self.main_widget)
     
     def _on_logout(self):
         """Handle user logout."""
         logger.info(f"User {self.current_user} logged out")
         self.current_user = None
         
-        # Close main window and show login again
+        # Close main window
         if self.main_window:
-            self.main_window.destroy()
+            self.main_window.close()
             self.main_window = None
         
+        # Show login again
         self._show_login()
     
     def _show_about(self):
@@ -121,19 +114,26 @@ class SchoolSystemApplication:
 Version: {self.settings.app_version}
 
 A comprehensive school management system for managing:
-- Students and Teachers
-- Books and Library
-- Furniture and Equipment
-- User Accounts and Permissions
+• Students and Teachers
+• Books and Library
+• Furniture and Equipment
+• User Accounts and Permissions
 
 Developed for efficient school administration.
         """
-        messagebox.showinfo("About", about_text.strip())
+        show_info_message("About", about_text.strip(), self.main_widget)
     
-    def _on_closing(self):
-        """Handle application closing."""
-        result = messagebox.askyesno("Exit Application", "Are you sure you want to exit?")
-        if result:
+    def _on_closing(self, event):
+        """Handle window closing."""
+        from PyQt6.QtWidgets import QMessageBox
+        reply = QMessageBox.question(
+            self.main_widget,
+            "Exit Application",
+            "Are you sure you want to exit?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
             logger.info("Application closing")
             
             # Clean up database connection
@@ -145,8 +145,9 @@ Developed for efficient school administration.
             except Exception as e:
                 logger.error(f"Error closing database connection: {e}")
             
-            self.root.quit()
-            self.root.destroy()
+            self.app.quit()
+        else:
+            event.ignore()
     
     def get_current_user(self) -> Optional[str]:
         """
@@ -176,8 +177,20 @@ Developed for efficient school administration.
             message_type: The type of message (info, warning, error)
         """
         if message_type == "error":
-            messagebox.showerror(title, message)
+            show_error_message(title, message, self.main_widget)
         elif message_type == "warning":
-            messagebox.showwarning(title, message)
+            from school_system.gui.dialogs.message_dialog import show_warning_message
+            show_warning_message(title, message, self.main_widget)
         else:
-            messagebox.showinfo(title, message)
+            show_info_message(title, message, self.main_widget)
+    
+    def run(self):
+        """Run the application."""
+        from PyQt6.QtWidgets import QApplication
+        self.main_widget.show()
+        return self.app.exec()
+
+
+if __name__ == "__main__":
+    app = SchoolSystemApplication()
+    app.run()
