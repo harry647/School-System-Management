@@ -13,6 +13,7 @@ from school_system.gui.base.base_window import BaseApplicationWindow
 from school_system.gui.windows.user_window import UserWindow
 from school_system.gui.windows.book_window import BookWindow
 from school_system.gui.windows.student_window import StudentWindow
+from school_system.gui.windows.teacher_window import TeacherWindow
 
 
 class MainWindow(BaseApplicationWindow):
@@ -233,16 +234,24 @@ class MainWindow(BaseApplicationWindow):
             QMessageBox.critical(self, "Error", f"Failed to open student management: {str(e)}")
     
     def _show_teachers(self):
-        """Show teachers functionality."""
-        QMessageBox.information(self, "Teachers", "Teachers functionality coming soon!")
+        """Show teacher management window."""
+        self._show_teacher_management()
     
     def _add_teacher(self):
-        """Add teacher functionality."""
-        QMessageBox.information(self, "Add Teacher", "Add teacher functionality coming soon!")
+        """Show teacher management window."""
+        self._show_teacher_management()
     
     def _manage_teachers(self):
-        """Manage teachers functionality."""
-        QMessageBox.information(self, "Manage Teachers", "Manage teachers functionality coming soon!")
+        """Show teacher management window."""
+        self._show_teacher_management()
+    
+    def _show_teacher_management(self):
+        """Show the teacher management window."""
+        try:
+            teacher_window = TeacherWindow(self, self.username, self.role)
+            teacher_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open teacher management: {str(e)}")
 
     def _show_user_management(self):
         """Show user management window."""
