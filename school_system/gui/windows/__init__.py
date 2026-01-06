@@ -6,5 +6,8 @@ from school_system.gui.windows.user_window import UserWindow
 from school_system.gui.windows.book_window import BookWindow
 from school_system.gui.windows.student_window import StudentWindow
 from school_system.gui.windows.teacher_window import TeacherWindow
+from school_system.gui.windows.furniture_window import FurnitureWindow
+from school_system.gui.windows.report_window import ReportWindow
 
-__all__ = ['LoginWindow', 'MainWindow', 'UserWindow', 'BookWindow', 'StudentWindow', 'TeacherWindow']
+
+__all__ = ['LoginWindow', 'MainWindow', 'UserWindow', 'BookWindow', 'StudentWindow', 'TeacherWindow', 'FurnitureWindow', 'ReportWindow']

@@ -14,6 +14,8 @@ from school_system.gui.windows.user_window import UserWindow
 from school_system.gui.windows.book_window import BookWindow
 from school_system.gui.windows.student_window import StudentWindow
 from school_system.gui.windows.teacher_window import TeacherWindow
+from school_system.gui.windows.furniture_window import FurnitureWindow
+from school_system.gui.windows.report_window import ReportWindow
 
 
 class MainWindow(BaseApplicationWindow):
@@ -287,27 +289,43 @@ class MainWindow(BaseApplicationWindow):
     
     def _show_chairs(self):
         """Show chairs functionality."""
-        QMessageBox.information(self, "Chairs", "Chairs functionality coming soon!")
-    
+        self._show_furniture_management()
+
     def _show_lockers(self):
         """Show lockers functionality."""
-        QMessageBox.information(self, "Lockers", "Lockers functionality coming soon!")
-    
+        self._show_furniture_management()
+
     def _manage_furniture(self):
         """Manage furniture functionality."""
-        QMessageBox.information(self, "Manage Furniture", "Manage furniture functionality coming soon!")
+        self._show_furniture_management()
+
+    def _show_furniture_management(self):
+        """Show the furniture management window."""
+        try:
+            furniture_window = FurnitureWindow(self, self.username, self.role)
+            furniture_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open furniture management: {str(e)}")
     
     def _student_report(self):
         """Generate student report."""
-        QMessageBox.information(self, "Student Report", "Student report functionality coming soon!")
+        self._show_report_management()
     
     def _book_report(self):
         """Generate book report."""
-        QMessageBox.information(self, "Book Report", "Book report functionality coming soon!")
+        self._show_report_management()
     
     def _inventory_report(self):
         """Generate inventory report."""
-        QMessageBox.information(self, "Inventory Report", "Inventory report functionality coming soon!")
+        self._show_report_management()
+    
+    def _show_report_management(self):
+        """Show the report management window."""
+        try:
+            report_window = ReportWindow(self, self.username, self.role)
+            report_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open report management: {str(e)}")
     
     def _show_about(self):
         """Show about dialog."""
