@@ -18,7 +18,6 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 
 from school_system.gui.base.base_dialog import BaseDialog
-from school_system.gui.base.widgets import ModernInput
 from school_system.config.logging import logger
 
 
@@ -104,7 +103,7 @@ class InputDialog(BaseDialog):
         logger.info(f"InputDialog '{title}' initialized")
     
     def _initialize_ui(self):
-        """Initialize the user interface components."""
+        """Initialize the user interface components using enhanced BaseDialog functionality."""
         # Create label
         self._label_widget = QLabel(self._label_text)
         self._label_widget.setStyleSheet(f"""
@@ -114,36 +113,35 @@ class InputDialog(BaseDialog):
         """)
         self._label_widget.setAccessibleName("Input label")
         self._label_widget.setAccessibleDescription("Label for input field")
-        
+         
         # Add label to content
         self.add_content_widget(self._label_widget)
-        
-        # Create input field
-        self._input_field = ModernInput()
-        self._input_field.setPlaceholderText(self._placeholder)
-        
-        # Configure input type
+         
+        # Create input field using enhanced BaseDialog method
         if self._input_type == "password":
+            self._input_field = self.create_input(self._placeholder, "text")
             self._input_field.setEchoMode(ModernInput.EchoMode.Password)
         elif self._input_type == "email":
-            self._input_field.setInputMask("email")
-        
+            self._input_field = self.create_input(self._placeholder, "email")
+        else:
+            self._input_field = self.create_input(self._placeholder, "text")
+         
         self._input_field.setAccessibleName("Input field")
         self._input_field.setAccessibleDescription("Input field for user data")
-        
+         
         # Add input field to content
         self.add_content_widget(self._input_field)
-        
+         
         # Create error message area (hidden by default)
         self._error_frame = QFrame()
         self._error_frame.setVisible(False)
         self._error_layout = QHBoxLayout(self._error_frame)
         self._error_layout.setContentsMargins(0, 0, 0, 0)
-        
+         
         self._error_icon = QLabel()
         self._error_icon.setPixmap(QIcon("icons/error.png").pixmap(16, 16))
         self._error_icon.setAccessibleName("Error icon")
-        
+         
         self._error_message = QLabel()
         self._error_message.setStyleSheet(f"""
             color: {self._theme_manager.get_color('error')};
@@ -151,46 +149,41 @@ class InputDialog(BaseDialog):
             margin-left: 4px;
         """)
         self._error_message.setAccessibleName("Error message")
-        
+         
         self._error_layout.addWidget(self._error_icon)
         self._error_layout.addWidget(self._error_message)
         self._error_layout.addStretch()
-        
+         
         self.add_content_widget(self._error_frame)
+         
+        # Create and add custom buttons using enhanced BaseDialog methods
+        self._ok_button = self.create_button("OK", "primary")
+        self._cancel_button = self.create_button("Cancel", "secondary")
         
-        # Create and add custom buttons
-        self._ok_button = self.add_custom_button("OK", QDialogButtonBox.ButtonRole.AcceptRole)
-        self._cancel_button = self.add_custom_button("Cancel", QDialogButtonBox.ButtonRole.RejectRole)
-        
+        # Add buttons to button box
+        self._button_box.addButton(self._ok_button, QDialogButtonBox.ButtonRole.AcceptRole)
+        self._button_box.addButton(self._cancel_button, QDialogButtonBox.ButtonRole.RejectRole)
+         
         # Set button properties
         self._ok_button.setAccessibleName("OK button")
         self._cancel_button.setAccessibleName("Cancel button")
+         
+        # Register widgets for centralized management
+        self.register_widget("input_field", self._input_field)
+        self.register_widget("ok_button", self._ok_button)
+        self.register_widget("cancel_button", self._cancel_button)
         
         # Disable OK button initially if required
         if self._required:
             self._ok_button.setEnabled(False)
-        
-        # Apply theme to buttons
-        self._apply_button_theme()
     
     def _apply_button_theme(self):
-        """Apply theme-specific styling to buttons."""
-        primary_color = self._theme_manager.get_color('primary')
-        text_color = self._theme_manager.get_color('text')
-        
-        self._ok_button.set_custom_style(
-            bg_color=primary_color,
-            hover_color=self._theme_manager.get_color('secondary'),
-            pressed_color=self._theme_manager.get_color('primary'),
-            text_color=text_color
-        )
-        
-        self._cancel_button.set_custom_style(
-            bg_color=self._theme_manager.get_color('secondary'),
-            hover_color=self._theme_manager.get_color('primary'),
-            pressed_color=self._theme_manager.get_color('secondary'),
-            text_color=text_color
-        )
+        """Apply theme-specific styling to buttons using enhanced BaseDialog functionality."""
+        # Buttons are already themed through the create_button method
+        # Just ensure they inherit the current theme
+        current_theme = self.get_theme()
+        self._ok_button.apply_theme(current_theme)
+        self._cancel_button.apply_theme(current_theme)
     
     def _connect_signals(self):
         """Connect signals for button actions and input validation."""

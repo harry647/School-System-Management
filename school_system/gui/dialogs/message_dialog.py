@@ -137,12 +137,15 @@ class MessageDialog(BaseDialog):
         # Add content layout to dialog
         self.add_content_layout(content_layout)
         
-        # Create and add custom button
-        self._ok_button = self.add_custom_button(self._button_text, QDialogButtonBox.ButtonRole.AcceptRole)
+        # Create and add custom button using enhanced BaseDialog method
+        self._ok_button = self.create_button(self._button_text, "primary")
         self._ok_button.setAccessibleName(f"{self._button_text} button")
         
-        # Apply theme to button
-        self._apply_button_theme()
+        # Add button to button box
+        self._button_box.addButton(self._ok_button, QDialogButtonBox.ButtonRole.AcceptRole)
+        
+        # Register button for centralized management
+        self.register_widget("ok_button", self._ok_button)
         
         # Apply message type styling
         self._apply_message_type_styling()
@@ -181,16 +184,11 @@ class MessageDialog(BaseDialog):
         return ""
     
     def _apply_button_theme(self):
-        """Apply theme-specific styling to button."""
-        primary_color = self._theme_manager.get_color('primary')
-        text_color = self._theme_manager.get_color('text')
-        
-        self._ok_button.set_custom_style(
-            bg_color=primary_color,
-            hover_color=self._theme_manager.get_color('secondary'),
-            pressed_color=self._theme_manager.get_color('primary'),
-            text_color=text_color
-        )
+        """Apply theme-specific styling to button using enhanced BaseDialog functionality."""
+        # Button is already themed through the create_button method
+        # Just ensure it inherits the current theme
+        current_theme = self.get_theme()
+        self._ok_button.apply_theme(current_theme)
     
     def _apply_message_type_styling(self):
         """Apply styling based on message type."""

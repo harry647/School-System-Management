@@ -87,8 +87,8 @@ class ConfirmationDialog(BaseDialog):
     
     def _initialize_ui(self, message: str):
         """
-        Initialize the user interface components.
-        
+        Initialize the user interface components using enhanced BaseDialog functionality.
+         
         Args:
             message: Confirmation message to display
         """
@@ -98,7 +98,7 @@ class ConfirmationDialog(BaseDialog):
             self._message_label.setTextFormat(Qt.TextFormat.RichText)
         else:
             self._message_label.setTextFormat(Qt.TextFormat.PlainText)
-            
+             
         self._message_label.setWordWrap(True)
         self._message_label.setStyleSheet(f"""
             font-size: 14px;
@@ -107,45 +107,37 @@ class ConfirmationDialog(BaseDialog):
         """)
         self._message_label.setAccessibleName("Confirmation message")
         self._message_label.setAccessibleDescription("Confirmation dialog message content")
-        
+         
         # Add message to content
         self.add_content_widget(self._message_label)
+         
+        # Use pre-configured buttons from widget repository
+        primary_button = self.get_widget_from_repository('buttons', 'primary')
+        secondary_button = self.get_widget_from_repository('buttons', 'secondary')
         
-        # Create and add custom buttons
-        self._confirm_button = self.add_custom_button(
-            self._confirm_text,
-            QDialogButtonBox.ButtonRole.AcceptRole
-        )
-        self._cancel_button = self.add_custom_button(
-            self._cancel_text,
-            QDialogButtonBox.ButtonRole.RejectRole
-        )
+        # Clone and customize the pre-configured buttons
+        self._confirm_button = self.create_button(self._confirm_text, "primary")
+        self._cancel_button = self.create_button(self._cancel_text, "secondary")
         
+        # Add buttons to button box
+        self._button_box.addButton(self._confirm_button, QDialogButtonBox.ButtonRole.AcceptRole)
+        self._button_box.addButton(self._cancel_button, QDialogButtonBox.ButtonRole.RejectRole)
+         
         # Set button properties
         self._confirm_button.setAccessibleName(f"{self._confirm_text} button")
         self._cancel_button.setAccessibleName(f"{self._cancel_text} button")
-        
-        # Apply theme to buttons
-        self._apply_button_theme()
+         
+        # Register buttons for centralized management
+        self.register_widget("confirm_button", self._confirm_button)
+        self.register_widget("cancel_button", self._cancel_button)
     
     def _apply_button_theme(self):
-        """Apply theme-specific styling to buttons."""
-        primary_color = self._theme_manager.get_color('primary')
-        text_color = self._theme_manager.get_color('text')
-        
-        self._confirm_button.set_custom_style(
-            bg_color=primary_color,
-            hover_color=self._theme_manager.get_color('secondary'),
-            pressed_color=self._theme_manager.get_color('primary'),
-            text_color=text_color
-        )
-        
-        self._cancel_button.set_custom_style(
-            bg_color=self._theme_manager.get_color('secondary'),
-            hover_color=self._theme_manager.get_color('primary'),
-            pressed_color=self._theme_manager.get_color('secondary'),
-            text_color=text_color
-        )
+        """Apply theme-specific styling to buttons using enhanced BaseDialog functionality."""
+        # Buttons are already themed through the create_button method
+        # Just ensure they inherit the current theme
+        current_theme = self.get_theme()
+        self._confirm_button.apply_theme(current_theme)
+        self._cancel_button.apply_theme(current_theme)
     
     def _connect_signals(self):
         """Connect signals for button actions."""

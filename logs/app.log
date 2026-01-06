@@ -543,3 +543,12 @@
 2026-01-06 13:22:53,838 - school_system - INFO - BaseWindow 'Test Window' initialized
 2026-01-06 13:22:53,901 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
 2026-01-06 13:22:53,923 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:33:21,087 - school_system - INFO - BaseDialog 'Test Dialog' initialized with centralized widget repository
+2026-01-06 13:33:21,091 - school_system - INFO - BaseDialog enhancement test completed successfully
+2026-01-06 13:40:43,449 - school_system - INFO - BaseDialog 'Test Confirmation' initialized with centralized widget repository
+2026-01-06 13:40:43,451 - school_system - INFO - ConfirmationDialog 'Test Confirmation' initialized
+2026-01-06 13:40:43,461 - school_system - INFO - BaseDialog 'Test Input' initialized with centralized widget repository
+2026-01-06 13:40:43,478 - school_system - INFO - InputDialog 'Test Input' initialized
+2026-01-06 13:40:43,488 - school_system - INFO - BaseDialog 'Test Message' initialized with centralized widget repository
+2026-01-06 13:40:43,491 - school_system - INFO - MessageDialog 'Test Message' initialized with type: info
+2026-01-06 13:40:43,491 - school_system - ERROR - Updated dialog modules test failed: 'charmap' codec can't encode character '\u2713' in position 0: character maps to <undefined>
