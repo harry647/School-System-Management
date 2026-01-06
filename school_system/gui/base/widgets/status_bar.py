@@ -133,6 +133,17 @@ class ModernStatusBar(QStatusBar):
         """
         self.show_message(message, 0)
 
+    def apply_theme(self, theme_name: str):
+        """
+        Apply theme to the status bar.
+        
+        Args:
+            theme_name: Name of the theme to apply
+        """
+        # The status bar styling is handled by QSS from the theme manager,
+        # but we can add theme-specific logic here if needed in the future
+        pass
+
 
 class ProgressIndicator(QWidget):
     """

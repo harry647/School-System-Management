@@ -137,3 +137,264 @@
 2026-01-05 21:51:22,060 - school_system - INFO - Migrating borrowed_books_teacher table...
 2026-01-05 21:51:22,116 - school_system - INFO - Added returned_on column to borrowed_books_teacher table
 2026-01-05 21:51:22,116 - school_system - INFO - Borrowed books tables migration completed successfully
+2026-01-06 12:05:52,797 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:05:52,830 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:06:13,958 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:06:13,984 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:10:35,225 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:10:35,227 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:10:36,557 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:10:36,559 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:10:36,580 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:10:36,591 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:11:16,772 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:11:16,772 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:12:14,613 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:12:14,614 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:12:14,616 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 12:12:14,622 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:13:20,728 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:13:20,729 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:13:20,751 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:13:32,883 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:13:32,884 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:13:32,884 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:13:32,885 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:13:32,889 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:13:32,922 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:13:32,923 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:13:32,937 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:13:32,969 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:13:32,969 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:13:33,186 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:13:33,187 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:13:33,187 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:13:48,524 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:13:48,526 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:13:48,549 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:13:48,588 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:13:48,589 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:13:48,591 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:14:13,130 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:14:13,131 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:14:13,150 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:14:13,185 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:14:13,186 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:14:13,189 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:14:13,219 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:14:13,246 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:14:13,257 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:04,458 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:41,402 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,448 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:15:50,450 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:15:50,470 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:15:50,507 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:15:50,508 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:15:50,510 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:15:50,537 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,561 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,588 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,611 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,635 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,645 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:15:50,661 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:15:50,662 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:15:50,662 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:15:50,663 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:15:50,663 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:16:09,305 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:16:09,307 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:16:09,307 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:16:09,308 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:16:09,312 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:16:09,344 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:16:09,345 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:16:09,363 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:16:09,395 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:16:09,395 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:16:09,607 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:16:09,608 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:16:09,608 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:16:21,499 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:40,041 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:40,069 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:40,092 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:40,114 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:40,138 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:40,343 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:16:56,722 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:17:56,694 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:18:10,226 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:18:23,498 - school_system - INFO - BaseDialog 'Confirm Action' initialized
+2026-01-06 12:19:03,824 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:19:03,824 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:19:03,842 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:19:03,882 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:19:03,883 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:19:03,885 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:19:03,911 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:19:03,935 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:19:03,963 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:19:03,985 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:19:04,008 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:19:04,019 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:19:04,038 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:19:04,039 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:19:04,040 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:19:04,041 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:19:04,042 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:20:13,443 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:20:23,873 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:21:53,308 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:04,375 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,402 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:22:15,402 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:22:15,420 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:22:15,455 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:22:15,456 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:22:15,458 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:22:15,480 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,500 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,524 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,545 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,566 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,586 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:22:15,616 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:22:15,616 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:22:15,616 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:22:15,616 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:22:15,617 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:22:15,646 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:22:15,646 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:22:15,648 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:22:15,679 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:22:15,679 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:22:15,690 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:22:15,690 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:22:15,691 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:22:28,827 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:22:28,828 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:22:58,106 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:22:58,107 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:22:58,112 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:18,779 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:23:18,780 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:23:18,802 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:23:18,836 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:23:18,837 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:23:18,839 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:23:18,863 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:18,887 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:18,911 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:18,933 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:18,953 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:19,014 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:19,069 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,069 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,069 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:23:19,070 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:23:19,070 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,106 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,106 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,107 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,137 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,138 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,138 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,169 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,170 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,170 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,198 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,199 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,202 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 12:23:19,202 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,227 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,227 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,227 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,253 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,253 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,253 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,278 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,278 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,278 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,303 - school_system - INFO - Theme 'light' applied to window 'Complex Window'
+2026-01-06 12:23:19,303 - school_system - INFO - BaseWindow 'Complex Window' initialized
+2026-01-06 12:23:19,307 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:19,308 - school_system - INFO - Window 'Complex Window' closing
+2026-01-06 12:23:19,337 - school_system - INFO - Theme 'light' applied to window 'Main Window'
+2026-01-06 12:23:19,338 - school_system - INFO - BaseWindow 'Main Window' initialized
+2026-01-06 12:23:19,341 - school_system - INFO - BaseDialog 'Child Dialog' initialized
+2026-01-06 12:23:19,341 - school_system - INFO - Window 'Main Window' closing
+2026-01-06 12:23:19,369 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,369 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,370 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,395 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:19,396 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:19,398 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 12:23:19,398 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:19,429 - school_system - INFO - Theme 'light' applied to window 'Window 1'
+2026-01-06 12:23:19,429 - school_system - INFO - BaseWindow 'Window 1' initialized
+2026-01-06 12:23:19,436 - school_system - INFO - Theme 'light' applied to window 'Window 2'
+2026-01-06 12:23:19,436 - school_system - INFO - BaseWindow 'Window 2' initialized
+2026-01-06 12:23:19,436 - school_system - INFO - Window 'Window 1' closing
+2026-01-06 12:23:19,437 - school_system - INFO - Window 'Window 2' closing
+2026-01-06 12:23:32,588 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:23:32,589 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:23:32,610 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:23:32,645 - school_system - INFO - Theme 'light' applied to window 'Test App Window'
+2026-01-06 12:23:32,645 - school_system - INFO - BaseWindow 'Test App Window' initialized
+2026-01-06 12:23:32,647 - school_system - INFO - Window 'Test App Window' closing
+2026-01-06 12:23:32,674 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:32,698 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:32,728 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:32,751 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:32,777 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:32,804 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:32,845 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:32,846 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:32,846 - school_system - INFO - High-contrast mode enabled
+2026-01-06 12:23:32,847 - school_system - INFO - High-contrast mode disabled
+2026-01-06 12:23:32,848 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:32,893 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:32,894 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:32,895 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:32,935 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:32,935 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:32,936 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:32,977 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:32,978 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:32,978 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,017 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:33,017 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:33,020 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 12:23:33,021 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,059 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:33,060 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:33,060 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,100 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:33,103 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:33,103 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,150 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:33,151 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:33,152 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,200 - school_system - INFO - Theme 'light' applied to window 'Complex Window'
+2026-01-06 12:23:33,201 - school_system - INFO - BaseWindow 'Complex Window' initialized
+2026-01-06 12:23:33,210 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:23:33,210 - school_system - INFO - Window 'Complex Window' closing
+2026-01-06 12:23:33,256 - school_system - INFO - Theme 'light' applied to window 'Main Window'
+2026-01-06 12:23:33,259 - school_system - INFO - BaseWindow 'Main Window' initialized
+2026-01-06 12:23:33,267 - school_system - INFO - BaseDialog 'Child Dialog' initialized
+2026-01-06 12:23:33,268 - school_system - INFO - Window 'Main Window' closing
+2026-01-06 12:23:33,306 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:33,308 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:33,309 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,346 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:23:33,347 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:23:33,352 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 12:23:33,353 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:23:33,392 - school_system - INFO - Theme 'light' applied to window 'Window 1'
+2026-01-06 12:23:33,393 - school_system - INFO - BaseWindow 'Window 1' initialized
+2026-01-06 12:23:33,401 - school_system - INFO - Theme 'light' applied to window 'Window 2'
+2026-01-06 12:23:33,402 - school_system - INFO - BaseWindow 'Window 2' initialized
+2026-01-06 12:23:33,402 - school_system - INFO - Window 'Window 1' closing
+2026-01-06 12:23:33,403 - school_system - INFO - Window 'Window 2' closing
