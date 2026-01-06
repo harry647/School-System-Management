@@ -1,0 +1,1 @@
+# Base window implementation for the GUI

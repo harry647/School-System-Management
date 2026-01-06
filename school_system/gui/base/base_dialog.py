@@ -1,0 +1,1 @@
+# Base dialog implementation for the GUI
