@@ -112,6 +112,53 @@ class SearchBox(QWidget):
         """Emit the search text signal after debounce delay."""
         text = self.search_input.text()
         self.search_text_changed.emit(text)
+    
+    def _on_search_clicked(self):
+        """Handle search button click."""
+        # Force immediate search when button is clicked
+        self._debounce_timer.stop()
+        self._emit_search_text()
+    
+    def set_debounce_delay(self, delay_ms: int):
+        """
+        Set the debounce delay in milliseconds.
+        
+        Args:
+            delay_ms: Debounce delay in milliseconds
+        """
+        self._debounce_timer.setInterval(delay_ms)
+    
+    def get_search_text(self) -> str:
+        """
+        Get the current search text.
+        
+        Returns:
+            Current search text
+        """
+        return self.search_input.text()
+    
+    def set_search_text(self, text: str):
+        """
+        Set the search text programmatically.
+        
+        Args:
+            text: Text to set in the search input
+        """
+        self.search_input.setText(text)
+    
+    def clear(self):
+        """Clear the search input."""
+        self.search_input.clear()
+        self.search_text_changed.emit("")
+    
+    def set_placeholder_text(self, text: str):
+        """
+        Set the placeholder text.
+        
+        Args:
+            text: Placeholder text to display
+        """
+        self.search_input.setPlaceholderText(text)
 
 
 class MemoizedSearchBox(SearchBox):
@@ -170,53 +217,6 @@ class MemoizedSearchBox(SearchBox):
     def clear_cache(self):
         """Clear the search cache."""
         self._search_cache.clear()
-    
-    def _on_search_clicked(self):
-        """Handle search button click."""
-        # Force immediate search when button is clicked
-        self._debounce_timer.stop()
-        self._emit_search_text()
-    
-    def set_debounce_delay(self, delay_ms: int):
-        """
-        Set the debounce delay in milliseconds.
-        
-        Args:
-            delay_ms: Debounce delay in milliseconds
-        """
-        self._debounce_timer.setInterval(delay_ms)
-    
-    def get_search_text(self) -> str:
-        """
-        Get the current search text.
-        
-        Returns:
-            Current search text
-        """
-        return self.search_input.text()
-    
-    def set_search_text(self, text: str):
-        """
-        Set the search text programmatically.
-        
-        Args:
-            text: Text to set in the search input
-        """
-        self.search_input.setText(text)
-    
-    def clear(self):
-        """Clear the search input."""
-        self.search_input.clear()
-        self.search_text_changed.emit("")
-    
-    def set_placeholder_text(self, text: str):
-        """
-        Set the placeholder text.
-        
-        Args:
-            text: Placeholder text to display
-        """
-        self.search_input.setPlaceholderText(text)
 
 
 class AdvancedSearchBox(SearchBox):

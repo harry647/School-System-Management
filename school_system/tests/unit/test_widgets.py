@@ -91,10 +91,25 @@ class TestSortFilterProxyModel(unittest.TestCase):
     
     def test_filtering(self):
         """Test filtering functionality."""
-        # Create a mock source model
-        source_model = Mock()
-        source_model.index.return_value = Mock(isValid=lambda: True)
-        source_model.data.return_value = "test data"
+        # Create a simple test model
+        from PyQt6.QtCore import QAbstractTableModel, QModelIndex
+        
+        class TestModel(QAbstractTableModel):
+            def rowCount(self, parent=QModelIndex()):
+                return 1
+            
+            def columnCount(self, parent=QModelIndex()):
+                return 1
+            
+            def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+                if role == Qt.ItemDataRole.DisplayRole:
+                    return "test data"
+                return None
+            
+            def index(self, row, column, parent=QModelIndex()):
+                return self.createIndex(row, column)
+        
+        source_model = TestModel()
         
         self.model.setSourceModel(source_model)
         self.model.set_filter_column(0)
@@ -113,7 +128,8 @@ class TestVirtualScrollModel(unittest.TestCase):
         self.app = QApplication([])
         
         def mock_data_provider(row, col):
-            return {"row": row, "col": col, "value": f"R{row}C{col}"}
+            # Return a list where each column has the expected value
+            return [f"R{row}C{c}" for c in range(5)]
         
         self.model = VirtualScrollModel(
             data_provider=mock_data_provider,
