@@ -398,3 +398,138 @@
 2026-01-06 12:23:33,402 - school_system - INFO - BaseWindow 'Window 2' initialized
 2026-01-06 12:23:33,402 - school_system - INFO - Window 'Window 1' closing
 2026-01-06 12:23:33,403 - school_system - INFO - Window 'Window 2' closing
+2026-01-06 12:38:26,561 - school_system - INFO - BaseDialog 'Test Confirm' initialized
+2026-01-06 12:38:26,584 - school_system - INFO - BaseDialog 'Old Style' initialized
+2026-01-06 12:38:26,610 - school_system - INFO - BaseDialog 'Scrollable' initialized
+2026-01-06 12:41:37,067 - school_system - INFO - BaseDialog 'Test Confirm' initialized
+2026-01-06 12:41:37,095 - school_system - INFO - BaseDialog 'Old Style' initialized
+2026-01-06 12:41:37,119 - school_system - INFO - BaseDialog 'Scrollable' initialized
+2026-01-06 12:43:40,366 - school_system - INFO - BaseDialog 'Test Confirm' initialized
+2026-01-06 12:43:40,372 - school_system - INFO - ConfirmationDialog 'Test Confirm' initialized
+2026-01-06 12:43:40,373 - school_system - INFO - BaseDialog 'Test Input' initialized
+2026-01-06 12:43:40,817 - school_system - INFO - InputDialog 'Test Input' initialized
+2026-01-06 12:43:40,819 - school_system - INFO - BaseDialog 'Test Message' initialized
+2026-01-06 12:43:40,825 - school_system - INFO - MessageDialog 'Test Message' initialized with type: info
+2026-01-06 12:43:40,830 - school_system - INFO - BaseDialog 'Scrollable Test' initialized
+2026-01-06 12:43:40,832 - school_system - INFO - ConfirmationDialog 'Scrollable Test' initialized
+2026-01-06 12:43:40,833 - school_system - INFO - BaseDialog 'Resizable Test' initialized
+2026-01-06 12:43:40,839 - school_system - INFO - InputDialog 'Resizable Test' initialized
+2026-01-06 12:43:40,840 - school_system - INFO - BaseDialog 'Info' initialized
+2026-01-06 12:43:40,845 - school_system - INFO - MessageDialog 'Info' initialized with type: info
+2026-01-06 12:43:40,846 - school_system - INFO - BaseDialog 'Warning' initialized
+2026-01-06 12:43:40,850 - school_system - INFO - MessageDialog 'Warning' initialized with type: warning
+2026-01-06 12:43:40,851 - school_system - INFO - BaseDialog 'Error' initialized
+2026-01-06 12:43:40,854 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 12:43:40,855 - school_system - INFO - BaseDialog 'Success' initialized
+2026-01-06 12:43:40,860 - school_system - INFO - MessageDialog 'Success' initialized with type: success
+2026-01-06 12:43:40,880 - school_system - INFO - BaseDialog 'Old Style' initialized
+2026-01-06 12:43:40,882 - school_system - INFO - ConfirmationDialog 'Old Style' initialized
+2026-01-06 12:43:40,903 - school_system - INFO - BaseDialog 'Scrollable' initialized
+2026-01-06 12:43:40,905 - school_system - INFO - ConfirmationDialog 'Scrollable' initialized
+2026-01-06 12:46:51,280 - school_system - INFO - BaseDialog 'Test Confirm' initialized
+2026-01-06 12:46:51,286 - school_system - INFO - ConfirmationDialog 'Test Confirm' initialized
+2026-01-06 12:46:51,287 - school_system - INFO - BaseDialog 'Test Input' initialized
+2026-01-06 12:46:51,341 - school_system - INFO - InputDialog 'Test Input' initialized
+2026-01-06 12:46:51,342 - school_system - INFO - BaseDialog 'Test Message' initialized
+2026-01-06 12:46:51,346 - school_system - INFO - MessageDialog 'Test Message' initialized with type: info
+2026-01-06 12:46:51,350 - school_system - INFO - BaseDialog 'Scrollable Test' initialized
+2026-01-06 12:46:51,352 - school_system - INFO - ConfirmationDialog 'Scrollable Test' initialized
+2026-01-06 12:46:51,353 - school_system - INFO - BaseDialog 'Resizable Test' initialized
+2026-01-06 12:46:51,360 - school_system - INFO - InputDialog 'Resizable Test' initialized
+2026-01-06 12:46:51,361 - school_system - INFO - BaseDialog 'Info' initialized
+2026-01-06 12:46:51,367 - school_system - INFO - MessageDialog 'Info' initialized with type: info
+2026-01-06 12:46:51,368 - school_system - INFO - BaseDialog 'Warning' initialized
+2026-01-06 12:46:51,374 - school_system - INFO - MessageDialog 'Warning' initialized with type: warning
+2026-01-06 12:46:51,374 - school_system - INFO - BaseDialog 'Error' initialized
+2026-01-06 12:46:51,378 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 12:46:51,379 - school_system - INFO - BaseDialog 'Success' initialized
+2026-01-06 12:46:51,383 - school_system - INFO - MessageDialog 'Success' initialized with type: success
+2026-01-06 12:46:51,401 - school_system - INFO - BaseDialog 'Old Style' initialized
+2026-01-06 12:46:51,404 - school_system - INFO - ConfirmationDialog 'Old Style' initialized
+2026-01-06 12:46:51,424 - school_system - INFO - BaseDialog 'Scrollable' initialized
+2026-01-06 12:46:51,426 - school_system - INFO - ConfirmationDialog 'Scrollable' initialized
+2026-01-06 12:46:51,427 - school_system - INFO - BaseDialog 'Resizable' initialized
+2026-01-06 12:46:51,430 - school_system - INFO - ConfirmationDialog 'Resizable' initialized
+2026-01-06 12:51:57,183 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:51:57,184 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:51:57,188 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 12:51:57,191 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:51:57,226 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 12:51:57,227 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 12:51:57,228 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 12:51:57,257 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:51:57,282 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:53:42,934 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:53:42,960 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:53:42,988 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:53:43,012 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:53:43,035 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:53:43,259 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:54:42,498 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 12:54:42,555 - school_system - INFO - BaseDialog 'Test Dialog' initialized
+2026-01-06 13:01:33,462 - school_system - INFO - BaseDialog 'Test Confirm' initialized
+2026-01-06 13:01:33,471 - school_system - INFO - ConfirmationDialog 'Test Confirm' initialized
+2026-01-06 13:01:33,473 - school_system - INFO - BaseDialog 'Test Input' initialized
+2026-01-06 13:01:33,544 - school_system - INFO - InputDialog 'Test Input' initialized
+2026-01-06 13:01:33,546 - school_system - INFO - BaseDialog 'Test Message' initialized
+2026-01-06 13:01:33,550 - school_system - INFO - MessageDialog 'Test Message' initialized with type: info
+2026-01-06 13:01:33,556 - school_system - INFO - BaseDialog 'Scrollable Test' initialized
+2026-01-06 13:01:33,559 - school_system - INFO - ConfirmationDialog 'Scrollable Test' initialized
+2026-01-06 13:01:33,560 - school_system - INFO - BaseDialog 'Resizable Test' initialized
+2026-01-06 13:01:33,566 - school_system - INFO - InputDialog 'Resizable Test' initialized
+2026-01-06 13:01:33,567 - school_system - INFO - BaseDialog 'Info' initialized
+2026-01-06 13:01:33,572 - school_system - INFO - MessageDialog 'Info' initialized with type: info
+2026-01-06 13:01:33,573 - school_system - INFO - BaseDialog 'Warning' initialized
+2026-01-06 13:01:33,577 - school_system - INFO - MessageDialog 'Warning' initialized with type: warning
+2026-01-06 13:01:33,578 - school_system - INFO - BaseDialog 'Error' initialized
+2026-01-06 13:01:33,583 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 13:01:33,584 - school_system - INFO - BaseDialog 'Success' initialized
+2026-01-06 13:01:33,591 - school_system - INFO - MessageDialog 'Success' initialized with type: success
+2026-01-06 13:01:33,635 - school_system - INFO - BaseDialog 'Old Style' initialized
+2026-01-06 13:01:33,638 - school_system - INFO - ConfirmationDialog 'Old Style' initialized
+2026-01-06 13:01:33,686 - school_system - INFO - BaseDialog 'Scrollable' initialized
+2026-01-06 13:01:33,690 - school_system - INFO - ConfirmationDialog 'Scrollable' initialized
+2026-01-06 13:01:33,692 - school_system - INFO - BaseDialog 'Resizable' initialized
+2026-01-06 13:01:33,695 - school_system - INFO - ConfirmationDialog 'Resizable' initialized
+2026-01-06 13:05:15,972 - school_system - INFO - BaseDialog 'Test Confirm' initialized
+2026-01-06 13:05:15,979 - school_system - INFO - ConfirmationDialog 'Test Confirm' initialized
+2026-01-06 13:05:15,980 - school_system - INFO - BaseDialog 'Test Input' initialized
+2026-01-06 13:05:16,028 - school_system - INFO - InputDialog 'Test Input' initialized
+2026-01-06 13:05:16,029 - school_system - INFO - BaseDialog 'Test Message' initialized
+2026-01-06 13:05:16,036 - school_system - INFO - MessageDialog 'Test Message' initialized with type: info
+2026-01-06 13:05:16,042 - school_system - INFO - BaseDialog 'Scrollable Test' initialized
+2026-01-06 13:05:16,045 - school_system - INFO - ConfirmationDialog 'Scrollable Test' initialized
+2026-01-06 13:05:16,047 - school_system - INFO - BaseDialog 'Resizable Test' initialized
+2026-01-06 13:05:16,056 - school_system - INFO - InputDialog 'Resizable Test' initialized
+2026-01-06 13:05:16,058 - school_system - INFO - BaseDialog 'Info' initialized
+2026-01-06 13:05:16,064 - school_system - INFO - MessageDialog 'Info' initialized with type: info
+2026-01-06 13:05:16,065 - school_system - INFO - BaseDialog 'Warning' initialized
+2026-01-06 13:05:16,069 - school_system - INFO - MessageDialog 'Warning' initialized with type: warning
+2026-01-06 13:05:16,070 - school_system - INFO - BaseDialog 'Error' initialized
+2026-01-06 13:05:16,074 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 13:05:16,075 - school_system - INFO - BaseDialog 'Success' initialized
+2026-01-06 13:05:16,080 - school_system - INFO - MessageDialog 'Success' initialized with type: success
+2026-01-06 13:05:16,102 - school_system - INFO - BaseDialog 'Old Style' initialized
+2026-01-06 13:05:16,105 - school_system - INFO - ConfirmationDialog 'Old Style' initialized
+2026-01-06 13:05:16,127 - school_system - INFO - BaseDialog 'Scrollable' initialized
+2026-01-06 13:05:16,129 - school_system - INFO - ConfirmationDialog 'Scrollable' initialized
+2026-01-06 13:05:16,130 - school_system - INFO - BaseDialog 'Resizable' initialized
+2026-01-06 13:05:16,132 - school_system - INFO - ConfirmationDialog 'Resizable' initialized
+2026-01-06 13:05:16,133 - school_system - INFO - BaseDialog 'Rich Text' initialized
+2026-01-06 13:05:16,161 - school_system - INFO - ConfirmationDialog 'Rich Text' initialized
+2026-01-06 13:05:16,162 - school_system - INFO - BaseDialog 'Validation Test' initialized
+2026-01-06 13:05:16,194 - school_system - INFO - InputDialog 'Validation Test' initialized
+2026-01-06 13:05:37,629 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:05:37,630 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:05:37,630 - school_system - INFO - High-contrast mode enabled
+2026-01-06 13:05:37,630 - school_system - INFO - High-contrast mode disabled
+2026-01-06 13:05:37,634 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 13:05:37,669 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:05:37,669 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:05:37,670 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 13:05:37,702 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:05:37,703 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:05:37,717 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 13:05:37,862 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:05:37,862 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:05:37,862 - school_system - INFO - Window 'Test Window' closing

@@ -13,14 +13,14 @@ ensuring consistent user experience and behavior.
 """
 
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
+    QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
     QDialogButtonBox, QLabel, QFrame
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 
 from school_system.gui.base.widgets import (
-    ThemeManager, AccessibleWidget, ModernButton
+    ThemeManager, AccessibleWidget, ModernButton, ScrollableContainer, ModernCard
 )
 from school_system.config.logging import logger
 
@@ -44,12 +44,13 @@ class BaseDialog(QDialog):
     dialog_closed = pyqtSignal()
     
     def __init__(
-        self, 
-        title: str = "Dialog", 
+        self,
+        title: str = "Dialog",
         parent=None,
         modal: bool = True,
-        standard_buttons: QDialogButtonBox.StandardButton = 
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        standard_buttons: QDialogButtonBox.StandardButton =
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+        scrollable: bool = False
     ):
         """
         Initialize the base dialog.
@@ -59,36 +60,43 @@ class BaseDialog(QDialog):
             parent: Parent widget
             modal: Whether the dialog is modal
             standard_buttons: Standard buttons to include
+            scrollable: Whether to make content area scrollable
         """
         super().__init__(parent)
-        
+         
         # Dialog properties
         self.setWindowTitle(title)
         self.setModal(modal)
-        
+         
         # Theme management
         self._theme_manager = None
         if parent and hasattr(parent, 'get_theme_manager'):
             self._theme_manager = parent.get_theme_manager()
         else:
             self._theme_manager = ThemeManager(self)
-        
+         
         # Main layout
         self._main_layout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(15, 15, 15, 15)
         self._main_layout.setSpacing(12)
-        
-        # Content area
-        self._content_frame = QFrame(self)
-        self._content_layout = QVBoxLayout(self._content_frame)
+         
+        # Content area - use scrollable container if requested
+        if scrollable:
+            self._content_frame = ScrollableContainer(self)
+            self._content_frame.setWidgetResizable(True)
+            self._content_layout = QVBoxLayout(self._content_frame.content_widget)
+        else:
+            self._content_frame = QFrame(self)
+            self._content_layout = QVBoxLayout(self._content_frame)
+            
         self._content_layout.setContentsMargins(0, 0, 0, 0)
         self._content_layout.setSpacing(10)
         self._content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
+         
         # Button box
         self._button_box = QDialogButtonBox(standard_buttons)
         self._button_box.setCenterButtons(False)
-        
+         
         # Assemble dialog
         self._main_layout.addWidget(self._content_frame, 1)
         self._main_layout.addWidget(self._button_box)
@@ -268,101 +276,4 @@ class BaseDialog(QDialog):
         super().reject()
 
 
-class ConfirmationDialog(BaseDialog):
-    """
-    Pre-configured confirmation dialog.
-    """
-    
-    def __init__(
-        self, 
-        title: str = "Confirm", 
-        message: str = "Are you sure?",
-        parent=None
-    ):
-        """
-        Initialize the confirmation dialog.
-        
-        Args:
-            title: Dialog title
-            message: Confirmation message
-            parent: Parent widget
-        """
-        super().__init__(
-            title=title, 
-            parent=parent,
-            standard_buttons=QDialogButtonBox.StandardButton.Yes | QDialogButtonBox.StandardButton.No
-        )
-        
-        # Add message
-        message_label = QLabel(message)
-        message_label.setWordWrap(True)
-        message_label.setStyleSheet(f"font-size: 14px; color: {self._theme_manager.get_color('text')}")
-        message_label.setAccessibleName("Confirmation message")
-        
-        self.add_content_widget(message_label)
-        
-        # Set button text
-        yes_button = self._button_box.button(QDialogButtonBox.StandardButton.Yes)
-        no_button = self._button_box.button(QDialogButtonBox.StandardButton.No)
-        
-        if yes_button:
-            yes_button.setText("Yes")
-            yes_button.setAccessibleName("Yes button")
-        
-        if no_button:
-            no_button.setText("No")
-            no_button.setAccessibleName("No button")
 
-
-class InputDialog(BaseDialog):
-    """
-    Pre-configured input dialog.
-    """
-    
-    def __init__(
-        self, 
-        title: str = "Input", 
-        label: str = "Enter value:",
-        parent=None
-    ):
-        """
-        Initialize the input dialog.
-        
-        Args:
-            title: Dialog title
-            label: Input field label
-            parent: Parent widget
-        """
-        super().__init__(
-            title=title, 
-            parent=parent,
-            standard_buttons=QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
-        
-        # Add input field
-        from school_system.gui.base.widgets.input import ModernInput
-        
-        self._input_field = ModernInput()
-        self._input_field.setPlaceholderText(label)
-        self._input_field.setAccessibleName("Input field")
-        self._input_field.setAccessibleDescription(f"Input field for {label}")
-        
-        self.add_content_widget(self._input_field)
-    
-    def get_input_value(self) -> str:
-        """
-        Get the input value.
-        
-        Returns:
-            The input field text
-        """
-        return self._input_field.text()
-    
-    def set_input_value(self, value: str):
-        """
-        Set the input value.
-        
-        Args:
-            value: Value to set
-        """
-        self._input_field.setText(value)

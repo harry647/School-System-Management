@@ -19,7 +19,7 @@ Usage:
 """
 
 from .base_window import BaseWindow, BaseApplicationWindow
-from .base_dialog import BaseDialog, ConfirmationDialog, InputDialog
+from .base_dialog import BaseDialog
 
 # Import key widgets for convenience
 from .widgets import (
