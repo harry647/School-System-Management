@@ -11,6 +11,8 @@ from typing import Callable
 from school_system.config.logging import logger
 from school_system.gui.base.base_window import BaseApplicationWindow
 from school_system.gui.windows.user_window import UserWindow
+from school_system.gui.windows.book_window import BookWindow
+from school_system.gui.windows.student_window import StudentWindow
 
 
 class MainWindow(BaseApplicationWindow):
@@ -211,16 +213,24 @@ class MainWindow(BaseApplicationWindow):
     
     
     def _show_students(self):
-        """Show students functionality."""
-        QMessageBox.information(self, "Students", "Students functionality coming soon!")
+        """Show student management window."""
+        self._show_student_management()
     
     def _add_student(self):
-        """Add student functionality."""
-        QMessageBox.information(self, "Add Student", "Add student functionality coming soon!")
+        """Show student management window."""
+        self._show_student_management()
     
     def _manage_students(self):
-        """Manage students functionality."""
-        QMessageBox.information(self, "Manage Students", "Manage students functionality coming soon!")
+        """Show student management window."""
+        self._show_student_management()
+    
+    def _show_student_management(self):
+        """Show the student management window."""
+        try:
+            student_window = StudentWindow(self, self.username, self.role)
+            student_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open student management: {str(e)}")
     
     def _show_teachers(self):
         """Show teachers functionality."""
@@ -243,20 +253,28 @@ class MainWindow(BaseApplicationWindow):
             QMessageBox.critical(self, "Error", f"Failed to open user management: {str(e)}")
     
     def _show_books(self):
-        """Show books functionality."""
-        QMessageBox.information(self, "Books", "Books functionality coming soon!")
+        """Show books management window."""
+        self._show_book_management()
     
     def _add_book(self):
-        """Add book functionality."""
-        QMessageBox.information(self, "Add Book", "Add book functionality coming soon!")
+        """Show books management window."""
+        self._show_book_management()
     
     def _show_borrowed_books(self):
-        """Show borrowed books functionality."""
-        QMessageBox.information(self, "Borrowed Books", "Borrowed books functionality coming soon!")
+        """Show books management window."""
+        self._show_book_management()
     
     def _manage_books(self):
-        """Manage books functionality."""
-        QMessageBox.information(self, "Manage Books", "Manage books functionality coming soon!")
+        """Show books management window."""
+        self._show_book_management()
+    
+    def _show_book_management(self):
+        """Show the book management window."""
+        try:
+            book_window = BookWindow(self, self.username, self.role)
+            book_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open book management: {str(e)}")
     
     def _show_chairs(self):
         """Show chairs functionality."""
