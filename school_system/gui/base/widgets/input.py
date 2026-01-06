@@ -20,7 +20,8 @@ class ModernInput(QLineEdit):
     """
     
     def __init__(self, placeholder_text="", parent=None):
-        super().__init__(placeholder_text, parent)
+        super().__init__("", parent)
+        self.setPlaceholderText(placeholder_text)
         
         # Default styling
         self.setStyleSheet("""

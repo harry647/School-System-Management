@@ -117,26 +117,35 @@ class LoginWindow(BaseWindow):
             show_error_message("Error", f"An error occurred: {str(e)}", self)
             logger.error(f"Password reset error for user {username}: {str(e)}")
     
+    def _toggle_password_visibility(self):
+        """Toggle password visibility."""
+        if self.password_input.echoMode() == QLineEdit.EchoMode.Password:
+            self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.toggle_password_button.setText("🙈")
+        else:
+            self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+            self.toggle_password_button.setText("👁")
+
     def _on_create_account(self):
         """Handle create account button click."""
         username = self.username_input.text().strip()
         password = self.password_input.text()
-        
+
         try:
             # Validate input
             if not username or not password:
                 show_error_message("Validation Error", "Please enter both username and password", self)
                 return
-            
+
             # Create user using AuthService
             user = self.auth_service.create_user(username, password, role="student")
             show_success_message("Account Created", f"User account created successfully for: {username}", self)
             logger.info(f"New user account created: {username}")
-            
+
             # Clear the form
             self.username_input.clear()
             self.password_input.clear()
-            
+
         except ValidationError as e:
             show_error_message("Validation Error", str(e), self)
             logger.warning(f"Account creation validation failed: {str(e)}")
@@ -207,6 +216,10 @@ class LoginWindow(BaseWindow):
         password_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
         main_layout.add_widget(password_label)
 
+        # Password input with visibility toggle
+        password_layout = QHBoxLayout()
+        password_layout.setSpacing(5)
+
         self.password_input = self.create_input("Enter your password")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setFixedHeight(40)
@@ -221,7 +234,29 @@ class LoginWindow(BaseWindow):
                 border: 2px solid #3498DB;
             }
         """)
-        main_layout.add_widget(self.password_input)
+        password_layout.addWidget(self.password_input)
+
+        # Visibility toggle button
+        self.toggle_password_button = QPushButton("👁")
+        self.toggle_password_button.setFixedSize(40, 40)
+        self.toggle_password_button.setStyleSheet("""
+            QPushButton {
+                background-color: #f0f0f0;
+                border: 1px solid #BDC3C7;
+                border-radius: 5px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #e0e0e0;
+            }
+            QPushButton:pressed {
+                background-color: #d0d0d0;
+            }
+        """)
+        self.toggle_password_button.clicked.connect(self._toggle_password_visibility)
+        password_layout.addWidget(self.toggle_password_button)
+
+        main_layout.add_layout(password_layout)
 
         # Add spacing
         main_layout.add_spacing(20)
