@@ -18,7 +18,12 @@ from PyQt6.QtGui import QAction
 
 from school_system.gui.base.widgets import (
     ThemeManager, StateManager, AccessibleWidget,
-    ModernStatusBar, ScrollableContainer
+    ModernStatusBar, ScrollableContainer, ScrollableCardContainer,
+    ModernButton, ModernInput, ModernCard,
+    ModernLayout, FlexLayout,
+    SearchBox, AdvancedSearchBox, MemoizedSearchBox,
+    CustomTableWidget, SortFilterProxyModel, VirtualScrollModel,
+    ProgressIndicator
 )
 from school_system.config.logging import logger
 
@@ -28,12 +33,19 @@ class BaseWindow(QMainWindow):
     Base window class providing core functionality for all application windows.
     
     Features:
+        - Centralized widget repository with pre-configured components
         - Modular widget reuse system
         - Comprehensive theming support
         - Full accessibility compliance
         - Consistent layout management
         - State management integration
         - Event-driven architecture
+        - Clean, consistent interface for widget creation and management
+    
+    The BaseWindow serves as a centralized widget repository, providing easy access
+    to all GUI components including buttons, inputs, cards, layouts, search boxes,
+    tables, and containers. This eliminates redundant imports and reimplementation
+    across the application.
     """
     
     # Signals for event-driven architecture
@@ -85,6 +97,7 @@ class BaseWindow(QMainWindow):
         self._initialize_themes()
         self._initialize_accessibility()
         self._initialize_state_management()
+        self._initialize_widget_repository()
         
         logger.info(f"BaseWindow '{title}' initialized")
         
@@ -113,6 +126,34 @@ class BaseWindow(QMainWindow):
         # Connect state change signals
         self._state_manager.state_changed.connect(self._handle_state_change)
     
+    def _initialize_widget_repository(self):
+        """Initialize the centralized widget repository with pre-configured instances."""
+        # Pre-configured widget instances for easy reuse
+        self._widget_repository = {
+            'buttons': {},
+            'inputs': {},
+            'cards': {},
+            'layouts': {},
+            'search_boxes': {},
+            'tables': {},
+            'containers': {}
+        }
+        
+        # Initialize with some common pre-configured widgets
+        self._widget_repository['buttons']['primary'] = self._create_primary_button()
+        self._widget_repository['buttons']['secondary'] = self._create_secondary_button()
+        self._widget_repository['buttons']['danger'] = self._create_danger_button()
+        
+        self._widget_repository['inputs']['text'] = self._create_text_input()
+        self._widget_repository['inputs']['search'] = self._create_search_input()
+        
+        self._widget_repository['layouts']['main'] = self._create_main_layout()
+        self._widget_repository['layouts']['form'] = self._create_form_layout()
+        
+        self._widget_repository['search_boxes']['default'] = self._create_default_search_box()
+        
+        self._widget_repository['containers']['card'] = self._create_card_container()
+    
     def _apply_theme(self, theme_name: str):
         """Apply the specified theme to the window and all child widgets."""
         qss = self._theme_manager.generate_qss()
@@ -134,6 +175,71 @@ class BaseWindow(QMainWindow):
         logger.debug(f"State change: {state_name} = {state_value}")
         
         # Widgets can override this to handle specific state changes
+    
+    # Widget creation methods
+    def _create_primary_button(self) -> ModernButton:
+        """Create a primary button with default styling."""
+        button = ModernButton("Primary", self)
+        button.set_custom_style("#4CAF50", "#45a049", "#3d8b40")
+        return button
+    
+    def _create_secondary_button(self) -> ModernButton:
+        """Create a secondary button with default styling."""
+        button = ModernButton("Secondary", self)
+        button.set_custom_style("#2196F3", "#1e88e5", "#1976d2")
+        return button
+    
+    def _create_danger_button(self) -> ModernButton:
+        """Create a danger button with default styling."""
+        button = ModernButton("Danger", self)
+        button.set_custom_style("#F44336", "#e53935", "#d32f2f")
+        return button
+    
+    def _create_text_input(self) -> ModernInput:
+        """Create a text input with default styling."""
+        return ModernInput("Enter text...", self)
+    
+    def _create_search_input(self) -> ModernInput:
+        """Create a search input with default styling."""
+        input_field = ModernInput("Search...", self)
+        input_field.setStyleSheet("""
+            QLineEdit {
+                background-color: #f5f5f5;
+                color: #333;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            QLineEdit:hover {
+                border: 1px solid #888;
+            }
+            QLineEdit:focus {
+                border: 1px solid #4CAF50;
+                background-color: #fff;
+                outline: 2px solid #4CAF50;
+            }
+        """)
+        return input_field
+    
+    def _create_main_layout(self) -> ModernLayout:
+        """Create a main layout with default settings."""
+        return ModernLayout("vbox", self)
+    
+    def _create_form_layout(self) -> ModernLayout:
+        """Create a form layout with default settings."""
+        layout = ModernLayout("vbox", self)
+        layout.set_spacing(12)
+        layout.set_margins(0, 0, 0, 0)
+        return layout
+    
+    def _create_default_search_box(self) -> SearchBox:
+        """Create a default search box."""
+        return SearchBox("Search...", self)
+    
+    def _create_card_container(self) -> ScrollableCardContainer:
+        """Create a card container with default settings."""
+        return ScrollableCardContainer(self)
     
     def set_theme(self, theme_name: str):
         """Set the window theme."""
@@ -198,6 +304,114 @@ class BaseWindow(QMainWindow):
             stretch: Layout stretch factor
         """
         self._content_layout.addLayout(layout, stretch)
+    
+    def add_button_to_content(self, text: str = "Button", button_type: str = "primary",
+                            stretch: int = 0, name: str = None) -> ModernButton:
+        """
+        Create and add a button to the main content area.
+        
+        Args:
+            text: Button text
+            button_type: Type of button (primary, secondary, danger)
+            stretch: Layout stretch factor
+            name: Optional name to register the button
+            
+        Returns:
+            The created button instance
+        """
+        button = self.create_button(text, button_type)
+        self._content_layout.addWidget(button, stretch)
+        
+        if name:
+            self.register_widget(name, button)
+            
+        return button
+    
+    def add_input_to_content(self, placeholder: str = "Enter text...", stretch: int = 0,
+                           name: str = None) -> ModernInput:
+        """
+        Create and add an input field to the main content area.
+        
+        Args:
+            placeholder: Placeholder text
+            stretch: Layout stretch factor
+            name: Optional name to register the input
+            
+        Returns:
+            The created input instance
+        """
+        input_field = self.create_input(placeholder)
+        self._content_layout.addWidget(input_field, stretch)
+        
+        if name:
+            self.register_widget(name, input_field)
+            
+        return input_field
+    
+    def add_card_to_content(self, title: str = "Card Title", content: str = "Card Content",
+                          stretch: int = 0, name: str = None) -> ModernCard:
+        """
+        Create and add a card to the main content area.
+        
+        Args:
+            title: Card title
+            content: Card content
+            stretch: Layout stretch factor
+            name: Optional name to register the card
+            
+        Returns:
+            The created card instance
+        """
+        card = self.create_card(title, content)
+        self._content_layout.addWidget(card, stretch)
+        
+        if name:
+            self.register_widget(name, card)
+            
+        return card
+    
+    def add_search_box_to_content(self, placeholder: str = "Search...", stretch: int = 0,
+                                name: str = None) -> SearchBox:
+        """
+        Create and add a search box to the main content area.
+        
+        Args:
+            placeholder: Placeholder text
+            stretch: Layout stretch factor
+            name: Optional name to register the search box
+            
+        Returns:
+            The created search box instance
+        """
+        search_box = self.create_search_box(placeholder)
+        self._content_layout.addWidget(search_box, stretch)
+        
+        if name:
+            self.register_widget(name, search_box)
+            
+        return search_box
+    
+    def add_table_to_content(self, rows: int = 0, columns: int = 0, stretch: int = 0,
+                           name: str = None) -> CustomTableWidget:
+        """
+        Create and add a table to the main content area.
+        
+        Args:
+            rows: Number of rows
+            columns: Number of columns
+            stretch: Layout stretch factor
+            name: Optional name to register the table
+            
+        Returns:
+            The created table instance
+        """
+        table = self.create_table(rows, columns)
+        self._content_layout.addWidget(table, stretch)
+        
+        if name:
+            self.register_widget(name, table)
+            
+        return table
     
     def create_menu_bar(self):
         """
@@ -293,6 +507,181 @@ class BaseWindow(QMainWindow):
             The ThemeManager instance
         """
         return self._theme_manager
+    
+    # Public interface for widget repository
+    def get_widget_from_repository(self, category: str, name: str):
+        """
+        Get a pre-configured widget from the repository.
+        
+        Args:
+            category: Widget category (buttons, inputs, layouts, etc.)
+            name: Widget name within the category
+            
+        Returns:
+            The widget instance, or None if not found
+        """
+        return self._widget_repository.get(category, {}).get(name)
+    
+    def create_button(self, text: str = "Button", button_type: str = "primary") -> ModernButton:
+        """
+        Create a button with specified type and text.
+        
+        Args:
+            text: Button text
+            button_type: Type of button (primary, secondary, danger, or custom)
+            
+        Returns:
+            Configured ModernButton instance
+        """
+        button = ModernButton(text, self)
+        
+        if button_type == "primary":
+            button.set_custom_style("#4CAF50", "#45a049", "#3d8b40")
+        elif button_type == "secondary":
+            button.set_custom_style("#2196F3", "#1e88e5", "#1976d2")
+        elif button_type == "danger":
+            button.set_custom_style("#F44336", "#e53935", "#d32f2f")
+        
+        return button
+    
+    def create_input(self, placeholder: str = "Enter text...", input_type: str = "text") -> ModernInput:
+        """
+        Create an input field with specified placeholder and type.
+        
+        Args:
+            placeholder: Placeholder text
+            input_type: Type of input (text, search, etc.)
+            
+        Returns:
+            Configured ModernInput instance
+        """
+        return ModernInput(placeholder, self)
+    
+    def create_card(self, title: str = "Card Title", content: str = "Card Content") -> ModernCard:
+        """
+        Create a card with specified title and content.
+        
+        Args:
+            title: Card title
+            content: Card content
+            
+        Returns:
+            Configured ModernCard instance
+        """
+        return ModernCard(title, content, self)
+    
+    def create_layout(self, layout_type: str = "vbox") -> ModernLayout:
+        """
+        Create a layout with specified type.
+        
+        Args:
+            layout_type: Type of layout (vbox, hbox, grid)
+            
+        Returns:
+            Configured ModernLayout instance
+        """
+        return ModernLayout(layout_type, self)
+    
+    def create_flex_layout(self, direction: str = "row", wrap: bool = False) -> FlexLayout:
+        """
+        Create a flex layout with specified direction.
+        
+        Args:
+            direction: Layout direction (row or column)
+            wrap: Whether to enable wrapping
+            
+        Returns:
+            Configured FlexLayout instance
+        """
+        return FlexLayout(direction, wrap, self)
+    
+    def create_search_box(self, placeholder: str = "Search...") -> SearchBox:
+        """
+        Create a search box with specified placeholder.
+        
+        Args:
+            placeholder: Placeholder text for search box
+            
+        Returns:
+            Configured SearchBox instance
+        """
+        return SearchBox(placeholder, self)
+    
+    def create_advanced_search_box(self, placeholder: str = "Search...") -> AdvancedSearchBox:
+        """
+        Create an advanced search box with specified placeholder.
+        
+        Args:
+            placeholder: Placeholder text for search box
+            
+        Returns:
+            Configured AdvancedSearchBox instance
+        """
+        return AdvancedSearchBox(placeholder, self)
+    
+    def create_memoized_search_box(self, placeholder: str = "Search...", cache_size: int = 100) -> MemoizedSearchBox:
+        """
+        Create a memoized search box with specified placeholder and cache size.
+        
+        Args:
+            placeholder: Placeholder text for search box
+            cache_size: Maximum cache size for memoization
+            
+        Returns:
+            Configured MemoizedSearchBox instance
+        """
+        return MemoizedSearchBox(placeholder, self, cache_size)
+    
+    def create_table(self, rows: int = 0, columns: int = 0) -> CustomTableWidget:
+        """
+        Create a custom table with specified rows and columns.
+        
+        Args:
+            rows: Number of rows
+            columns: Number of columns
+            
+        Returns:
+            Configured CustomTableWidget instance
+        """
+        table = CustomTableWidget(self)
+        if rows > 0 and columns > 0:
+            table.setRowCount(rows)
+            table.setColumnCount(columns)
+        return table
+    
+    def create_scrollable_container(self, horizontal_scroll: bool = True, vertical_scroll: bool = True) -> ScrollableContainer:
+        """
+        Create a scrollable container with specified scroll options.
+        
+        Args:
+            horizontal_scroll: Enable horizontal scrolling
+            vertical_scroll: Enable vertical scrolling
+            
+        Returns:
+            Configured ScrollableContainer instance
+        """
+        return ScrollableContainer(self, horizontal_scroll, vertical_scroll)
+    
+    def create_card_container(self) -> ScrollableCardContainer:
+        """
+        Create a scrollable card container.
+        
+        Returns:
+            Configured ScrollableCardContainer instance
+        """
+        return ScrollableCardContainer(self)
+    
+    def create_progress_indicator(self, size: int = 24) -> ProgressIndicator:
+        """
+        Create a progress indicator.
+        
+        Args:
+            size: Size of the progress indicator (default: 24)
+            
+        Returns:
+            Configured ProgressIndicator instance
+        """
+        return ProgressIndicator(size, self)
     
     def closeEvent(self, event):
         """

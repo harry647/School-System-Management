@@ -533,3 +533,13 @@
 2026-01-06 13:05:37,862 - school_system - INFO - Theme 'light' applied to window 'Test Window'
 2026-01-06 13:05:37,862 - school_system - INFO - BaseWindow 'Test Window' initialized
 2026-01-06 13:05:37,862 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 13:19:46,003 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:19:46,031 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:21:28,867 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:21:28,895 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:22:08,571 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:22:08,607 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:22:53,812 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 13:22:53,838 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 13:22:53,901 - school_system - INFO - Theme 'dark' applied to window 'Test Window'
+2026-01-06 13:22:53,923 - school_system - INFO - Theme 'light' applied to window 'Test Window'
