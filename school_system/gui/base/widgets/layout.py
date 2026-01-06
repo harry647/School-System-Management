@@ -78,19 +78,53 @@ class FlexLayout(ModernLayout):
     """
     
     def __init__(self, direction="row", wrap=False, parent=None):
-        super().__init__("hbox" if direction == "row" else "vbox", parent)
+        # Initialize the parent class with the appropriate layout type
+        layout_type = "hbox" if direction == "row" else "vbox"
+        super().__init__(layout_type, parent)
+        
         self.direction = direction
         self.wrap = wrap
         
-        # Configure layout based on direction
+        # The parent class already sets up self._layout, so we don't need to re-create it
+        # We just need to configure it based on the direction
         if direction == "row":
-            self._layout = QHBoxLayout(self)
+            # If the parent created a QVBoxLayout but we want a QHBoxLayout, replace it
+            if isinstance(self._layout, QVBoxLayout):
+                self._layout = QHBoxLayout(self)
         else:
-            self._layout = QVBoxLayout(self)
+            # If the parent created a QHBoxLayout but we want a QVBoxLayout, replace it
+            if isinstance(self._layout, QHBoxLayout):
+                self._layout = QVBoxLayout(self)
         
+        # Set default margins and spacing
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._layout.setSpacing(8)
-    
+     
+    def add_widget(self, widget, row=None, col=None, rowspan=1, colspan=1):
+        """Add a widget to the layout."""
+        # FlexLayout doesn't support grid layout, so ignore row/col parameters
+        self._layout.addWidget(widget)
+     
+    def add_layout(self, layout):
+        """Add a layout to this layout."""
+        # If the layout is a FlexLayout, use its underlying _layout
+        if hasattr(layout, '_layout'):
+            self._layout.addLayout(layout._layout)
+        else:
+            self._layout.addLayout(layout)
+     
+    def set_spacing(self, spacing):
+        """Set the spacing between widgets."""
+        self._layout.setSpacing(spacing)
+     
+    def set_margins(self, left, top, right, bottom):
+        """Set the margins around the layout."""
+        self._layout.setContentsMargins(left, top, right, bottom)
+     
+    def add_spacing(self, spacing):
+        """Add spacing to the layout."""
+        self._layout.addSpacing(spacing)
+     
     def set_justify_content(self, justify):
         """Set the justify content alignment."""
         if justify == "flex-start":

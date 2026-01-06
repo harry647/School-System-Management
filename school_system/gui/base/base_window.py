@@ -80,7 +80,11 @@ class BaseWindow(QMainWindow):
         
         # Content area with scrollable container
         self._content_area = ScrollableContainer(self._central_widget)
-        self._content_layout = QVBoxLayout(self._content_area)
+        # Use the scrollable container's internal content layout
+        self._content_layout = self._content_area.content_layout
+        logger.info(f"Content layout initialized: {self._content_layout}")
+        logger.info(f"Content widget: {self._content_area.content_widget}")
+        logger.info(f"Content widget layout: {self._content_area.content_widget.layout()}")
         self._content_layout.setContentsMargins(10, 10, 10, 10)
         self._content_layout.setSpacing(10)
         self._content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -89,6 +93,9 @@ class BaseWindow(QMainWindow):
         self._status_bar = ModernStatusBar()
         
         # Assemble the window
+        logger.info(f"Adding content area to main layout. Content area: {self._content_area}")
+        logger.info(f"Content area widget: {self._content_area.widget()}")
+        logger.info(f"Content area layout: {self._content_area.layout()}")
         self._main_layout.addWidget(self._content_area, 1)
         self.setCentralWidget(self._central_widget)
         self.setStatusBar(self._status_bar)
@@ -157,6 +164,9 @@ class BaseWindow(QMainWindow):
     def _apply_theme(self, theme_name: str):
         """Apply the specified theme to the window and all child widgets."""
         qss = self._theme_manager.generate_qss()
+        logger.info(f"Applying theme '{theme_name}' with QSS length: {len(qss)}")
+        logger.info(f"Content layout has {self._content_layout.count()} items before theme application")
+        
         self.setStyleSheet(qss)
         
         # Apply theme to all registered widgets
@@ -167,6 +177,7 @@ class BaseWindow(QMainWindow):
         # Update status bar theme
         self._status_bar.apply_theme(theme_name)
         
+        logger.info(f"Content layout has {self._content_layout.count()} items after theme application")
         logger.info(f"Theme '{theme_name}' applied to window '{self.windowTitle()}'")
         self.theme_changed.emit(theme_name)
     
@@ -295,15 +306,21 @@ class BaseWindow(QMainWindow):
         if name:
             self.register_widget(name, widget)
     
-    def add_layout_to_content(self, layout: QVBoxLayout, stretch: int = 0):
+    def add_layout_to_content(self, layout, stretch: int = 0):
         """
         Add a layout to the main content area.
-        
+
         Args:
-            layout: Layout to add
+            layout: Layout to add (QLayout, ModernLayout, or FlexLayout)
             stretch: Layout stretch factor
         """
-        self._content_layout.addLayout(layout, stretch)
+        # Handle ModernLayout and FlexLayout by adding them as widgets
+        if hasattr(layout, '_layout'):
+            # FlexLayout and ModernLayout are QWidgets, add them as widgets
+            self._content_layout.addWidget(layout, stretch)
+        else:
+            # Regular QLayout, add it directly
+            self._content_layout.addLayout(layout, stretch)
     
     def add_button_to_content(self, text: str = "Button", button_type: str = "primary",
                             stretch: int = 0, name: str = None) -> ModernButton:

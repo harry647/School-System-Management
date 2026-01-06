@@ -7,8 +7,6 @@ This module initializes the application and starts the main event loop.
 
 import sys
 import os
-import tkinter as tk
-from tkinter import messagebox
 
 # Add the project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,11 +43,10 @@ def main():
             return 1
         
         # Create and run the main application window
-        root = tk.Tk()
-        app = SchoolSystemApplication(root)
+        app = SchoolSystemApplication()
         
         logger.info("Application started successfully")
-        root.mainloop()
+        return app.run()
         
         return 0
         

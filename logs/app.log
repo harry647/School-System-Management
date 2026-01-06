@@ -552,3 +552,474 @@
 2026-01-06 13:40:43,488 - school_system - INFO - BaseDialog 'Test Message' initialized with centralized widget repository
 2026-01-06 13:40:43,491 - school_system - INFO - MessageDialog 'Test Message' initialized with type: info
 2026-01-06 13:40:43,491 - school_system - ERROR - Updated dialog modules test failed: 'charmap' codec can't encode character '\u2713' in position 0: character maps to <undefined>
+2026-01-06 15:43:02,885 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:43:02,885 - school_system - INFO - Initializing database
+2026-01-06 15:43:02,885 - school_system - INFO - Initializing database tables
+2026-01-06 15:43:02,956 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:43:04,783 - school_system - ERROR - Application failed to start: SchoolSystemApplication.__init__() takes 1 positional argument but 2 were given
+2026-01-06 15:43:09,671 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:43:09,671 - school_system - INFO - Database connection closed
+2026-01-06 15:44:20,300 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:44:20,301 - school_system - INFO - Initializing database
+2026-01-06 15:44:20,302 - school_system - INFO - Initializing database tables
+2026-01-06 15:44:20,311 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:44:20,358 - school_system - INFO - Main application window created
+2026-01-06 15:44:20,381 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:44:20,410 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:44:20,728 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'setSpacing'
+2026-01-06 15:44:20,795 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:44:21,318 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:44:27,848 - school_system - INFO - Application started successfully
+2026-01-06 15:44:36,709 - school_system - INFO - Application closing
+2026-01-06 15:44:36,710 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:44:36,711 - school_system - INFO - Database connection closed
+2026-01-06 15:44:36,726 - school_system - INFO - Database connection closed
+2026-01-06 15:45:45,690 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:45:45,691 - school_system - INFO - Initializing database
+2026-01-06 15:45:45,691 - school_system - INFO - Initializing database tables
+2026-01-06 15:45:45,698 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:45:45,744 - school_system - INFO - Main application window created
+2026-01-06 15:45:45,766 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:45:45,791 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:45:46,253 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'addWidget'
+2026-01-06 15:45:46,270 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:45:46,293 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:45:50,304 - school_system - INFO - Application started successfully
+2026-01-06 15:45:56,868 - school_system - INFO - Application closing
+2026-01-06 15:45:56,869 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:45:56,869 - school_system - INFO - Database connection closed
+2026-01-06 15:45:56,891 - school_system - INFO - Database connection closed
+2026-01-06 15:48:25,414 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:48:25,414 - school_system - INFO - Initializing database
+2026-01-06 15:48:25,414 - school_system - INFO - Initializing database tables
+2026-01-06 15:48:25,422 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:48:25,469 - school_system - INFO - Main application window created
+2026-01-06 15:48:25,520 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:48:25,572 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:48:25,611 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'addSpacing'
+2026-01-06 15:48:25,643 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:48:25,714 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:48:31,753 - school_system - INFO - Application started successfully
+2026-01-06 15:48:37,347 - school_system - INFO - Application closing
+2026-01-06 15:48:37,348 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:48:37,348 - school_system - INFO - Database connection closed
+2026-01-06 15:48:37,369 - school_system - INFO - Database connection closed
+2026-01-06 15:49:21,729 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:49:21,730 - school_system - INFO - Initializing database
+2026-01-06 15:49:21,730 - school_system - INFO - Initializing database tables
+2026-01-06 15:49:21,738 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:49:21,783 - school_system - INFO - Main application window created
+2026-01-06 15:49:21,808 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:49:21,833 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:49:21,871 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'addSpacing'
+2026-01-06 15:49:21,907 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:49:21,994 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:49:27,302 - school_system - INFO - Application started successfully
+2026-01-06 15:49:31,755 - school_system - INFO - Application closing
+2026-01-06 15:49:31,756 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:49:31,757 - school_system - INFO - Database connection closed
+2026-01-06 15:49:31,773 - school_system - INFO - Database connection closed
+2026-01-06 15:51:49,074 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:51:49,075 - school_system - INFO - Initializing database
+2026-01-06 15:51:49,076 - school_system - INFO - Initializing database tables
+2026-01-06 15:51:49,084 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:51:49,126 - school_system - INFO - Main application window created
+2026-01-06 15:51:49,149 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:51:49,174 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:51:49,209 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'addWidget'
+2026-01-06 15:51:49,233 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:51:49,266 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:51:54,360 - school_system - INFO - Application started successfully
+2026-01-06 15:51:58,571 - school_system - INFO - Application closing
+2026-01-06 15:51:58,572 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:51:58,572 - school_system - INFO - Database connection closed
+2026-01-06 15:51:58,593 - school_system - INFO - Database connection closed
+2026-01-06 15:52:58,488 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:52:58,489 - school_system - INFO - Initializing database
+2026-01-06 15:52:58,490 - school_system - INFO - Initializing database tables
+2026-01-06 15:52:58,496 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:52:58,535 - school_system - INFO - Main application window created
+2026-01-06 15:52:58,557 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:52:58,578 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:52:58,611 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'addWidget'
+2026-01-06 15:52:58,629 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:52:58,652 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:53:01,383 - school_system - INFO - Application started successfully
+2026-01-06 15:53:05,290 - school_system - INFO - Application closing
+2026-01-06 15:53:05,291 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:53:05,292 - school_system - INFO - Database connection closed
+2026-01-06 15:53:05,310 - school_system - INFO - Database connection closed
+2026-01-06 15:53:55,846 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:53:55,846 - school_system - INFO - Initializing database
+2026-01-06 15:53:55,846 - school_system - INFO - Initializing database tables
+2026-01-06 15:53:55,854 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:53:55,895 - school_system - INFO - Main application window created
+2026-01-06 15:53:55,915 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:53:55,942 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:53:55,985 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'addWidget'
+2026-01-06 15:53:56,009 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:53:56,075 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:53:59,872 - school_system - INFO - Application started successfully
+2026-01-06 15:54:04,683 - school_system - INFO - Application closing
+2026-01-06 15:54:04,684 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:54:04,684 - school_system - INFO - Database connection closed
+2026-01-06 15:54:04,701 - school_system - INFO - Database connection closed
+2026-01-06 15:57:26,960 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:57:26,960 - school_system - INFO - Initializing database
+2026-01-06 15:57:26,961 - school_system - INFO - Initializing database tables
+2026-01-06 15:57:26,970 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:57:27,012 - school_system - INFO - Main application window created
+2026-01-06 15:57:27,033 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:57:27,059 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:57:27,110 - school_system - ERROR - Failed to create login window: 'FlexLayout' object has no attribute 'add_layout'
+2026-01-06 15:57:27,134 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:57:27,160 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:57:32,928 - school_system - INFO - Application started successfully
+2026-01-06 15:57:37,523 - school_system - INFO - Application closing
+2026-01-06 15:57:37,525 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:57:37,526 - school_system - INFO - Database connection closed
+2026-01-06 15:57:37,541 - school_system - INFO - Database connection closed
+2026-01-06 15:58:30,590 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:58:30,591 - school_system - INFO - Initializing database
+2026-01-06 15:58:30,591 - school_system - INFO - Initializing database tables
+2026-01-06 15:58:30,600 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:58:30,641 - school_system - INFO - Main application window created
+2026-01-06 15:58:30,662 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:58:30,686 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:58:30,736 - school_system - ERROR - Failed to create login window: addLayout(self, layout: Optional[QLayout], stretch: int = 0): argument 1 has unexpected type 'FlexLayout'
+2026-01-06 15:58:30,760 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:58:30,787 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:58:35,421 - school_system - INFO - Application started successfully
+2026-01-06 15:58:39,451 - school_system - INFO - Application closing
+2026-01-06 15:58:39,452 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:58:39,452 - school_system - INFO - Database connection closed
+2026-01-06 15:58:39,468 - school_system - INFO - Database connection closed
+2026-01-06 15:59:34,372 - school_system - INFO - Starting School System Management Application
+2026-01-06 15:59:34,373 - school_system - INFO - Initializing database
+2026-01-06 15:59:34,374 - school_system - INFO - Initializing database tables
+2026-01-06 15:59:34,382 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 15:59:34,424 - school_system - INFO - Main application window created
+2026-01-06 15:59:34,445 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 15:59:34,467 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 15:59:34,518 - school_system - ERROR - Failed to create login window: addLayout(self, layout: Optional[QLayout], stretch: int = 0): argument 1 has unexpected type 'FlexLayout'
+2026-01-06 15:59:34,542 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 15:59:34,574 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 15:59:40,479 - school_system - INFO - Application started successfully
+2026-01-06 15:59:44,227 - school_system - INFO - Application closing
+2026-01-06 15:59:44,228 - school_system - INFO - Database connection established to school.db
+2026-01-06 15:59:44,229 - school_system - INFO - Database connection closed
+2026-01-06 15:59:44,249 - school_system - INFO - Database connection closed
+2026-01-06 16:00:29,024 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:00:29,025 - school_system - INFO - Initializing database
+2026-01-06 16:00:29,025 - school_system - INFO - Initializing database tables
+2026-01-06 16:00:29,033 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:00:29,073 - school_system - INFO - Main application window created
+2026-01-06 16:00:29,092 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:00:29,117 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:00:29,156 - school_system - ERROR - Failed to create login window: addLayout(self, layout: Optional[QLayout], stretch: int = 0): argument 1 has unexpected type 'FlexLayout'
+2026-01-06 16:00:29,172 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 16:00:29,199 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 16:00:33,762 - school_system - INFO - Application started successfully
+2026-01-06 16:00:37,434 - school_system - INFO - Application closing
+2026-01-06 16:00:37,436 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:00:37,437 - school_system - INFO - Database connection closed
+2026-01-06 16:00:37,452 - school_system - INFO - Database connection closed
+2026-01-06 16:04:35,912 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:04:35,913 - school_system - INFO - Initializing database
+2026-01-06 16:04:35,913 - school_system - INFO - Initializing database tables
+2026-01-06 16:04:35,922 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:04:35,968 - school_system - INFO - Main application window created
+2026-01-06 16:04:35,989 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:04:36,021 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:04:36,056 - school_system - ERROR - Failed to create login window: addLayout(self, layout: Optional[QLayout], stretch: int = 0): argument 1 has unexpected type 'FlexLayout'
+2026-01-06 16:04:36,076 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 16:04:36,101 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 16:04:38,390 - school_system - INFO - Application started successfully
+2026-01-06 16:04:42,618 - school_system - INFO - Application closing
+2026-01-06 16:04:42,619 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:04:42,619 - school_system - INFO - Database connection closed
+2026-01-06 16:04:42,636 - school_system - INFO - Database connection closed
+2026-01-06 16:09:04,365 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:09:04,366 - school_system - INFO - Initializing database
+2026-01-06 16:09:04,366 - school_system - INFO - Initializing database tables
+2026-01-06 16:09:04,372 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:09:04,414 - school_system - INFO - Main application window created
+2026-01-06 16:09:04,437 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:09:04,470 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:09:04,626 - school_system - INFO - Login window displayed
+2026-01-06 16:09:04,626 - school_system - INFO - Application started successfully
+2026-01-06 16:09:18,748 - school_system - INFO - Application closing
+2026-01-06 16:09:18,749 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:09:18,749 - school_system - INFO - Database connection closed
+2026-01-06 16:09:18,750 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:09:18,787 - school_system - INFO - Database connection closed
+2026-01-06 16:12:02,595 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:12:02,596 - school_system - INFO - Initializing database
+2026-01-06 16:12:02,596 - school_system - INFO - Initializing database tables
+2026-01-06 16:12:02,601 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:12:02,649 - school_system - INFO - Main application window created
+2026-01-06 16:12:02,668 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:12:02,699 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:12:02,848 - school_system - INFO - Login window displayed
+2026-01-06 16:12:02,849 - school_system - INFO - Application started successfully
+2026-01-06 16:14:36,209 - school_system - INFO - Application closing
+2026-01-06 16:14:36,211 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:14:36,213 - school_system - INFO - Database connection closed
+2026-01-06 16:14:36,215 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:14:36,242 - school_system - INFO - Database connection closed
+2026-01-06 16:15:06,556 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:15:06,558 - school_system - INFO - Initializing database
+2026-01-06 16:15:06,558 - school_system - INFO - Initializing database tables
+2026-01-06 16:15:06,566 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:15:06,607 - school_system - INFO - Main application window created
+2026-01-06 16:15:06,627 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:15:06,655 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:15:06,807 - school_system - INFO - Login window displayed
+2026-01-06 16:15:06,807 - school_system - INFO - Application started successfully
+2026-01-06 16:15:28,059 - school_system - INFO - Application closing
+2026-01-06 16:15:28,061 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:15:28,061 - school_system - INFO - Database connection closed
+2026-01-06 16:15:28,062 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:15:28,096 - school_system - INFO - Database connection closed
+2026-01-06 16:18:09,734 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:18:09,735 - school_system - INFO - Initializing database
+2026-01-06 16:18:09,735 - school_system - INFO - Initializing database tables
+2026-01-06 16:18:09,745 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:18:09,789 - school_system - INFO - Main application window created
+2026-01-06 16:18:09,812 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:18:09,837 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:18:09,986 - school_system - INFO - Login window displayed
+2026-01-06 16:18:09,986 - school_system - INFO - Application started successfully
+2026-01-06 16:18:20,556 - school_system - INFO - Application closing
+2026-01-06 16:18:20,557 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:18:20,558 - school_system - INFO - Database connection closed
+2026-01-06 16:18:20,558 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:18:20,602 - school_system - INFO - Database connection closed
+2026-01-06 16:19:39,880 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:19:39,880 - school_system - INFO - Initializing database
+2026-01-06 16:19:39,881 - school_system - INFO - Initializing database tables
+2026-01-06 16:19:39,889 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:19:39,931 - school_system - INFO - Main application window created
+2026-01-06 16:19:39,952 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:19:39,975 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:19:40,124 - school_system - INFO - Login window displayed
+2026-01-06 16:19:40,124 - school_system - INFO - Application started successfully
+2026-01-06 16:20:01,172 - school_system - INFO - Application closing
+2026-01-06 16:20:01,173 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:20:01,173 - school_system - INFO - Database connection closed
+2026-01-06 16:20:01,173 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:20:01,208 - school_system - INFO - Database connection closed
+2026-01-06 16:21:31,073 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:21:31,074 - school_system - INFO - Initializing database
+2026-01-06 16:21:31,075 - school_system - INFO - Initializing database tables
+2026-01-06 16:21:31,086 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:21:31,131 - school_system - INFO - Main application window created
+2026-01-06 16:21:31,151 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:21:31,174 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:21:31,276 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:21:31,279 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:21:31,395 - school_system - INFO - Login window displayed
+2026-01-06 16:21:31,395 - school_system - INFO - Application started successfully
+2026-01-06 16:22:11,684 - school_system - INFO - Application closing
+2026-01-06 16:22:11,685 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:22:11,685 - school_system - INFO - Database connection closed
+2026-01-06 16:22:11,686 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:22:11,717 - school_system - INFO - Database connection closed
+2026-01-06 16:23:53,865 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:23:53,866 - school_system - INFO - Initializing database
+2026-01-06 16:23:53,866 - school_system - INFO - Initializing database tables
+2026-01-06 16:23:53,875 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:23:53,915 - school_system - INFO - Main application window created
+2026-01-06 16:23:53,939 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:23:53,962 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:23:54,041 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:23:54,044 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:23:54,171 - school_system - INFO - Login window displayed
+2026-01-06 16:23:54,172 - school_system - INFO - Application started successfully
+2026-01-06 16:24:02,844 - school_system - INFO - Application closing
+2026-01-06 16:24:02,844 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:24:02,845 - school_system - INFO - Database connection closed
+2026-01-06 16:24:02,845 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:24:02,879 - school_system - INFO - Database connection closed
+2026-01-06 16:24:58,891 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:24:58,891 - school_system - INFO - Initializing database
+2026-01-06 16:24:58,891 - school_system - INFO - Initializing database tables
+2026-01-06 16:24:58,898 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:24:58,938 - school_system - INFO - Main application window created
+2026-01-06 16:24:58,942 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x000001B270F149B0>
+2026-01-06 16:24:58,957 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:24:58,957 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:24:58,960 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:24:58,960 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:24:58,993 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:24:59,035 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:24:59,037 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:24:59,138 - school_system - INFO - Login window displayed
+2026-01-06 16:24:59,138 - school_system - INFO - Application started successfully
+2026-01-06 16:25:09,499 - school_system - INFO - Application closing
+2026-01-06 16:25:09,500 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:25:09,500 - school_system - INFO - Database connection closed
+2026-01-06 16:25:09,501 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:25:09,532 - school_system - INFO - Database connection closed
+2026-01-06 16:25:58,053 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:25:58,054 - school_system - INFO - Initializing database
+2026-01-06 16:25:58,054 - school_system - INFO - Initializing database tables
+2026-01-06 16:25:58,062 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:25:58,100 - school_system - INFO - Main application window created
+2026-01-06 16:25:58,109 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x000001F4178E49B0>
+2026-01-06 16:25:58,122 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x000001F4178E4690>
+2026-01-06 16:25:58,122 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x000001F4178E4910>
+2026-01-06 16:25:58,123 - school_system - INFO - Content area layout: None
+2026-01-06 16:25:58,124 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:25:58,124 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:25:58,126 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:25:58,126 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:25:58,147 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:25:58,195 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:25:58,197 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:25:58,299 - school_system - INFO - Login window displayed
+2026-01-06 16:25:58,299 - school_system - INFO - Application started successfully
+2026-01-06 16:26:47,108 - school_system - INFO - Application closing
+2026-01-06 16:26:47,109 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:26:47,110 - school_system - INFO - Database connection closed
+2026-01-06 16:26:47,110 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:26:47,144 - school_system - INFO - Database connection closed
+2026-01-06 16:27:23,356 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:27:23,357 - school_system - INFO - Initializing database
+2026-01-06 16:27:23,358 - school_system - INFO - Initializing database tables
+2026-01-06 16:27:23,367 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:27:23,405 - school_system - INFO - Main application window created
+2026-01-06 16:27:23,411 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x000002519AB649B0>
+2026-01-06 16:27:23,411 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x000002519AB64910>
+2026-01-06 16:27:23,412 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x000002519AB649B0>
+2026-01-06 16:27:23,426 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x000002519AB64690>
+2026-01-06 16:27:23,426 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x000002519AB64910>
+2026-01-06 16:27:23,426 - school_system - INFO - Content area layout: None
+2026-01-06 16:27:23,427 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:27:23,428 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:27:23,431 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:27:23,431 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:27:23,454 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:27:23,499 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:27:23,501 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:27:23,609 - school_system - INFO - Login window displayed
+2026-01-06 16:27:23,610 - school_system - INFO - Application started successfully
+2026-01-06 16:27:32,165 - school_system - INFO - Application closing
+2026-01-06 16:27:32,166 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:27:32,166 - school_system - INFO - Database connection closed
+2026-01-06 16:27:32,166 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:27:32,202 - school_system - INFO - Database connection closed
+2026-01-06 16:30:35,574 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000018224E24370>
+2026-01-06 16:30:35,574 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000018224E242D0>
+2026-01-06 16:30:35,575 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000018224E24370>
+2026-01-06 16:30:35,587 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000018224E24050>
+2026-01-06 16:30:35,587 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000018224E242D0>
+2026-01-06 16:30:35,588 - school_system - INFO - Content area layout: None
+2026-01-06 16:30:35,589 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:30:35,589 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:30:35,593 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:30:35,593 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:30:35,646 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:30:35,694 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:30:35,697 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:30:54,604 - school_system - INFO - Requesting password reset for user: Enter your username
+2026-01-06 16:30:54,605 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:30:54,607 - school_system - WARNING - Password reset requested for non-existent user: Enter your username
+2026-01-06 16:30:54,630 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 16:30:54,653 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 16:30:57,429 - school_system - WARNING - Failed password reset request for user: Enter your username
+2026-01-06 16:30:58,364 - school_system - INFO - Creating new user account: Enter your username
+2026-01-06 16:30:58,386 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 16:30:58,391 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 16:31:00,309 - school_system - ERROR - Account creation error: name 'get_db_session' is not defined
+2026-01-06 16:31:08,795 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:34:38,810 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x000002657F564370>
+2026-01-06 16:34:38,811 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x000002657F5642D0>
+2026-01-06 16:34:38,811 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x000002657F564370>
+2026-01-06 16:34:38,825 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x000002657F564050>
+2026-01-06 16:34:38,825 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x000002657F5642D0>
+2026-01-06 16:34:38,825 - school_system - INFO - Content area layout: None
+2026-01-06 16:34:38,826 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:34:38,827 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:34:38,830 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:34:38,830 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:34:38,868 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:34:38,919 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:34:38,923 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:34:47,299 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:35:38,931 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:35:38,932 - school_system - INFO - Initializing database
+2026-01-06 16:35:38,933 - school_system - INFO - Initializing database tables
+2026-01-06 16:35:38,943 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:35:38,990 - school_system - INFO - Main application window created
+2026-01-06 16:35:38,999 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000029BAECA49B0>
+2026-01-06 16:35:38,999 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000029BAECA4910>
+2026-01-06 16:35:38,999 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000029BAECA49B0>
+2026-01-06 16:35:39,014 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000029BAECA4690>
+2026-01-06 16:35:39,014 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000029BAECA4910>
+2026-01-06 16:35:39,015 - school_system - INFO - Content area layout: None
+2026-01-06 16:35:39,016 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:35:39,016 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:35:39,019 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:35:39,019 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:35:39,042 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:35:39,090 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:35:39,106 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:35:39,384 - school_system - INFO - Login window displayed
+2026-01-06 16:35:39,385 - school_system - INFO - Application started successfully
+2026-01-06 16:35:54,149 - school_system - INFO - Application closing
+2026-01-06 16:35:54,150 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:35:54,150 - school_system - INFO - Database connection closed
+2026-01-06 16:35:54,150 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:35:54,202 - school_system - INFO - Database connection closed
+2026-01-06 16:37:23,587 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x000001BC0DE10CD0>
+2026-01-06 16:37:23,587 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x000001BC0DE10C30>
+2026-01-06 16:37:23,588 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x000001BC0DE10CD0>
+2026-01-06 16:37:23,599 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x000001BC0DE109B0>
+2026-01-06 16:37:23,600 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x000001BC0DE10C30>
+2026-01-06 16:37:23,600 - school_system - INFO - Content area layout: None
+2026-01-06 16:37:23,601 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:37:23,601 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:37:23,603 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:37:23,604 - school_system - INFO - Theme 'light' applied to window 'Test Window'
+2026-01-06 16:37:23,631 - school_system - INFO - BaseWindow 'Test Window' initialized
+2026-01-06 16:37:37,067 - school_system - INFO - Window 'Test Window' closing
+2026-01-06 16:38:16,437 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x000001A8B7D14370>
+2026-01-06 16:38:16,438 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x000001A8B7D142D0>
+2026-01-06 16:38:16,438 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x000001A8B7D14370>
+2026-01-06 16:38:16,449 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x000001A8B7D14050>
+2026-01-06 16:38:16,449 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x000001A8B7D142D0>
+2026-01-06 16:38:16,449 - school_system - INFO - Content area layout: None
+2026-01-06 16:38:16,450 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:38:16,450 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:38:16,452 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:38:16,452 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:38:16,493 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:38:16,565 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:38:16,569 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:38:22,107 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:38:49,344 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x00000147908B4370>
+2026-01-06 16:38:49,345 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x00000147908B42D0>
+2026-01-06 16:38:49,345 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x00000147908B4370>
+2026-01-06 16:38:49,356 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x00000147908B4050>
+2026-01-06 16:38:49,357 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x00000147908B42D0>
+2026-01-06 16:38:49,357 - school_system - INFO - Content area layout: None
+2026-01-06 16:38:49,358 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:38:49,358 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:38:49,361 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:38:49,362 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:38:49,402 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:38:49,442 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:38:49,449 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:39:05,652 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:44:56,871 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:44:56,872 - school_system - INFO - Initializing database
+2026-01-06 16:44:56,872 - school_system - INFO - Initializing database tables
+2026-01-06 16:44:56,879 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:44:56,927 - school_system - INFO - Main application window created
+2026-01-06 16:44:57,054 - school_system - INFO - Login window displayed
+2026-01-06 16:44:57,055 - school_system - INFO - Application started successfully
+2026-01-06 16:45:22,899 - school_system - INFO - Application closing
+2026-01-06 16:45:22,900 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:45:22,901 - school_system - INFO - Database connection closed
+2026-01-06 16:45:22,943 - school_system - INFO - Database connection closed
