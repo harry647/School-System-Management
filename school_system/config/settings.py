@@ -26,6 +26,7 @@ class Settings:
         self.data_backup_path = "data/backup/"
         self.data_export_path = "data/exports/"
         self.log_file_path = "logs/app.log"
+        self.logo_path = "school_system/gui/resources/icons/logo.png"
         
         # GUI settings
         self.default_window_size = (1024, 768)
