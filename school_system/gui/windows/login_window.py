@@ -103,12 +103,12 @@ class LoginWindow(BaseWindow):
     def _on_forgot_password(self):
         """Handle forgot password button click."""
         username = self.username_input.text().strip()
-        
+
         try:
             # Request password reset using AuthService
             success = self.auth_service.request_password_reset(username)
             if success:
-                show_error_message("Password Reset", "Password reset request sent successfully. Check your email.", self)
+                show_success_message("Password Reset", "Password reset request sent successfully. Check your email.", self)
                 logger.info(f"Password reset requested for user: {username}")
             else:
                 show_error_message("Error", "Failed to request password reset. User may not exist.", self)

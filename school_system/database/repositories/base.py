@@ -44,9 +44,13 @@ class BaseRepository(Generic[T]):
         except Exception as e:
             raise DatabaseException(f"Error retrieving all entities: {e}")
 
-    def create(self, **kwargs) -> T:
+    def create(self, entity=None, **kwargs) -> T:
         """Create a new entity."""
         try:
+            if entity is not None:
+                kwargs = vars(entity)
+            # Exclude updated_at if present, as most tables don't have it
+            kwargs = {k: v for k, v in kwargs.items() if k != 'updated_at'}
             cursor = self.db.cursor()
             columns = ', '.join(kwargs.keys())
             placeholders = ', '.join(['?'] * len(kwargs))

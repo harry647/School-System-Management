@@ -1,5 +1,5 @@
 # User models
-from .base import BaseModel
+from .base import BaseModel, get_db_session
 
 class User(BaseModel):
     __tablename__ = 'users'
