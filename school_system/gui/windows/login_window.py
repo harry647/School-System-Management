@@ -4,7 +4,7 @@ Login window for the School System Management application.
 This module provides the login interface for user authentication.
 """
 
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QSizePolicy
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QIcon
 from typing import Callable, Optional
@@ -22,23 +22,26 @@ class LoginWindow(BaseWindow):
     def __init__(self, parent: QMainWindow, on_success: Callable[[str, str], None]):
         """
         Initialize the login window.
-        
+
         Args:
             parent: The parent window
             on_success: Callback function called on successful login with (username, role)
         """
         super().__init__("School System - Login", parent)
-        
+
         self.parent = parent
         self.on_success = on_success
         self.auth_service = AuthService()
-        
-        # Set fixed size for login window
-        self.setFixedSize(400, 300)
 
-        # Debug: Disable theme and use a contrasting background
+        # Set fixed size for login window
+        self.setFixedSize(500, 450)
+
+        # Set theme to dark for visibility
+        self.set_theme("dark")
+
+        # Set custom stylesheet after theme
         self.setStyleSheet("""
-            LoginWindow {
+            QMainWindow {
                 background-color: #222;
             }
             QLabel {
@@ -53,6 +56,9 @@ class LoginWindow(BaseWindow):
                 padding: 0 10px;
                 font-size: 14px;
             }
+            QLineEdit:focus {
+                border: 2px solid #3498DB;
+            }
             QPushButton {
                 background-color: #3498DB;
                 color: white;
@@ -62,100 +68,6 @@ class LoginWindow(BaseWindow):
                 font-weight: bold;
                 padding: 10px;
             }
-        """)
-
-        # Initialize UI
-        self._setup_widgets()
-    
-    def _setup_widgets(self):
-        """Setup the login form widgets using BaseWindow methods."""
-        # Create main layout
-        main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(30, 30, 30, 30)
-        main_layout.set_spacing(20)
-        
-        # Add school logo
-        logo_label = QLabel()
-        logo_pixmap = QPixmap("school_system/gui/resources/icons/logo.png")
-        if not logo_pixmap.isNull():
-            logo_label.setPixmap(logo_pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))
-            logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            main_layout.add_widget(logo_label)
-        
-        # Title
-        title_label = QLabel("School System Management")
-        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2C3E50;")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.add_widget(title_label)
-        
-        # Subtitle
-        subtitle_label = QLabel("Please login to continue")
-        subtitle_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
-        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.add_widget(subtitle_label)
-        
-        # Add spacing
-        main_layout.add_spacing(20)
-        
-        # Username field
-        username_label = QLabel("Username")
-        username_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
-        main_layout.add_widget(username_label)
-        
-        self.username_input = self.create_input("Enter your username")
-        self.username_input.setFixedHeight(40)
-        self.username_input.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #BDC3C7;
-                border-radius: 5px;
-                padding: 0 10px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #3498DB;
-            }
-        """)
-        main_layout.add_widget(self.username_input)
-        
-        # Add spacing
-        main_layout.add_spacing(10)
-        
-        # Password field
-        password_label = QLabel("Password")
-        password_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
-        main_layout.add_widget(password_label)
-        
-        self.password_input = self.create_input("Enter your password")
-        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password_input.setFixedHeight(40)
-        self.password_input.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #BDC3C7;
-                border-radius: 5px;
-                padding: 0 10px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #3498DB;
-            }
-        """)
-        main_layout.add_widget(self.password_input)
-        
-        # Add spacing
-        main_layout.add_spacing(20)
-        
-        # Login button
-        login_button = self.create_button("Login", "primary")
-        login_button.setFixedHeight(45)
-        login_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3498DB;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 16px;
-                font-weight: bold;
-            }
             QPushButton:hover {
                 background-color: #2980B9;
             }
@@ -163,73 +75,10 @@ class LoginWindow(BaseWindow):
                 background-color: #1F618D;
             }
         """)
-        login_button.clicked.connect(self._on_login)
-        main_layout.add_widget(login_button)
-        
-        # Add spacing
-        main_layout.add_spacing(15)
-        
-        # Action buttons layout
-        action_layout = QHBoxLayout()
-        action_layout.setSpacing(10)
-        
-        forgot_password_button = QPushButton("Forgot Password?")
-        forgot_password_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #3498DB;
-                border: none;
-                font-size: 12px;
-                text-decoration: underline;
-            }
-            QPushButton:hover {
-                color: #2980B9;
-            }
-        """)
-        forgot_password_button.clicked.connect(self._on_forgot_password)
-        action_layout.addWidget(forgot_password_button)
-        
-        action_layout.addStretch()
-        
-        create_account_button = QPushButton("Create Account")
-        create_account_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #3498DB;
-                border: none;
-                font-size: 12px;
-                text-decoration: underline;
-            }
-            QPushButton:hover {
-                color: #2980B9;
-            }
-        """)
-        create_account_button.clicked.connect(self._on_create_account)
-        action_layout.addWidget(create_account_button)
-        
-        main_layout.add_layout(action_layout)
 
-        # Add spacing
-        main_layout.add_spacing(15)
-
-        # Default credentials info
-        info_text = "Default login: Username: admin | Password: harry123"
-        info_label = QLabel(info_text)
-        info_label.setStyleSheet("font-size: 11px; color: #95A5A6;")
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.add_widget(info_label)
-
-        # Add main layout to content area
-        logger.info(f"Adding main layout to content area. Main layout has {main_layout._layout.count()} items")
-        self.add_layout_to_content(main_layout)
-        logger.info(f"After adding to content area, content layout has {self._content_layout.count()} items")
-
-        # Set focus to username field
-        self.username_input.setFocus()
-
-        # Connect Enter key for login
-        self.username_input.returnPressed.connect(lambda: self.password_input.setFocus())
-        self.password_input.returnPressed.connect(self._on_login)
+        # Initialize UI
+        self._setup_widgets()
+    
     
     def _on_login(self):
         """Handle login button click."""
@@ -299,11 +148,177 @@ class LoginWindow(BaseWindow):
             logger.error(f"Account creation error: {str(e)}")
     
     
+    def _setup_widgets(self):
+        """Setup the login form widgets using BaseWindow methods."""
+        # Create main layout
+        main_layout = self.create_flex_layout("column", False)
+        main_layout.setContentsMargins(30, 30, 30, 30)
+        main_layout.set_spacing(20)
+        main_layout.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        # Add school logo
+        logo_label = QLabel()
+        logo_pixmap = QPixmap("school_system/gui/resources/icons/logo.png")
+        if not logo_pixmap.isNull():
+            logo_label.setPixmap(logo_pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))
+            logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            main_layout.add_widget(logo_label)
+
+        # Title
+        title_label = QLabel("School System Management")
+        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2C3E50;")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.add_widget(title_label)
+
+        # Subtitle
+        subtitle_label = QLabel("Please login to continue")
+        subtitle_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
+        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.add_widget(subtitle_label)
+
+        # Add spacing
+        main_layout.add_spacing(20)
+
+        # Username field
+        username_label = QLabel("Username")
+        username_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
+        main_layout.add_widget(username_label)
+
+        self.username_input = self.create_input("Enter your username")
+        self.username_input.setFixedHeight(40)
+        self.username_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #BDC3C7;
+                border-radius: 5px;
+                padding: 0 10px;
+                font-size: 14px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498DB;
+            }
+        """)
+        main_layout.add_widget(self.username_input)
+
+        # Add spacing
+        main_layout.add_spacing(10)
+
+        # Password field
+        password_label = QLabel("Password")
+        password_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
+        main_layout.add_widget(password_label)
+
+        self.password_input = self.create_input("Enter your password")
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password_input.setFixedHeight(40)
+        self.password_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #BDC3C7;
+                border-radius: 5px;
+                padding: 0 10px;
+                font-size: 14px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498DB;
+            }
+        """)
+        main_layout.add_widget(self.password_input)
+
+        # Add spacing
+        main_layout.add_spacing(20)
+
+        # Login button
+        login_button = self.create_button("Login", "primary")
+        login_button.setFixedHeight(45)
+        login_button.setStyleSheet("""
+            QPushButton {
+                background-color: #3498DB;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2980B9;
+            }
+            QPushButton:pressed {
+                background-color: #1F618D;
+            }
+        """)
+        login_button.clicked.connect(self._on_login)
+        main_layout.add_widget(login_button)
+
+        # Add spacing
+        main_layout.add_spacing(15)
+
+        # Action buttons layout
+        action_layout = QHBoxLayout()
+        action_layout.setSpacing(10)
+
+        forgot_password_button = QPushButton("Forgot Password?")
+        forgot_password_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #3498DB;
+                border: none;
+                font-size: 12px;
+                text-decoration: underline;
+            }
+            QPushButton:hover {
+                color: #2980B9;
+            }
+        """)
+        forgot_password_button.clicked.connect(self._on_forgot_password)
+        action_layout.addWidget(forgot_password_button)
+
+        action_layout.addStretch()
+
+        create_account_button = QPushButton("Create Account")
+        create_account_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #3498DB;
+                border: none;
+                font-size: 12px;
+                text-decoration: underline;
+            }
+            QPushButton:hover {
+                color: #2980B9;
+            }
+        """)
+        create_account_button.clicked.connect(self._on_create_account)
+        action_layout.addWidget(create_account_button)
+
+        main_layout.add_layout(action_layout)
+
+        # Add spacing
+        main_layout.add_spacing(15)
+
+        # Default credentials info
+        info_text = "Default login: Username: admin | Password: harry123"
+        info_label = QLabel(info_text)
+        info_label.setStyleSheet("font-size: 11px; color: #95A5A6;")
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.add_widget(info_label)
+
+        # Add main layout to content area
+        logger.info(f"Adding main layout to content area. Main layout has {main_layout._layout.count()} items")
+        self.add_layout_to_content(main_layout)
+        logger.info(f"After adding to content area, content layout has {self._content_layout.count()} items")
+
+        # Set focus to username field
+        self.username_input.setFocus()
+
+        # Connect Enter key for login
+        self.username_input.returnPressed.connect(lambda: self.password_input.setFocus())
+        self.password_input.returnPressed.connect(self._on_login)
+
     def closeEvent(self, event):
         """Handle window closing."""
         super().closeEvent(event)
         # Also close parent application if this is the main window
-        self.parent.close()
+        if self.parent:
+            self.parent.close()
     
     def show(self):
         """Show the login window."""

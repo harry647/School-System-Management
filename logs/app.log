@@ -1023,3 +1023,83 @@
 2026-01-06 16:45:22,900 - school_system - INFO - Database connection established to school.db
 2026-01-06 16:45:22,901 - school_system - INFO - Database connection closed
 2026-01-06 16:45:22,943 - school_system - INFO - Database connection closed
+2026-01-06 16:52:30,418 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:52:30,419 - school_system - INFO - Initializing database
+2026-01-06 16:52:30,419 - school_system - INFO - Initializing database tables
+2026-01-06 16:52:30,426 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:52:30,471 - school_system - INFO - Main application window created
+2026-01-06 16:52:30,663 - school_system - INFO - Login window displayed
+2026-01-06 16:52:30,663 - school_system - INFO - Application started successfully
+2026-01-06 16:52:46,940 - school_system - INFO - Application closing
+2026-01-06 16:52:46,941 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:52:46,941 - school_system - INFO - Database connection closed
+2026-01-06 16:52:46,968 - school_system - INFO - Database connection closed
+2026-01-06 16:54:15,893 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:54:15,893 - school_system - INFO - Initializing database
+2026-01-06 16:54:15,894 - school_system - INFO - Initializing database tables
+2026-01-06 16:54:15,900 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:54:16,059 - school_system - INFO - Login window displayed
+2026-01-06 16:54:16,060 - school_system - INFO - Application started successfully
+2026-01-06 16:54:53,086 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:54:53,087 - school_system - INFO - Database connection closed
+2026-01-06 16:58:03,289 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:58:03,290 - school_system - INFO - Initializing database
+2026-01-06 16:58:03,291 - school_system - INFO - Initializing database tables
+2026-01-06 16:58:03,299 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:58:03,346 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000022AB39F4870>
+2026-01-06 16:58:03,347 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000022AB39F47D0>
+2026-01-06 16:58:03,347 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000022AB39F4870>
+2026-01-06 16:58:03,359 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000022AB39F4550>
+2026-01-06 16:58:03,359 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000022AB39F47D0>
+2026-01-06 16:58:03,359 - school_system - INFO - Content area layout: None
+2026-01-06 16:58:03,361 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:58:03,361 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:58:03,364 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:58:03,365 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:58:03,405 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:58:03,405 - school_system - INFO - Applying theme 'dark' with QSS length: 2223
+2026-01-06 16:58:03,406 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:58:03,418 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:58:03,418 - school_system - INFO - Theme 'dark' applied to window 'School System - Login'
+2026-01-06 16:58:03,484 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:58:03,490 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:58:03,680 - school_system - INFO - Login window displayed
+2026-01-06 16:58:03,680 - school_system - INFO - Application started successfully
+2026-01-06 16:58:20,156 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 16:58:20,182 - school_system - INFO - Database connection established to school.db
+2026-01-06 16:58:20,182 - school_system - INFO - Database connection closed
+2026-01-06 16:59:15,141 - school_system - INFO - Starting School System Management Application
+2026-01-06 16:59:15,141 - school_system - INFO - Initializing database
+2026-01-06 16:59:15,142 - school_system - INFO - Initializing database tables
+2026-01-06 16:59:15,148 - school_system - INFO - Database initialized successfully with all updates
+2026-01-06 16:59:15,197 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000023CB7074870>
+2026-01-06 16:59:15,197 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000023CB70747D0>
+2026-01-06 16:59:15,198 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000023CB7074870>
+2026-01-06 16:59:15,209 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000023CB7074550>
+2026-01-06 16:59:15,209 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000023CB70747D0>
+2026-01-06 16:59:15,210 - school_system - INFO - Content area layout: None
+2026-01-06 16:59:15,211 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-06 16:59:15,212 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:59:15,215 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:59:15,215 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-06 16:59:15,237 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-06 16:59:15,238 - school_system - INFO - Applying theme 'dark' with QSS length: 2223
+2026-01-06 16:59:15,238 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-06 16:59:15,244 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-06 16:59:15,244 - school_system - INFO - Theme 'dark' applied to window 'School System - Login'
+2026-01-06 16:59:15,292 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-06 16:59:15,294 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-06 16:59:15,388 - school_system - INFO - Login window displayed
+2026-01-06 16:59:15,388 - school_system - INFO - Application started successfully
+2026-01-06 17:00:17,260 - school_system - INFO - Requesting password reset for user: Enter your username
+2026-01-06 17:00:17,261 - school_system - INFO - Database connection established to school.db
+2026-01-06 17:00:17,263 - school_system - WARNING - Password reset requested for non-existent user: Enter your username
+2026-01-06 17:00:17,286 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 17:00:17,310 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 17:00:22,230 - school_system - WARNING - Failed password reset request for user: Enter your username
+2026-01-06 17:00:24,092 - school_system - INFO - Creating new user account: Enter your username
+2026-01-06 17:00:24,113 - school_system - INFO - BaseDialog 'Error' initialized with centralized widget repository
+2026-01-06 17:00:24,117 - school_system - INFO - MessageDialog 'Error' initialized with type: error
+2026-01-06 17:00:27,668 - school_system - ERROR - Account creation error: name 'get_db_session' is not defined
+2026-01-06 17:00:43,844 - school_system - INFO - Window 'School System - Login' closing
+2026-01-06 17:00:43,867 - school_system - INFO - Database connection closed
