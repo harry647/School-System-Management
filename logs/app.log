@@ -2878,6 +2878,7 @@
 2026-01-07 21:10:15,129 - school_system - INFO - Window 'School System - Furniture Management' closing
 2026-01-07 21:10:24,728 - school_system - INFO - Window 'School System Management - admin (admin)' closing
 2026-01-07 21:10:24,742 - school_system - INFO - Database connection closed
+<<<<<<< HEAD
 2026-01-07 21:12:05,784 - school_system - INFO - Starting School System Management Application
 2026-01-07 21:12:05,784 - school_system - INFO - Initializing database
 2026-01-07 21:12:05,784 - school_system - INFO - Initializing database tables
@@ -3003,3 +3004,5 @@
 2026-01-07 21:13:38,675 - school_system - INFO - User admin accessed profile
 2026-01-07 21:13:48,043 - school_system - INFO - Window 'School System Management - admin (admin)' closing
 2026-01-07 21:13:48,063 - school_system - INFO - Database connection closed
+=======
+>>>>>>> 5c011ed450b20888a484ce1364e174aae3bdb541
