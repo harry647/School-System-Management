@@ -346,6 +346,43 @@ class AuthService:
         # Placeholder for token generation logic
         return f"RESET_TOKEN_{username}"
     
+    def delete_user(self, username: str) -> bool:
+        """
+        Delete a user from the system.
+        
+        Args:
+            username: The username of the user to delete.
+            
+        Returns:
+            True if the user was deleted successfully, otherwise False.
+        """
+        logger.info(f"Deleting user: {username}")
+        ValidationUtils.validate_input(username, "Username cannot be empty")
+        
+        user = self.user_repository.get_user_by_username(username)
+        if not user:
+            logger.warning(f"User not found for deletion: {username}")
+            return False
+        
+        # Delete the user
+        success = self.user_repository.delete(user)
+        
+        if success:
+            # Log the user deletion in the audit log
+            self.audit_log_repository.create(
+                AuditLog(
+                    user_id=username,
+                    action="user_delete",
+                    details=f"User account deleted: {username}"
+                )
+            )
+            
+            logger.info(f"User deleted successfully: {username}")
+        else:
+            logger.error(f"Failed to delete user: {username}")
+        
+        return success
+
     def update_user_role(self, username: str, new_role: str) -> bool:
         """
         Update the role of a user.
