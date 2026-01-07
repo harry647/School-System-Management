@@ -112,7 +112,11 @@ class FlexLayout(ModernLayout):
             self._layout.addLayout(layout._layout)
         else:
             self._layout.addLayout(layout)
-     
+      
+    def addLayout(self, layout):
+        """Alias for add_layout to support camelCase naming convention."""
+        return self.add_layout(layout)
+      
     def set_spacing(self, spacing):
         """Set the spacing between widgets."""
         self._layout.setSpacing(spacing)

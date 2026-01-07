@@ -335,11 +335,6 @@ class MainWindow(BaseApplicationWindow):
                 border-radius: 12px;
                 border-left: 4px solid #3498db;
                 padding: 20px;
-                animation: fadeIn 0.5s ease-in;
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(-10px); }
-                to { opacity: 1; transform: translateY(0); }
             }
         """)
         
