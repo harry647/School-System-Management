@@ -253,3 +253,63 @@ class ValidationUtils:
             True if the number is positive, False otherwise
         """
         return number > 0
+
+    @staticmethod
+    def validate_furniture_id(furniture_id: str) -> bool:
+        """
+        Validate a furniture ID format.
+
+        Args:
+            furniture_id: Furniture ID to validate
+
+        Returns:
+            True if the furniture ID is valid, False otherwise
+        """
+        # Furniture ID format: letters followed by numbers (e.g., CH1234, LK5678)
+        pattern = r'^[A-Za-z]{2,4}\d{4,6}$'
+        return re.match(pattern, furniture_id) is not None
+
+    @staticmethod
+    def validate_location(location: str) -> bool:
+        """
+        Validate a location format.
+
+        Args:
+            location: Location to validate
+
+        Returns:
+            True if the location is valid, False otherwise
+        """
+        # Location should be alphanumeric with optional spaces and hyphens
+        pattern = r'^[A-Za-z0-9\s\-]{2,50}$'
+        return re.match(pattern, location) is not None
+
+    @staticmethod
+    def validate_form(form: str) -> bool:
+        """
+        Validate a form format.
+
+        Args:
+            form: Form to validate
+
+        Returns:
+            True if the form is valid, False otherwise
+        """
+        # Form should be alphanumeric with optional spaces
+        pattern = r'^[A-Za-z0-9\s]{1,20}$'
+        return re.match(pattern, form) is not None
+
+    @staticmethod
+    def validate_color(color: str) -> bool:
+        """
+        Validate a color format.
+
+        Args:
+            color: Color to validate
+
+        Returns:
+            True if the color is valid, False otherwise
+        """
+        # Color should be alphabetic with optional spaces
+        pattern = r'^[A-Za-z\s]{2,20}$'
+        return re.match(pattern, color) is not None

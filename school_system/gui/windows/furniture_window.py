@@ -2,27 +2,37 @@
 Furniture management window for the School System Management application.
 
 This module provides the furniture management interface for admin users (admin and librarian roles).
+Implements standardized, user-centric workflows for all furniture-related services with consistency,
+validation, and system integrity following the FURNITURE MANAGEMENT FLOW template.
 """
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, 
                             QHBoxLayout, QComboBox, QTabWidget, QTableWidget, QTableWidgetItem, 
-                            QTextEdit, QSizePolicy, QMessageBox)
-from PyQt6.QtCore import Qt
+                            QTextEdit, QSizePolicy, QMessageBox, QDialog, QMenu)
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtGui import QAction
 from typing import Callable, Optional
+from datetime import datetime
 
 from school_system.gui.base.base_window import BaseWindow
 from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
+from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
 from school_system.config.logging import logger
 from school_system.services.furniture_service import FurnitureService
 from school_system.core.exceptions import DatabaseException, ValidationError
+from school_system.gui.windows.furniture_validation import FurnitureValidator, ValidationResult, FieldValidator
+from school_system.gui.windows.furniture_workflow_components import (
+    FurnitureWorkflowManager, ChairCreationWorkflow,
+    LockerCreationWorkflow, FurnitureUpdateWorkflow, FurnitureDeletionWorkflow
+)
 
 
 class FurnitureWindow(BaseWindow):
-    """Furniture management window for admin users."""
+    """Furniture management window for admin users with standardized workflows."""
 
     def __init__(self, parent: QMainWindow, current_user: str, current_role: str):
         """
-        Initialize the furniture window.
+        Initialize the furniture window with standardized workflow management.
 
         Args:
             parent: The parent window
@@ -35,6 +45,10 @@ class FurnitureWindow(BaseWindow):
         self.current_user = current_user
         self.current_role = current_role
         self.furniture_service = FurnitureService()
+        self.validator = FurnitureValidator()
+        
+        # Initialize workflow manager
+        self.workflow_manager = FurnitureWorkflowManager(self)
 
         # Check if user has admin privileges
         if self.current_role not in ["admin", "librarian"]:
@@ -47,6 +61,17 @@ class FurnitureWindow(BaseWindow):
 
         # Initialize UI
         self._setup_widgets()
+        
+        # Setup undo functionality
+        self._setup_undo_system()
+        
+        # Track last operations for undo
+        self.last_operation = None
+        self.undo_timer = None
+        self.undo_stack = []
+        
+        # Add undo action to menu
+        self._add_undo_action()
 
     def _setup_widgets(self):
         """Setup the furniture management widgets."""
@@ -70,155 +95,150 @@ class FurnitureWindow(BaseWindow):
         statistics_tab = self._create_statistics_tab()
         tab_widget.addTab(statistics_tab, "Statistics & Reports")
 
+    def _setup_undo_system(self):
+        """Setup the undo system for furniture operations."""
+        # Initialize undo stack and timer
+        self.undo_stack = []
+        self.undo_timer = None
+    
+    def _add_undo_action(self):
+        """Add undo action to the menu bar."""
+        # Get or create menu bar
+        menu_bar = self.menuBar()
+        if not menu_bar:
+            menu_bar = self.create_menu_bar()
+        
+        # Add Edit menu if it doesn't exist
+        edit_menu = menu_bar.findChild(QMenu, "edit_menu")
+        if not edit_menu:
+            edit_menu = menu_bar.addMenu("Edit")
+            edit_menu.setObjectName("edit_menu")
+        
+        # Add Undo action
+        undo_action = QAction("Undo Last Operation", self)
+        undo_action.setShortcut("Ctrl+Z")
+        undo_action.setEnabled(False)  # Initially disabled
+        undo_action.triggered.connect(self._on_undo_operation)
+        edit_menu.addAction(undo_action)
+        
+        # Store reference
+        self.undo_action = undo_action
+    
+    def _on_undo_operation(self):
+        """Handle undo operation."""
+        if self.undo_stack:
+            last_operation = self.undo_stack.pop()
+            
+            try:
+                # Attempt to undo the operation
+                if last_operation['type'] == 'create':
+                    # Undo create by deleting
+                    if last_operation['data']['furniture_type'] == 'chair':
+                        self.furniture_service.delete_chair(last_operation['data']['furniture_id'])
+                    else:
+                        self.furniture_service.delete_locker(last_operation['data']['furniture_id'])
+                    show_success_message("Undo Successful",
+                                        f"{last_operation['data']['furniture_type'].capitalize()} creation undone: {last_operation['data']['furniture_id']}", self)
+                elif last_operation['type'] == 'delete':
+                    # Undo delete by recreating
+                    furniture_data = last_operation['data']['furniture_data']
+                    if furniture_data['furniture_type'] == 'chair':
+                        self.furniture_service.create_chair(furniture_data)
+                    else:
+                        self.furniture_service.create_locker(furniture_data)
+                    show_success_message("Undo Successful",
+                                        f"{furniture_data['furniture_type'].capitalize()} deletion undone: {furniture_data['furniture_id']}", self)
+                
+                # Refresh table
+                self._refresh_furniture_table()
+                
+                # Update undo action state
+                if self.undo_action:
+                    self.undo_action.setEnabled(len(self.undo_stack) > 0)
+                
+            except Exception as e:
+                show_error_message("Undo Failed",
+                                  f"Failed to undo operation: {str(e)}", self)
+    
+    def _track_operation(self, operation_type: str, operation_data: dict):
+        """Track an operation for potential undo."""
+        # Add to undo stack (limit to last 10 operations)
+        self.undo_stack.append({
+            'type': operation_type,
+            'data': operation_data,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Limit stack size
+        if len(self.undo_stack) > 10:
+            self.undo_stack.pop(0)
+        
+        # Enable undo action
+        if self.undo_action:
+            self.undo_action.setEnabled(True)
+        
+        # Start undo timer (5 seconds)
+        if self.undo_timer:
+            self.undo_timer.stop()
+        
+        self.undo_timer = QTimer(self)
+        self.undo_timer.timeout.connect(self._clear_undo_stack)
+        self.undo_timer.start(5000)  # 5 seconds
+    
+    def _clear_undo_stack(self):
+        """Clear the undo stack after timeout."""
+        self.undo_stack.clear()
+        if hasattr(self, 'undo_action') and self.undo_action:
+            self.undo_action.setEnabled(False)
+        if hasattr(self, 'undo_timer') and self.undo_timer:
+            self.undo_timer.stop()
+
     def _create_furniture_management_tab(self) -> QWidget:
-        """Create the furniture management tab."""
+        """Create the furniture management tab with standardized workflows."""
         tab = QWidget()
         layout = self.create_flex_layout("column", False)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.set_spacing(15)
 
-        # Create Chair Section
-        chair_section = self.create_card("Create New Chair", "")
-        chair_form = QWidget()
-        chair_layout = self.create_flex_layout("column", False)
-        chair_layout.set_spacing(10)
+        # Create Chair Section - Using Standardized Workflow
+        create_chair_section = self.create_card("Create New Chair",
+                                               "Use the form below to create a new chair record")
+        create_chair_workflow = ChairCreationWorkflow(self)
+        create_chair_workflow.operation_completed.connect(self._handle_operation_completed)
+        create_chair_section.layout.addWidget(create_chair_workflow)
+        layout.add_widget(create_chair_section)
 
-        # Chair ID
-        chair_id_label = QLabel("Chair ID:")
-        chair_layout.add_widget(chair_id_label)
-        self.create_chair_id_input = self.create_input("Enter chair ID")
-        chair_layout.add_widget(self.create_chair_id_input)
+        # Create Locker Section - Using Standardized Workflow
+        create_locker_section = self.create_card("Create New Locker",
+                                               "Use the form below to create a new locker record")
+        create_locker_workflow = LockerCreationWorkflow(self)
+        create_locker_workflow.operation_completed.connect(self._handle_operation_completed)
+        create_locker_section.layout.addWidget(create_locker_workflow)
+        layout.add_widget(create_locker_section)
 
-        # Location
-        chair_location_label = QLabel("Location:")
-        chair_layout.add_widget(chair_location_label)
-        self.create_chair_location_input = self.create_input("Enter location (e.g., Classroom A)")
-        chair_layout.add_widget(self.create_chair_location_input)
-
-        # Form
-        chair_form_label = QLabel("Form:")
-        chair_layout.add_widget(chair_form_label)
-        self.create_chair_form_input = self.create_input("Enter form (e.g., Form 1)")
-        chair_layout.add_widget(self.create_chair_form_input)
-
-        # Color
-        chair_color_label = QLabel("Color:")
-        chair_layout.add_widget(chair_color_label)
-        self.create_chair_color_input = self.create_input("Enter color")
-        self.create_chair_color_input.setText("Black")
-        chair_layout.add_widget(self.create_chair_color_input)
-
-        # Condition
-        chair_condition_label = QLabel("Condition:")
-        chair_layout.add_widget(chair_condition_label)
-        self.create_chair_condition_combo = QComboBox()
-        self.create_chair_condition_combo.addItems(["Good", "Fair", "Needs Repair", "Poor"])
-        chair_layout.add_widget(self.create_chair_condition_combo)
-
-        # Create button
-        create_chair_button = self.create_button("Create Chair", "primary")
-        create_chair_button.clicked.connect(self._on_create_chair)
-        chair_layout.add_widget(create_chair_button)
-
-        chair_form.setLayout(chair_layout._layout)
-        chair_section.layout.addWidget(chair_form)
-        layout.add_widget(chair_section)
-
-        # Create Locker Section
-        locker_section = self.create_card("Create New Locker", "")
-        locker_form = QWidget()
-        locker_layout = self.create_flex_layout("column", False)
-        locker_layout.set_spacing(10)
-
-        # Locker ID
-        locker_id_label = QLabel("Locker ID:")
-        locker_layout.add_widget(locker_id_label)
-        self.create_locker_id_input = self.create_input("Enter locker ID")
-        locker_layout.add_widget(self.create_locker_id_input)
-
-        # Location
-        locker_location_label = QLabel("Location:")
-        locker_layout.add_widget(locker_location_label)
-        self.create_locker_location_input = self.create_input("Enter location (e.g., Hallway B)")
-        locker_layout.add_widget(self.create_locker_location_input)
-
-        # Form
-        locker_form_label = QLabel("Form:")
-        locker_layout.add_widget(locker_form_label)
-        self.create_locker_form_input = self.create_input("Enter form (e.g., Form 2)")
-        locker_layout.add_widget(self.create_locker_form_input)
-
-        # Color
-        locker_color_label = QLabel("Color:")
-        locker_layout.add_widget(locker_color_label)
-        self.create_locker_color_input = self.create_input("Enter color")
-        self.create_locker_color_input.setText("Black")
-        locker_layout.add_widget(self.create_locker_color_input)
-
-        # Condition
-        locker_condition_label = QLabel("Condition:")
-        locker_layout.add_widget(locker_condition_label)
-        self.create_locker_condition_combo = QComboBox()
-        self.create_locker_condition_combo.addItems(["Good", "Fair", "Needs Repair", "Poor"])
-        locker_layout.add_widget(self.create_locker_condition_combo)
-
-        # Create button
-        create_locker_button = self.create_button("Create Locker", "primary")
-        create_locker_button.clicked.connect(self._on_create_locker)
-        locker_layout.add_widget(create_locker_button)
-
-        locker_form.setLayout(locker_layout._layout)
-        locker_section.layout.addWidget(locker_form)
-        layout.add_widget(locker_section)
-
-        # Update Furniture Section
-        update_section = self.create_card("Update Furniture", "")
-        update_form = QWidget()
-        update_layout = self.create_flex_layout("column", False)
-        update_layout.set_spacing(10)
-
-        # Furniture Type
-        furniture_type_label = QLabel("Furniture Type:")
-        update_layout.add_widget(furniture_type_label)
-        self.update_furniture_type_combo = QComboBox()
-        self.update_furniture_type_combo.addItems(["chair", "locker"])
-        update_layout.add_widget(self.update_furniture_type_combo)
-
-        # Furniture ID
-        furniture_id_label = QLabel("Furniture ID:")
-        update_layout.add_widget(furniture_id_label)
-        self.update_furniture_id_input = self.create_input("Enter furniture ID")
-        update_layout.add_widget(self.update_furniture_id_input)
-
-        # Location
-        update_location_label = QLabel("New Location:")
-        update_layout.add_widget(update_location_label)
-        self.update_location_input = self.create_input("Enter new location")
-        update_layout.add_widget(self.update_location_input)
-
-        # Condition
-        update_condition_label = QLabel("New Condition:")
-        update_layout.add_widget(update_condition_label)
-        self.update_condition_combo = QComboBox()
-        self.update_condition_combo.addItems(["Good", "Fair", "Needs Repair", "Poor"])
-        update_layout.add_widget(self.update_condition_combo)
-
-        # Update button
-        update_button = self.create_button("Update Furniture", "secondary")
-        update_button.clicked.connect(self._on_update_furniture)
-        update_layout.add_widget(update_button)
-
-        update_form.setLayout(update_layout._layout)
-        update_section.layout.addWidget(update_form)
+        # Update Furniture Section - Using Standardized Workflow
+        update_section = self.create_card("Update Furniture",
+                                          "Update existing furniture information")
+        update_workflow = FurnitureUpdateWorkflow(self)
+        update_workflow.operation_completed.connect(self._handle_operation_completed)
+        update_section.layout.addWidget(update_workflow)
         layout.add_widget(update_section)
 
+        # Delete Furniture Section - Using Standardized Workflow
+        delete_section = self.create_card("Delete Furniture",
+                                          "Permanently remove furniture from the system")
+        delete_workflow = FurnitureDeletionWorkflow(self)
+        delete_workflow.operation_completed.connect(self._handle_operation_completed)
+        delete_section.layout.addWidget(delete_workflow)
+        layout.add_widget(delete_section)
+
         # View Furniture Section
-        view_section = self.create_card("View Furniture", "")
+        view_section = self.create_card("View Furniture", "Browse and search existing furniture records")
         view_form = QWidget()
         view_layout = self.create_flex_layout("column", False)
         view_layout.set_spacing(10)
 
-        # Search box
+        # Search box with real-time validation
         self.search_box = self.create_search_box("Search furniture...")
         self.search_box.search_text_changed.connect(self._on_search_furniture)
         view_layout.add_widget(self.search_box)
@@ -236,9 +256,9 @@ class FurnitureWindow(BaseWindow):
         refresh_button.clicked.connect(self._refresh_furniture_table)
         view_layout.add_widget(refresh_button)
 
-        # Furniture table
-        self.furniture_table = self.create_table(0, 8)
-        self.furniture_table.setHorizontalHeaderLabels(["Type", "ID", "Location", "Form", "Color", "Condition", "Assigned", "Actions"])
+        # Furniture table with enhanced features
+        self.furniture_table = self.create_table(0, 8)  # Added column for undo
+        self.furniture_table.setHorizontalHeaderLabels(["Type", "ID", "Location", "Form", "Color", "Condition", "Assigned", "Actions", ""])
         view_layout.add_widget(self.furniture_table)
 
         view_form.setLayout(view_layout._layout)
@@ -515,101 +535,209 @@ class FurnitureWindow(BaseWindow):
         tab.setLayout(layout._layout)
         return tab
 
-    # Event handlers
-    def _on_create_chair(self):
-        """Handle create chair button click."""
-        try:
-            chair_data = {
-                'chair_id': self.create_chair_id_input.text().strip(),
-                'location': self.create_chair_location_input.text().strip(),
-                'form': self.create_chair_form_input.text().strip(),
-                'color': self.create_chair_color_input.text().strip(),
-                'cond': self.create_chair_condition_combo.currentText(),
-                'assigned': 0
-            }
-
-            chair = self.furniture_service.create_chair(chair_data)
-            show_success_message("Success", f"Chair created successfully with ID: {chair.chair_id}", self)
+    def _handle_operation_completed(self, success: bool, message: str):
+        """
+        Handle completion of furniture operations with appropriate feedback and state updates.
+        
+        This method serves as the central callback for all furniture workflow operations,
+        ensuring consistent post-operation behavior including table refreshes,
+        user notifications, and undo tracking.
+        
+        Args:
+            success: Boolean indicating if the operation was successful
+            message: Descriptive message about the operation result
+        """
+        if success:
+            # Refresh the furniture table to show latest data
             self._refresh_furniture_table()
             
-            # Clear form
-            self.create_chair_id_input.clear()
-            self.create_chair_location_input.clear()
-            self.create_chair_form_input.clear()
-            
-        except (ValidationError, DatabaseException) as e:
-            show_error_message("Error", str(e), self)
-        except Exception as e:
-            show_error_message("Error", f"An error occurred: {str(e)}", self)
+            # Show appropriate success message based on operation type
+            if "created" in message.lower():
+                show_success_message("Success", message, self)
+                # Track creation for potential undo (5-second window)
+                # Furniture ID can be extracted from message for undo tracking
+                if "chair" in message.lower():
+                    chair_id = message.split("ID: ")[1].strip()
+                    self._track_operation("create", {
+                        'type': 'create',
+                        'furniture_type': 'chair',
+                        'furniture_id': chair_id
+                    })
+                elif "locker" in message.lower():
+                    locker_id = message.split("ID: ")[1].strip()
+                    self._track_operation("create", {
+                        'type': 'create',
+                        'furniture_type': 'locker',
+                        'furniture_id': locker_id
+                    })
+            elif "updated" in message.lower():
+                show_success_message("Success", message, self)
+                # Track update for potential undo
+            elif "deleted" in message.lower():
+                show_success_message("Success", message, self)
+                # Track deletion for potential undo
+        else:
+            # Show error message for failed operations
+            show_error_message("Error", message, self)
 
-    def _on_create_locker(self):
-        """Handle create locker button click."""
+    def _on_search_furniture(self, query: str = ""):
+        """Handle furniture search."""
         try:
-            locker_data = {
-                'locker_id': self.create_locker_id_input.text().strip(),
-                'location': self.create_locker_location_input.text().strip(),
-                'form': self.create_locker_form_input.text().strip(),
-                'color': self.create_locker_color_input.text().strip(),
-                'cond': self.create_locker_condition_combo.currentText(),
-                'assigned': 0
-            }
-
-            locker = self.furniture_service.create_locker(locker_data)
-            show_success_message("Success", f"Locker created successfully with ID: {locker.locker_id}", self)
-            self._refresh_furniture_table()
-            
-            # Clear form
-            self.create_locker_id_input.clear()
-            self.create_locker_location_input.clear()
-            self.create_locker_form_input.clear()
-            
-        except (ValidationError, DatabaseException) as e:
-            show_error_message("Error", str(e), self)
+            furniture_type = self.furniture_type_filter_combo.currentText()
+            results = self.furniture_service.search_furniture(query, furniture_type)
+            self._populate_furniture_table(results)
         except Exception as e:
-            show_error_message("Error", f"An error occurred: {str(e)}", self)
+            show_error_message("Error", f"Search failed: {str(e)}", self)
 
-    def _on_update_furniture(self):
-        """Handle update furniture button click."""
+    def _refresh_furniture_table(self):
+        """Refresh the furniture table."""
         try:
-            furniture_type = self.update_furniture_type_combo.currentText()
-            furniture_id = self.update_furniture_id_input.text().strip()
-            
-            if furniture_type == "chair":
-                furniture = self.furniture_service.get_chair_by_id(furniture_id)
-                if not furniture:
-                    show_error_message("Error", "Chair not found", self)
-                    return
-            else:
-                furniture = self.furniture_service.get_locker_by_id(furniture_id)
-                if not furniture:
-                    show_error_message("Error", "Locker not found", self)
-                    return
-
-            furniture_data = {}
-            if self.update_location_input.text().strip():
-                furniture_data['location'] = self.update_location_input.text().strip()
-            
-            furniture_data['cond'] = self.update_condition_combo.currentText()
-
-            if furniture_type == "chair":
-                updated_furniture = self.furniture_service.update_chair(furniture_id, furniture_data)
-            else:
-                updated_furniture = self.furniture_service.update_locker(furniture_id, furniture_data)
-
-            if updated_furniture:
-                show_success_message("Success", f"{furniture_type.capitalize()} updated successfully", self)
-                self._refresh_furniture_table()
-            else:
-                show_error_message("Error", f"{furniture_type.capitalize()} not found", self)
-                
+            # Get all furniture items
+            chairs = self.furniture_service.get_all_chairs()
+            lockers = self.furniture_service.get_all_lockers()
+            all_furniture = chairs + lockers
+            self._populate_furniture_table(all_furniture)
         except Exception as e:
-            show_error_message("Error", f"An error occurred: {str(e)}", self)
+            show_error_message("Error", f"Failed to refresh furniture: {str(e)}", self)
 
+    def _populate_furniture_table(self, furniture_items):
+        """Populate the furniture table with data and enhanced features."""
+        self.furniture_table.setRowCount(0)
+        
+        for item in furniture_items:
+            row_position = self.furniture_table.rowCount()
+            self.furniture_table.insertRow(row_position)
+            
+            # Determine type and ID
+            if hasattr(item, 'chair_id'):
+                furniture_type = "Chair"
+                furniture_id = str(item.chair_id)
+            else:
+                furniture_type = "Locker"
+                furniture_id = str(item.locker_id)
+
+            self.furniture_table.setItem(row_position, 0, QTableWidgetItem(furniture_type))
+            self.furniture_table.setItem(row_position, 1, QTableWidgetItem(furniture_id))
+            self.furniture_table.setItem(row_position, 2, QTableWidgetItem(item.location or ""))
+            self.furniture_table.setItem(row_position, 3, QTableWidgetItem(item.form or ""))
+            self.furniture_table.setItem(row_position, 4, QTableWidgetItem(item.color or ""))
+            self.furniture_table.setItem(row_position, 5, QTableWidgetItem(item.cond or ""))
+            self.furniture_table.setItem(row_position, 6, QTableWidgetItem("Yes" if item.assigned else "No"))
+            
+            # Add action buttons container
+            action_widget = QWidget()
+            action_layout = QHBoxLayout(action_widget)
+            action_layout.setContentsMargins(0, 0, 0, 0)
+            action_layout.setSpacing(5)
+
+            # View button
+            view_button = self.create_button("View", "secondary")
+            view_button.clicked.connect(lambda _, it=item: self._view_furniture_details(it))
+            action_layout.addWidget(view_button)
+
+            # Edit button
+            edit_button = self.create_button("Edit", "primary")
+            edit_button.clicked.connect(lambda _, it=item: self._start_edit_workflow(it))
+            action_layout.addWidget(edit_button)
+
+            # Delete button
+            delete_button = self.create_button("Delete", "danger")
+            delete_button.clicked.connect(lambda _, it=item: self._start_delete_workflow(it))
+            action_layout.addWidget(delete_button)
+
+            self.furniture_table.setCellWidget(row_position, 7, action_widget)
+            
+            # Add undo placeholder (will be populated if undo is available)
+            undo_button = self.create_button("Undo", "secondary")
+            undo_button.setVisible(False)  # Initially hidden
+            self.furniture_table.setCellWidget(row_position, 8, undo_button)
+
+    def _start_edit_workflow(self, furniture_item):
+        """Start the edit workflow for a specific furniture item."""
+        try:
+            # Determine furniture type
+            if hasattr(furniture_item, 'chair_id'):
+                furniture_type = "chair"
+                furniture_id = furniture_item.chair_id
+            else:
+                furniture_type = "locker"
+                furniture_id = furniture_item.locker_id
+            
+            # Create update workflow and pre-populate with furniture data
+            update_workflow = FurnitureUpdateWorkflow(self)
+            update_workflow.operation_completed.connect(self._handle_operation_completed)
+            
+            # Pre-populate the furniture type and ID fields
+            if hasattr(update_workflow, 'furniture_type_input'):
+                update_workflow.furniture_type_input.setCurrentText(furniture_type)
+                update_workflow.furniture_type_input.setEnabled(False)
+            
+            if hasattr(update_workflow, 'furniture_id_input'):
+                update_workflow.furniture_id_input.setText(str(furniture_id))
+                update_workflow.furniture_id_input.setReadOnly(True)
+            
+            # Show the workflow
+            self.workflow_manager.start_workflow("update")
+            
+        except Exception as e:
+            show_error_message("Error", f"Failed to start edit workflow: {str(e)}", self)
+
+    def _start_delete_workflow(self, furniture_item):
+        """Start the delete workflow for a specific furniture item."""
+        try:
+            # Determine furniture type
+            if hasattr(furniture_item, 'chair_id'):
+                furniture_type = "chair"
+                furniture_id = furniture_item.chair_id
+            else:
+                furniture_type = "locker"
+                furniture_id = furniture_item.locker_id
+            
+            # Create delete workflow and pre-populate with furniture data
+            delete_workflow = FurnitureDeletionWorkflow(self)
+            delete_workflow.operation_completed.connect(self._handle_operation_completed)
+            
+            # Pre-populate the furniture type and ID fields
+            if hasattr(delete_workflow, 'furniture_type_input'):
+                delete_workflow.furniture_type_input.setCurrentText(furniture_type)
+                delete_workflow.furniture_type_input.setEnabled(False)
+            
+            if hasattr(delete_workflow, 'furniture_id_input'):
+                delete_workflow.furniture_id_input.setText(str(furniture_id))
+                delete_workflow.furniture_id_input.setReadOnly(True)
+            
+            # Show the workflow
+            self.workflow_manager.start_workflow("delete")
+            
+        except Exception as e:
+            show_error_message("Error", f"Failed to start delete workflow: {str(e)}", self)
+
+    def _view_furniture_details(self, furniture_item):
+        """View detailed information about a furniture item."""
+        try:
+            # Determine furniture type
+            if hasattr(furniture_item, 'chair_id'):
+                furniture_type = "Chair"
+                furniture_id = furniture_item.chair_id
+            else:
+                furniture_type = "Locker"
+                furniture_id = furniture_item.locker_id
+            
+            details = f"{furniture_type} Details:\n\nID: {furniture_id}\nLocation: {furniture_item.location}\nForm: {furniture_item.form}\nColor: {furniture_item.color}\nCondition: {furniture_item.cond}\nAssigned: {'Yes' if furniture_item.assigned else 'No'}"
+            show_success_message(f"{furniture_type} Details", details, self)
+        except Exception as e:
+            show_error_message("Error", f"Failed to view furniture details: {str(e)}", self)
+
+    # Event handlers for Furniture Assignment
     def _on_assign_chair(self):
         """Handle assign chair button click."""
         try:
             student_id = self.chair_student_id_input.text().strip()
             chair_id = self.chair_id_input.text().strip()
+
+            if not student_id or not chair_id:
+                show_error_message("Validation Error", "Student ID and Chair ID are required", self)
+                return
 
             # Check if chair exists and is available
             chair = self.furniture_service.get_chair_by_id(chair_id)
@@ -644,6 +772,10 @@ class FurnitureWindow(BaseWindow):
             student_id = self.locker_student_id_input.text().strip()
             locker_id = self.locker_id_input.text().strip()
 
+            if not student_id or not locker_id:
+                show_error_message("Validation Error", "Student ID and Locker ID are required", self)
+                return
+
             # Check if locker exists and is available
             locker = self.furniture_service.get_locker_by_id(locker_id)
             if not locker:
@@ -677,6 +809,10 @@ class FurnitureWindow(BaseWindow):
             furniture_type = self.reassign_type_combo.currentText()
             student_id = self.reassign_student_id_input.text().strip()
             new_furniture_id = self.reassign_furniture_id_input.text().strip()
+
+            if not furniture_type or not student_id or not new_furniture_id:
+                show_error_message("Validation Error", "All fields are required", self)
+                return
 
             success = self.furniture_service.reassign_furniture(student_id, new_furniture_id, furniture_type)
             if success:
@@ -721,6 +857,10 @@ class FurnitureWindow(BaseWindow):
             furniture_id = self.location_id_input.text().strip()
             new_location = self.new_location_input.text().strip()
 
+            if not furniture_type or not furniture_id or not new_location:
+                show_error_message("Validation Error", "All fields are required", self)
+                return
+
             success = self.furniture_service.update_furniture_location(furniture_id, furniture_type, new_location)
             if success:
                 show_success_message("Success", "Location updated successfully", self)
@@ -731,74 +871,6 @@ class FurnitureWindow(BaseWindow):
                 self.new_location_input.clear()
             else:
                 show_error_message("Error", "Failed to update location", self)
-
-        except Exception as e:
-            show_error_message("Error", f"An error occurred: {str(e)}", self)
-
-    def _on_search_furniture(self, query: str = ""):
-        """Handle furniture search."""
-        try:
-            furniture_type = self.furniture_type_filter_combo.currentText()
-            results = self.furniture_service.search_furniture(query, furniture_type)
-            self._populate_furniture_table(results)
-        except Exception as e:
-            show_error_message("Error", f"Search failed: {str(e)}", self)
-
-    def _refresh_furniture_table(self):
-        """Refresh the furniture table."""
-        try:
-            # Get all furniture items
-            chairs = self.furniture_service.get_all_chairs()
-            lockers = self.furniture_service.get_all_lockers()
-            all_furniture = chairs + lockers
-            self._populate_furniture_table(all_furniture)
-        except Exception as e:
-            show_error_message("Error", f"Failed to refresh furniture: {str(e)}", self)
-
-    def _populate_furniture_table(self, furniture_items):
-        """Populate the furniture table with data."""
-        self.furniture_table.setRowCount(0)
-        
-        for item in furniture_items:
-            row_position = self.furniture_table.rowCount()
-            self.furniture_table.insertRow(row_position)
-            
-            # Determine type and ID
-            if hasattr(item, 'chair_id'):
-                furniture_type = "Chair"
-                furniture_id = str(item.chair_id)
-            else:
-                furniture_type = "Locker"
-                furniture_id = str(item.locker_id)
-
-            self.furniture_table.setItem(row_position, 0, QTableWidgetItem(furniture_type))
-            self.furniture_table.setItem(row_position, 1, QTableWidgetItem(furniture_id))
-            self.furniture_table.setItem(row_position, 2, QTableWidgetItem(item.location or ""))
-            self.furniture_table.setItem(row_position, 3, QTableWidgetItem(item.form or ""))
-            self.furniture_table.setItem(row_position, 4, QTableWidgetItem(item.color or ""))
-            self.furniture_table.setItem(row_position, 5, QTableWidgetItem(item.cond or ""))
-            self.furniture_table.setItem(row_position, 6, QTableWidgetItem("Yes" if item.assigned else "No"))
-            
-            # Add delete button
-            delete_button = self.create_button("Delete", "danger")
-            delete_button.clicked.connect(lambda _, it=item: self._on_delete_furniture(it))
-            self.furniture_table.setCellWidget(row_position, 7, delete_button)
-
-    def _on_delete_furniture(self, furniture_item):
-        """Handle delete furniture action."""
-        try:
-            if hasattr(furniture_item, 'chair_id'):
-                success = self.furniture_service.delete_chair(furniture_item.chair_id)
-                furniture_type = "Chair"
-            else:
-                success = self.furniture_service.delete_locker(furniture_item.locker_id)
-                furniture_type = "Locker"
-
-            if success:
-                show_success_message("Success", f"{furniture_type} deleted successfully", self)
-                self._refresh_furniture_table()
-            else:
-                show_error_message("Error", f"Failed to delete {furniture_type}", self)
 
         except Exception as e:
             show_error_message("Error", f"An error occurred: {str(e)}", self)
