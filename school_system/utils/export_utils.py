@@ -181,11 +181,11 @@ class ExportUtils:
     <h1>{title}</h1>
     <table id="{table_id}">
         <thead>
-            <tr>{""".join(f"<th>{header}</th>" for header in headers)}</tr>
+            <tr>{"".join(f"<th>{header}</th>" for header in headers)}</tr>
         </thead>
         <tbody>
-            {"\
-".join(rows)}
+            {"\n"
+            .join(rows)}
         </tbody>
     </table>
     <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
@@ -252,17 +252,6 @@ class ExportUtils:
     ) -> str:
         """
         Export data to an SQL INSERT statements file.
-
-        Args:
-            data: List of dictionaries containing data to export
-            file_path: Path to the output SQL file
-            table_name: Name of the database table
-
-        Returns:
-            Path to the created SQL file
-
-        Raises:
-            IOError: If there's an error writing to the file
         """
         # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -271,15 +260,31 @@ class ExportUtils:
             sql_content = f"-- SQL Export for {table_name}\n-- No data available\n"
         else:
             headers = list(data[0].keys())
-            
-            # Generate SQL INSERT statements
             insert_statements = []
+
             for item in data:
                 columns = ", ".join(headers)
-                values = ", ".join(f"'{str(item.get(header, '')).replace("'", "''")}'" for header in headers)
-                insert_statements.append(f"INSERT INTO {table_name} ({columns}) VALUES ({values});")
-            
-            sql_content = f"-- SQL Export for {table_name}\n-- Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n" + "\n".join(insert_statements) + "\n"
+                values_list = []
+
+                for header in headers:
+                    raw_value = item.get(header, "")
+                    raw_value = "" if raw_value is None else str(raw_value)
+
+                    # Escape single quotes for SQL
+                    escaped_value = raw_value.replace("'", "''")
+                    values_list.append(f"'{escaped_value}'")
+
+                values = ", ".join(values_list)
+                insert_statements.append(
+                    f"INSERT INTO {table_name} ({columns}) VALUES ({values});"
+                )
+
+            sql_content = (
+                f"-- SQL Export for {table_name}\n"
+                f"-- Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                + "\n".join(insert_statements)
+                + "\n"
+            )
         
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(sql_content)

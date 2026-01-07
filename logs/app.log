@@ -2578,3 +2578,140 @@
 2026-01-06 20:02:57,723 - school_system - INFO - Window 'School System - Report Management' closing
 2026-01-06 20:02:59,947 - school_system - INFO - Window 'School System Management - admin (admin)' closing
 2026-01-06 20:02:59,972 - school_system - INFO - Database connection closed
+2026-01-07 20:56:06,561 - school_system - INFO - Starting School System Management Application
+2026-01-07 20:56:06,562 - school_system - INFO - Initializing database
+2026-01-07 20:56:06,563 - school_system - INFO - Initializing database tables
+2026-01-07 20:56:06,599 - school_system - INFO - Database initialized successfully with all updates
+2026-01-07 20:56:06,874 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E142F28F0>
+2026-01-07 20:56:06,874 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E142F2850>
+2026-01-07 20:56:06,877 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E142F28F0>
+2026-01-07 20:56:06,903 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E142F25D0>
+2026-01-07 20:56:06,904 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E142F2850>
+2026-01-07 20:56:06,908 - school_system - INFO - Content area layout: None
+2026-01-07 20:56:06,915 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:56:06,915 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:56:06,919 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:56:06,919 - school_system - INFO - Theme 'light' applied to window 'School System - Login'
+2026-01-07 20:56:06,976 - school_system - INFO - BaseWindow 'School System - Login' initialized
+2026-01-07 20:56:06,977 - school_system - INFO - Applying theme 'dark' with QSS length: 2223
+2026-01-07 20:56:06,978 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:56:06,984 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:56:06,985 - school_system - INFO - Theme 'dark' applied to window 'School System - Login'
+2026-01-07 20:56:07,049 - school_system - INFO - Adding main layout to content area. Main layout has 15 items
+2026-01-07 20:56:07,053 - school_system - INFO - After adding to content area, content layout has 1 items
+2026-01-07 20:56:07,537 - school_system - INFO - Login window displayed
+2026-01-07 20:56:07,537 - school_system - INFO - Application started successfully
+2026-01-07 20:56:28,631 - school_system - INFO - Attempting to authenticate user: admin
+2026-01-07 20:56:28,633 - school_system - INFO - Database connection established to school.db
+2026-01-07 20:56:28,636 - school_system - INFO - User admin authenticated successfully
+2026-01-07 20:56:28,638 - school_system - INFO - User admin logged in successfully
+2026-01-07 20:56:28,638 - school_system - INFO - Window 'School System - Login' closing
+2026-01-07 20:56:28,650 - school_system - INFO - User admin logged in with role admin
+2026-01-07 20:56:28,654 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E142D5090>
+2026-01-07 20:56:28,654 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E142D4FF0>
+2026-01-07 20:56:28,657 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E142D5090>
+2026-01-07 20:56:28,662 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E142D4F50>
+2026-01-07 20:56:28,662 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E142D4FF0>
+2026-01-07 20:56:28,663 - school_system - INFO - Content area layout: None
+2026-01-07 20:56:28,664 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:56:28,665 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:56:28,667 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:56:28,667 - school_system - INFO - Theme 'light' applied to window 'School System Management - admin (admin)'
+2026-01-07 20:56:28,674 - school_system - INFO - BaseWindow 'School System Management - admin (admin)' initialized
+2026-01-07 20:56:28,710 - school_system - INFO - User admin viewed welcome header at 20:56:28
+2026-01-07 20:56:28,755 - school_system - INFO - Main window created for user admin with role admin
+2026-01-07 20:56:28,780 - school_system - INFO - Main application window created
+2026-01-07 20:56:56,187 - school_system - INFO - User admin viewed help tips
+2026-01-07 20:57:17,424 - school_system - INFO - User admin viewed welcome header at 20:57:17
+2026-01-07 20:57:17,433 - school_system - INFO - Dashboard refreshed for user admin
+2026-01-07 20:57:20,498 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E142D3D90>
+2026-01-07 20:57:20,498 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E142D3CF0>
+2026-01-07 20:57:20,500 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E142D3D90>
+2026-01-07 20:57:20,506 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E142D3C50>
+2026-01-07 20:57:20,507 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E142D3CF0>
+2026-01-07 20:57:20,508 - school_system - INFO - Content area layout: None
+2026-01-07 20:57:20,509 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:57:20,510 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:57:20,514 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:57:20,514 - school_system - INFO - Theme 'light' applied to window 'School System - Student Management'
+2026-01-07 20:57:20,522 - school_system - INFO - BaseWindow 'School System - Student Management' initialized
+2026-01-07 20:58:15,743 - school_system - INFO - Window 'School System - Student Management' closing
+2026-01-07 20:58:17,441 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143ED130>
+2026-01-07 20:58:17,442 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143ED090>
+2026-01-07 20:58:17,442 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143ED130>
+2026-01-07 20:58:17,445 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E143ECFF0>
+2026-01-07 20:58:17,445 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143ED090>
+2026-01-07 20:58:17,446 - school_system - INFO - Content area layout: None
+2026-01-07 20:58:17,447 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:58:17,448 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:58:17,451 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:58:17,452 - school_system - INFO - Theme 'light' applied to window 'School System - Book Management'
+2026-01-07 20:58:17,457 - school_system - INFO - BaseWindow 'School System - Book Management' initialized
+2026-01-07 20:58:23,202 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143E2530>
+2026-01-07 20:58:23,202 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143E2490>
+2026-01-07 20:58:23,203 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143E2530>
+2026-01-07 20:58:23,206 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E143E23F0>
+2026-01-07 20:58:23,207 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143E2490>
+2026-01-07 20:58:23,207 - school_system - INFO - Content area layout: None
+2026-01-07 20:58:23,208 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:58:23,209 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:58:23,212 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:58:23,213 - school_system - INFO - Theme 'light' applied to window 'School System - Teacher Management'
+2026-01-07 20:58:23,220 - school_system - INFO - BaseWindow 'School System - Teacher Management' initialized
+2026-01-07 20:58:46,503 - school_system - INFO - Window 'School System - Teacher Management' closing
+2026-01-07 20:58:48,346 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143CBA70>
+2026-01-07 20:58:48,346 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143CB9D0>
+2026-01-07 20:58:48,347 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143CBA70>
+2026-01-07 20:58:48,349 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E143CB930>
+2026-01-07 20:58:48,349 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143CB9D0>
+2026-01-07 20:58:48,350 - school_system - INFO - Content area layout: None
+2026-01-07 20:58:48,352 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:58:48,352 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:58:48,355 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:58:48,356 - school_system - INFO - Theme 'light' applied to window 'School System - Furniture Management'
+2026-01-07 20:58:48,363 - school_system - INFO - BaseWindow 'School System - Furniture Management' initialized
+2026-01-07 20:59:29,247 - school_system - INFO - Window 'School System - Furniture Management' closing
+2026-01-07 20:59:31,048 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143B05F0>
+2026-01-07 20:59:31,048 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143B0550>
+2026-01-07 20:59:31,049 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143B05F0>
+2026-01-07 20:59:31,050 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E143B04B0>
+2026-01-07 20:59:31,051 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143B0550>
+2026-01-07 20:59:31,051 - school_system - INFO - Content area layout: None
+2026-01-07 20:59:31,052 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 20:59:31,052 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 20:59:31,054 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 20:59:31,055 - school_system - INFO - Theme 'light' applied to window 'School System - Report Management'
+2026-01-07 20:59:31,059 - school_system - INFO - BaseWindow 'School System - Report Management' initialized
+2026-01-07 20:59:51,767 - school_system - INFO - Window 'School System - Report Management' closing
+2026-01-07 20:59:59,576 - school_system - INFO - User admin accessed settings
+2026-01-07 21:00:26,002 - school_system - INFO - User admin accessed profile
+2026-01-07 21:00:29,894 - school_system - INFO - User admin accessed settings
+2026-01-07 21:00:33,332 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 21:00:33,333 - school_system - INFO - Content layout has 2 items before theme application
+2026-01-07 21:00:33,565 - school_system - INFO - Content layout has 2 items after theme application
+2026-01-07 21:00:33,565 - school_system - INFO - Theme 'light' applied to window 'School System Management - admin (admin)'
+2026-01-07 21:00:33,811 - school_system - INFO - Welcome header updated for user admin
+2026-01-07 21:00:33,812 - school_system - INFO - Theme changed to light, updated main window styling and welcome header
+2026-01-07 21:00:40,548 - school_system - INFO - Applying theme 'dark' with QSS length: 2223
+2026-01-07 21:00:40,548 - school_system - INFO - Content layout has 2 items before theme application
+2026-01-07 21:00:40,791 - school_system - INFO - Content layout has 2 items after theme application
+2026-01-07 21:00:40,792 - school_system - INFO - Theme 'dark' applied to window 'School System Management - admin (admin)'
+2026-01-07 21:00:41,050 - school_system - INFO - Welcome header updated for user admin
+2026-01-07 21:00:41,050 - school_system - INFO - Theme changed to dark, updated main window styling and welcome header
+2026-01-07 21:00:50,026 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 21:00:50,026 - school_system - INFO - Content layout has 2 items before theme application
+2026-01-07 21:00:50,275 - school_system - INFO - Content layout has 2 items after theme application
+2026-01-07 21:00:50,276 - school_system - INFO - Theme 'light' applied to window 'School System Management - admin (admin)'
+2026-01-07 21:00:50,524 - school_system - INFO - Welcome header updated for user admin
+2026-01-07 21:00:50,524 - school_system - INFO - Theme changed to light, updated main window styling and welcome header
+2026-01-07 21:00:55,626 - school_system - INFO - Content layout initialized: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143AE350>
+2026-01-07 21:00:55,626 - school_system - INFO - Content widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143AE2B0>
+2026-01-07 21:00:55,627 - school_system - INFO - Content widget layout: <PyQt6.QtWidgets.QVBoxLayout object at 0x0000021E143AE350>
+2026-01-07 21:00:55,629 - school_system - INFO - Adding content area to main layout. Content area: <school_system.gui.base.widgets.scrollable_container.ScrollableContainer object at 0x0000021E143AE210>
+2026-01-07 21:00:55,630 - school_system - INFO - Content area widget: <PyQt6.QtWidgets.QWidget object at 0x0000021E143AE2B0>
+2026-01-07 21:00:55,630 - school_system - INFO - Content area layout: None
+2026-01-07 21:00:55,632 - school_system - INFO - Applying theme 'light' with QSS length: 2238
+2026-01-07 21:00:55,632 - school_system - INFO - Content layout has 0 items before theme application
+2026-01-07 21:00:55,636 - school_system - INFO - Content layout has 0 items after theme application
+2026-01-07 21:00:55,636 - school_system - INFO - Theme 'light' applied to window 'School System - Book Management'
+2026-01-07 21:00:55,640 - school_system - INFO - BaseWindow 'School System - Book Management' initialized
