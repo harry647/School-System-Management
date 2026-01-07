@@ -710,6 +710,158 @@ class BookService:
         self.db.commit()
         return errors
 
+    def import_csv_with_unknown_books(self, session_id, file_path, imported_by):
+        """
+        Import distribution data allowing unknown books (PENDING_BOOK status).
+        
+        This implements the updated DISTRIBUTION IMPORT FLOW that allows importing
+        book numbers even if they are not yet in the books table.
+        
+        Args:
+            session_id: ID of the distribution session
+            file_path: Path to the CSV file
+            imported_by: Username of the user performing the import
+            
+        Returns:
+            Dictionary containing import statistics and categorization
+        """
+        cursor = self.db.cursor()
+        
+        # Categorization counters
+        valid_books = 0
+        pending_books = 0
+        conflicts = 0
+        duplicate_book_numbers = 0
+        
+        # Track book numbers to detect duplicates
+        book_number_counts = {}
+        
+        # First pass: validate students and check for duplicate book numbers
+        with open(file_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            
+            for row in reader:
+                student_id = row.get("student_id", "").strip()
+                book_number = row.get("book_number", "").strip()
+                
+                # Validate student exists (REQUIRED)
+                if not student_id:
+                    conflicts += 1
+                    continue
+                    
+                # Check for duplicate book numbers (NOT allowed)
+                if book_number:
+                    if book_number in book_number_counts:
+                        book_number_counts[book_number] += 1
+                        duplicate_book_numbers += 1
+                        conflicts += 1
+                    else:
+                        book_number_counts[book_number] = 1
+        
+        # Second pass: process the import
+        with open(file_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            
+            for row in reader:
+                student_id = row.get("student_id", "").strip()
+                book_number = row.get("book_number", "").strip()
+                
+                # Skip if we already identified this as a conflict
+                if book_number and book_number_counts.get(book_number, 0) > 1:
+                    continue
+                
+                if not student_id:
+                    continue
+                
+                # Check if book exists in catalog
+                book_exists = False
+                book_id = None
+                
+                if book_number:
+                    cursor.execute(
+                        "SELECT book_id, available FROM books WHERE book_number = ?",
+                        (book_number,)
+                    )
+                    book = cursor.fetchone()
+                    
+                    if book:
+                        book_exists = True
+                        book_id = book[0]
+                        
+                        # Check availability if book exists
+                        if not book[1]:  # book[1] is the 'available' field
+                            conflicts += 1
+                            continue
+                    else:
+                        # Book doesn't exist in catalog - mark as PENDING_BOOK
+                        pending_books += 1
+                
+                # Update distribution_students record
+                if book_number:
+                    if book_exists:
+                        valid_books += 1
+                        cursor.execute("""
+                            UPDATE distribution_students
+                            SET book_number = ?, book_id = ?, notes = NULL
+                            WHERE session_id = ? AND student_id = ?
+                        """, (
+                            book_number,
+                            book_id,
+                            session_id,
+                            student_id
+                        ))
+                    else:
+                        # Book doesn't exist - save book_number but NULL book_id
+                        cursor.execute("""
+                            UPDATE distribution_students
+                            SET book_number = ?, book_id = NULL, notes = 'Not in system'
+                            WHERE session_id = ? AND student_id = ?
+                        """, (
+                            book_number,
+                            session_id,
+                            student_id
+                        ))
+                else:
+                    # No book number provided - just ensure student exists
+                    cursor.execute("""
+                        UPDATE distribution_students
+                        SET book_number = NULL, book_id = NULL, notes = NULL
+                        WHERE session_id = ? AND student_id = ?
+                    """, (
+                        session_id,
+                        student_id
+                    ))
+        
+        # Update session status to IMPORTED
+        cursor.execute("""
+            UPDATE distribution_sessions
+            SET status = 'IMPORTED'
+            WHERE id = ?
+        """, (session_id,))
+        
+        # Create import log
+        status = "SUCCESS" if conflicts == 0 else "PARTIAL"
+        message = f"Valid: {valid_books}, Pending: {pending_books}, Conflicts: {conflicts}"
+        
+        self.log_repo.create(
+            session_id=session_id,
+            file_name=file_path,
+            imported_by=imported_by,
+            status=status,
+            message=message
+        )
+        
+        self.db.commit()
+        
+        return {
+            "valid_books": valid_books,
+            "pending_books": pending_books,
+            "conflicts": conflicts,
+            "duplicate_book_numbers": duplicate_book_numbers,
+            "status": status,
+            "message": message
+        }
+
     def summary(self, session_id):
         records = self.student_repo.find_by_field("session_id", session_id)
 
