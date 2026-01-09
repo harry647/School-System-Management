@@ -128,7 +128,11 @@ class FlexLayout(ModernLayout):
     def add_spacing(self, spacing):
         """Add spacing to the layout."""
         self._layout.addSpacing(spacing)
-     
+    
+    def add_stretch(self, stretch_factor=0):
+        """Add stretchable space to the layout."""
+        self._layout.addStretch(stretch_factor)
+    
     def set_justify_content(self, justify):
         """Set the justify content alignment."""
         if justify == "flex-start":

@@ -8,7 +8,8 @@ validation, and system integrity following the STUDENT MANAGEMENT FLOW template.
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
                             QHBoxLayout, QComboBox, QTabWidget, QTableWidget, QTableWidgetItem,
-                            QTextEdit, QSizePolicy, QFileDialog, QMessageBox, QDialog, QMenu)
+                            QTextEdit, QSizePolicy, QFileDialog, QMessageBox, QDialog, QMenu,
+                            QListWidget, QListWidgetItem, QStyle, QFormLayout, QHeaderView, QTableView)
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QAction
 from typing import Callable, Optional
@@ -46,7 +47,7 @@ class StudentWindow(BaseWindow):
         self.current_role = current_role
         self.student_service = StudentService()
         self.validator = StudentValidator()
-        
+         
         # Initialize workflow manager
         self.workflow_manager = StudentWorkflowManager(self)
 
@@ -59,19 +60,178 @@ class StudentWindow(BaseWindow):
         # Set minimum size
         self.setMinimumSize(1200, 800)
 
+        # Apply modern styling
+        self._apply_modern_styling()
+
         # Initialize UI
         self._setup_widgets()
-        
+         
         # Setup undo functionality
         self._setup_undo_system()
-        
+         
         # Track last operations for undo
         self.last_operation = None
         self.undo_timer = None
         self.undo_stack = []
-        
+         
         # Add undo action to menu
         self._add_undo_action()
+
+    def _apply_modern_styling(self):
+        """Apply modern styling to the student window."""
+        # Modern color scheme
+        self.setStyleSheet("""
+            /* Base styling */
+            QWidget {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                line-height: 1.4;
+                background-color: #f5f5f5;
+            }
+            
+            /* Window styling */
+            StudentWindow {
+                background-color: #f5f5f5;
+            }
+            
+            /* Tab widget styling */
+            QTabWidget::pane {
+                border: 1px solid #e0e0e0;
+                background-color: white;
+                border-radius: 4px;
+            }
+            
+            QTabBar::tab {
+                padding: 8px 16px;
+                background-color: #e0e0e0;
+                color: #212121;
+                border: none;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }
+            
+            QTabBar::tab:selected {
+                background-color: white;
+                color: #4CAF50;
+                border-bottom: 2px solid #4CAF50;
+            }
+            
+            /* Button styling */
+            QPushButton {
+                padding: 8px 16px;
+                border-radius: 4px;
+                border: 1px solid #e0e0e0;
+                background-color: white;
+                min-height: 36px;
+            }
+            
+            QPushButton[button_type="primary"] {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+            }
+            
+            QPushButton[button_type="primary"]:hover {
+                background-color: #45a049;
+            }
+            
+            QPushButton[button_type="primary"]:pressed {
+                background-color: #3d8b40;
+            }
+            
+            QPushButton[button_type="secondary"] {
+                background-color: #2196F3;
+                color: white;
+                border: none;
+            }
+            
+            QPushButton[button_type="secondary"]:hover {
+                background-color: #1e88e5;
+            }
+            
+            QPushButton[button_type="secondary"]:pressed {
+                background-color: #1976d2;
+            }
+            
+            QPushButton[button_type="danger"] {
+                background-color: #F44336;
+                color: white;
+                border: none;
+            }
+            
+            QPushButton[button_type="danger"]:hover {
+                background-color: #e53935;
+            }
+            
+            QPushButton[button_type="danger"]:pressed {
+                background-color: #d32f2f;
+            }
+            
+            /* Input field styling */
+            QLineEdit, QComboBox {
+                padding: 8px 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: white;
+                min-height: 36px;
+            }
+            
+            QLineEdit:focus, QComboBox:focus {
+                border: 1px solid #4CAF50;
+            }
+            
+            /* Table styling */
+            QTableView {
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: white;
+            }
+            
+            QHeaderView::section {
+                background-color: #f5f5f5;
+                padding: 8px;
+                border: none;
+                font-weight: 600;
+                color: #212121;
+            }
+            
+            QTableView::item:selected {
+                background-color: #e3f2fd;
+            }
+            
+            /* Card styling */
+            QGroupBox {
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: white;
+                margin-top: 8px;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 3px;
+                color: #4CAF50;
+                font-weight: 600;
+            }
+            
+            /* Label styling */
+            QLabel {
+                color: #212121;
+            }
+            
+            QLabel.title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #212121;
+            }
+            
+            QLabel.subtitle {
+                font-size: 14px;
+                font-weight: 500;
+                color: #757575;
+            }
+        """)
 
     def _setup_widgets(self):
         """Setup the student management widgets."""
@@ -189,205 +349,283 @@ class StudentWindow(BaseWindow):
             self.undo_timer.stop()
 
     def _create_student_management_tab(self) -> QWidget:
-        """Create the student management tab with standardized workflows."""
+        """Create the student management tab with modern UI/UX design."""
         tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
-
-        # Create Student Section - Using Standardized Workflow
-        create_section = self.create_card("Create New Student",
-                                         "Use the form below to create a new student record")
-        create_workflow = StudentCreationWorkflow(self)
-        create_workflow.operation_completed.connect(self._handle_operation_completed)
-        create_section.layout.addWidget(create_workflow)
-        layout.add_widget(create_section)
-
-        # Update Student Section - Using Standardized Workflow
-        update_section = self.create_card("Update Student",
-                                         "Update existing student information")
-        update_workflow = StudentUpdateWorkflow(self)
-        update_workflow.operation_completed.connect(self._handle_operation_completed)
-        update_section.layout.addWidget(update_workflow)
-        layout.add_widget(update_section)
-
-        # Delete Student Section - Using Standardized Workflow
-        delete_section = self.create_card("Delete Student",
-                                         "Permanently remove a student from the system")
-        delete_workflow = StudentDeletionWorkflow(self)
-        delete_workflow.operation_completed.connect(self._handle_operation_completed)
-        delete_section.layout.addWidget(delete_workflow)
-        layout.add_widget(delete_section)
-
-        # View Students Section
-        view_section = self.create_card("View Students", "Browse and search existing student records")
-        view_form = QWidget()
-        view_layout = self.create_flex_layout("column", False)
-        view_layout.set_spacing(10)
-
-        # Search box with real-time validation
-        self.search_box = self.create_search_box("Search students...")
-        self.search_box.search_text_changed.connect(self._on_search_students)
-        view_layout.add_widget(self.search_box)
-
-        # Refresh button
-        refresh_button = self.create_button("Refresh Students", "secondary")
-        refresh_button.clicked.connect(self._refresh_students_table)
-        view_layout.add_widget(refresh_button)
-
-        # Students table with enhanced features
-        self.students_table = self.create_table(0, 5)  # Added column for undo
-        self.students_table.setHorizontalHeaderLabels(["Admission Number", "Name", "Stream", "Actions", ""])
-        view_layout.add_widget(self.students_table)
-
-        view_form.setLayout(view_layout._layout)
-        view_section.layout.addWidget(view_form)
-        layout.add_widget(view_section)
-
-        tab.setLayout(layout._layout)
+        main_layout = self.create_flex_layout("column", False)
+        main_layout.setContentsMargins(16, 16, 16, 16)  # Reduced from 20px
+        main_layout.set_spacing(12)  # Consistent 12px spacing
+        
+        # Top action bar - horizontal layout for better space use
+        action_bar = self.create_flex_layout("row", False)
+        action_bar.set_spacing(8)
+        
+        # Search - integrated with filters
+        search_container = self.create_flex_layout("row", False)
+        search_container.set_spacing(8)
+        
+        # Smart search box with suggestions
+        self.search_box = self.create_search_box("Search students by name, ID, or stream...")
+        self.search_box.setMinimumWidth(300)
+        self.search_box.setMaximumWidth(400)
+        
+        # Add search suggestions dropdown
+        self.search_suggestions = QListWidget()
+        self.search_suggestions.setWindowFlags(Qt.WindowType.Popup)
+        self.search_suggestions.hide()
+        
+        # Connect signals for smart search
+        self.search_box.search_text_changed.connect(self._show_search_suggestions)
+        self.search_suggestions.itemClicked.connect(self._on_suggestion_selected)
+        
+        search_container.add_widget(self.search_box)
+        
+        # Filter dropdowns
+        self.stream_filter = QComboBox()
+        self.stream_filter.addItem("All Streams")
+        self.stream_filter.setMinimumWidth(150)
+        search_container.add_widget(self.stream_filter)
+        
+        action_bar.add_layout(search_container)
+        
+        # Quick action buttons - horizontal group
+        button_group = self.create_flex_layout("row", False)
+        button_group.set_spacing(8)
+        
+        create_btn = self.create_button("Add Student", "primary")
+        create_btn.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon))
+        create_btn.clicked.connect(self._show_create_student_dialog)
+        button_group.add_widget(create_btn)
+        
+        import_btn = self.create_button("Import", "secondary")
+        import_btn.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton))
+        import_btn.clicked.connect(self._on_browse_import_file)
+        button_group.add_widget(import_btn)
+        
+        export_btn = self.create_button("Export", "secondary")
+        export_btn.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
+        export_btn.clicked.connect(self._on_export_students)
+        button_group.add_widget(export_btn)
+        
+        action_bar.add_layout(button_group)
+        main_layout.add_layout(action_bar)
+        
+        # Enhanced students table with inline actions
+        self.students_table = self.create_table(0, 4)  # Reduced from 5 columns
+        self.students_table.setHorizontalHeaderLabels([
+            "Admission Number",
+            "Name",
+            "Stream",
+            "Actions"  # Single unified actions column
+        ])
+        self.students_table.horizontalHeader().setStretchLastSection(True)
+        self.students_table.verticalHeader().setVisible(False)
+        self.students_table.setAlternatingRowColors(True)
+        self.students_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
+        
+        main_layout.add_widget(self.students_table)
+        
+        # Pagination controls
+        pagination_layout = self.create_flex_layout("row", False)
+        pagination_layout.set_spacing(8)
+        pagination_layout.add_stretch()
+        
+        self.prev_page_btn = self.create_button("Previous", "secondary")
+        self.prev_page_btn.setEnabled(False)
+        self.prev_page_btn.clicked.connect(self._on_previous_page)
+        pagination_layout.add_widget(self.prev_page_btn)
+        
+        self.page_label = QLabel("Page 1 of 1")
+        pagination_layout.add_widget(self.page_label)
+        
+        self.next_page_btn = self.create_button("Next", "secondary")
+        self.next_page_btn.setEnabled(False)
+        self.next_page_btn.clicked.connect(self._on_next_page)
+        pagination_layout.add_widget(self.next_page_btn)
+        
+        # Items per page selector
+        items_per_page_layout = self.create_flex_layout("row", False)
+        items_per_page_layout.set_spacing(4)
+        items_per_page_layout.add_widget(QLabel("Items per page:"))
+        
+        self.items_per_page_combo = QComboBox()
+        self.items_per_page_combo.addItems(["10", "25", "50", "100"])
+        self.items_per_page_combo.setCurrentText("25")
+        self.items_per_page_combo.currentTextChanged.connect(self._on_items_per_page_changed)
+        items_per_page_layout.add_widget(self.items_per_page_combo)
+        
+        pagination_layout.add_layout(items_per_page_layout)
+        
+        main_layout.add_layout(pagination_layout)
+        
+        # Initialize pagination state
+        self.current_page = 1
+        self.items_per_page = 25
+        self.total_pages = 1
+        
+        tab.setLayout(main_layout._layout)
         return tab
 
+    def _show_search_suggestions(self, text):
+        """Show search suggestions based on user input."""
+        if len(text) < 2:
+            self.search_suggestions.hide()
+            return
+        
+        try:
+            # Get all students and filter based on search text
+            all_students = self.student_service.get_all_students()
+            suggestions = []
+            
+            for student in all_students:
+                if (text.lower() in student.student_id.lower() or
+                    text.lower() in student.name.lower() or
+                    (student.stream and text.lower() in student.stream.lower())):
+                    suggestions.append(f"{student.student_id} - {student.name} ({student.stream})")
+            
+            # Populate suggestions list
+            self.search_suggestions.clear()
+            if suggestions:
+                for suggestion in suggestions[:5]:  # Limit to 5 suggestions
+                    item = QListWidgetItem(suggestion)
+                    self.search_suggestions.addItem(item)
+                
+                # Position and show suggestions
+                pos = self.search_box.mapToGlobal(self.search_box.rect().bottomLeft())
+                self.search_suggestions.setGeometry(pos.x(), pos.y(), self.search_box.width(), min(150, len(suggestions) * 30))
+                self.search_suggestions.show()
+            else:
+                self.search_suggestions.hide()
+                
+        except Exception as e:
+            print(f"Error showing search suggestions: {e}")
+            self.search_suggestions.hide()
+
+    def _on_suggestion_selected(self, item):
+        """Handle search suggestion selection."""
+        # Extract student ID from suggestion and search for it
+        suggestion_text = item.text()
+        student_id = suggestion_text.split(' - ')[0]
+        
+        self.search_box.setText(student_id)
+        self.search_suggestions.hide()
+        
+        # Perform search
+        self._on_search_students(student_id)
+
     def _create_ream_management_tab(self) -> QWidget:
-        """Create the ream management tab."""
+        """Create the ream management tab with modern UI/UX design."""
         tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
-
-        # Add Reams Section
-        add_ream_section = self.create_card("Add Reams to Student", "")
-        add_ream_form = QWidget()
-        add_ream_layout = self.create_flex_layout("column", False)
-        add_ream_layout.set_spacing(10)
-
-        # Admission Number
-        add_ream_student_id_label = QLabel("Admission Number:")
-        add_ream_layout.add_widget(add_ream_student_id_label)
+        main_layout = self.create_flex_layout("column", False)
+        main_layout.setContentsMargins(16, 16, 16, 16)
+        main_layout.set_spacing(12)
+        
+        # Ream management tabs
+        ream_tabs = QTabWidget()
+        
+        # Add Reams tab
+        add_tab = QWidget()
+        add_layout = self.create_flex_layout("column", False)
+        add_layout.set_spacing(12)
+        
+        # Use form layout for better alignment
+        form_layout = QFormLayout()
+        form_layout.setVerticalSpacing(8)
+        form_layout.setHorizontalSpacing(16)
+        
         self.add_ream_student_id_input = self.create_input("Enter admission number")
-        add_ream_layout.add_widget(self.add_ream_student_id_input)
-
-        # Reams Count
-        reams_count_label = QLabel("Reams Count:")
-        add_ream_layout.add_widget(reams_count_label)
+        form_layout.addRow("Admission Number:", self.add_ream_student_id_input)
+        
         self.add_ream_count_input = self.create_input("Enter number of reams")
-        add_ream_layout.add_widget(self.add_ream_count_input)
-
-        # Source
-        source_label = QLabel("Source:")
-        add_ream_layout.add_widget(source_label)
+        form_layout.addRow("Reams Count:", self.add_ream_count_input)
+        
         self.add_ream_source_combo = QComboBox()
         self.add_ream_source_combo.addItems(["Distribution", "Purchase", "Transfer", "Other"])
-        add_ream_layout.add_widget(self.add_ream_source_combo)
-
-        # Add reams button
+        form_layout.addRow("Source:", self.add_ream_source_combo)
+        
+        add_layout.add_layout(form_layout)
+        
         add_ream_button = self.create_button("Add Reams", "primary")
         add_ream_button.clicked.connect(self._on_add_reams)
-        add_ream_layout.add_widget(add_ream_button)
-
-        add_ream_form.setLayout(add_ream_layout._layout)
-        add_ream_section.layout.addWidget(add_ream_form)
-        layout.add_widget(add_ream_section)
-
-        # Deduct Reams Section
-        deduct_ream_section = self.create_card("Deduct Reams from Student", "")
-        deduct_ream_form = QWidget()
-        deduct_ream_layout = self.create_flex_layout("column", False)
-        deduct_ream_layout.set_spacing(10)
-
-        # Admission Number
-        deduct_ream_student_id_label = QLabel("Admission Number:")
-        deduct_ream_layout.add_widget(deduct_ream_student_id_label)
+        add_layout.add_widget(add_ream_button)
+        
+        add_tab.setLayout(add_layout._layout)
+        ream_tabs.addTab(add_tab, "Add Reams")
+        
+        # Deduct Reams tab
+        deduct_tab = QWidget()
+        deduct_layout = self.create_flex_layout("column", False)
+        deduct_layout.set_spacing(12)
+        
+        deduct_form_layout = QFormLayout()
+        deduct_form_layout.setVerticalSpacing(8)
+        deduct_form_layout.setHorizontalSpacing(16)
+        
         self.deduct_ream_student_id_input = self.create_input("Enter admission number")
-        deduct_ream_layout.add_widget(self.deduct_ream_student_id_input)
-
-        # Reams Count
-        deduct_reams_count_label = QLabel("Reams Count:")
-        deduct_ream_layout.add_widget(deduct_reams_count_label)
+        deduct_form_layout.addRow("Admission Number:", self.deduct_ream_student_id_input)
+        
         self.deduct_ream_count_input = self.create_input("Enter number of reams to deduct")
-        deduct_ream_layout.add_widget(self.deduct_ream_count_input)
-
-        # Purpose
-        purpose_label = QLabel("Purpose:")
-        deduct_ream_layout.add_widget(purpose_label)
+        deduct_form_layout.addRow("Reams Count:", self.deduct_ream_count_input)
+        
         self.deduct_ream_purpose_combo = QComboBox()
         self.deduct_ream_purpose_combo.addItems(["Usage", "Transfer", "Loss", "Other"])
-        deduct_ream_layout.add_widget(self.deduct_ream_purpose_combo)
-
-        # Deduct reams button
+        deduct_form_layout.addRow("Purpose:", self.deduct_ream_purpose_combo)
+        
+        deduct_layout.add_layout(deduct_form_layout)
+        
         deduct_ream_button = self.create_button("Deduct Reams", "secondary")
         deduct_ream_button.clicked.connect(self._on_deduct_reams)
-        deduct_ream_layout.add_widget(deduct_ream_button)
-
-        deduct_ream_form.setLayout(deduct_ream_layout._layout)
-        deduct_ream_section.layout.addWidget(deduct_ream_form)
-        layout.add_widget(deduct_ream_section)
-
-        # Transfer Reams Section
-        transfer_ream_section = self.create_card("Transfer Reams Between Students", "")
-        transfer_ream_form = QWidget()
-        transfer_ream_layout = self.create_flex_layout("column", False)
-        transfer_ream_layout.set_spacing(10)
-
-        # From Admission Number
-        from_student_id_label = QLabel("From Admission Number:")
-        transfer_ream_layout.add_widget(from_student_id_label)
-        self.transfer_from_student_id_input = self.create_input("Enter source admission number")
-        transfer_ream_layout.add_widget(self.transfer_from_student_id_input)
+        deduct_layout.add_widget(deduct_ream_button)
         
-        # To Admission Number
-        to_student_id_label = QLabel("To Admission Number:")
-        transfer_ream_layout.add_widget(to_student_id_label)
+        deduct_tab.setLayout(deduct_layout._layout)
+        ream_tabs.addTab(deduct_tab, "Deduct Reams")
+        
+        # Transfer Reams tab
+        transfer_tab = QWidget()
+        transfer_layout = self.create_flex_layout("column", False)
+        transfer_layout.set_spacing(12)
+        
+        transfer_form_layout = QFormLayout()
+        transfer_form_layout.setVerticalSpacing(8)
+        transfer_form_layout.setHorizontalSpacing(16)
+        
+        self.transfer_from_student_id_input = self.create_input("Enter source admission number")
+        transfer_form_layout.addRow("From Admission Number:", self.transfer_from_student_id_input)
+        
         self.transfer_to_student_id_input = self.create_input("Enter destination admission number")
-        transfer_ream_layout.add_widget(self.transfer_to_student_id_input)
-
-        # Reams Count
-        transfer_reams_count_label = QLabel("Reams Count:")
-        transfer_ream_layout.add_widget(transfer_reams_count_label)
+        transfer_form_layout.addRow("To Admission Number:", self.transfer_to_student_id_input)
+        
         self.transfer_ream_count_input = self.create_input("Enter number of reams to transfer")
-        transfer_ream_layout.add_widget(self.transfer_ream_count_input)
-
-        # Reason
-        reason_label = QLabel("Reason:")
-        transfer_ream_layout.add_widget(reason_label)
+        transfer_form_layout.addRow("Reams Count:", self.transfer_ream_count_input)
+        
         self.transfer_reason_input = self.create_input("Enter reason for transfer")
-        transfer_ream_layout.add_widget(self.transfer_reason_input)
-
-        # Transfer reams button
+        transfer_form_layout.addRow("Reason:", self.transfer_reason_input)
+        
+        transfer_layout.add_layout(transfer_form_layout)
+        
         transfer_ream_button = self.create_button("Transfer Reams", "primary")
         transfer_ream_button.clicked.connect(self._on_transfer_reams)
-        transfer_ream_layout.add_widget(transfer_ream_button)
-
-        transfer_ream_form.setLayout(transfer_ream_layout._layout)
-        transfer_ream_section.layout.addWidget(transfer_ream_form)
-        layout.add_widget(transfer_ream_section)
-
-        # View Ream Transactions Section
-        ream_transactions_section = self.create_card("View Ream Transactions", "")
-        ream_transactions_form = QWidget()
-        ream_transactions_layout = self.create_flex_layout("column", False)
-        ream_transactions_layout.set_spacing(10)
-
-        # Admission Number for transactions
-        transactions_student_id_label = QLabel("Admission Number:")
-        ream_transactions_layout.add_widget(transactions_student_id_label)
-        self.transactions_student_id_input = self.create_input("Enter admission number")
-        ream_transactions_layout.add_widget(self.transactions_student_id_input)
-
-        # View transactions button
-        view_transactions_button = self.create_button("View Transactions", "secondary")
-        view_transactions_button.clicked.connect(self._on_view_ream_transactions)
-        ream_transactions_layout.add_widget(view_transactions_button)
-
-        # Ream transactions table
+        transfer_layout.add_widget(transfer_ream_button)
+        
+        transfer_tab.setLayout(transfer_layout._layout)
+        ream_tabs.addTab(transfer_tab, "Transfer Reams")
+        
+        main_layout.add_widget(ream_tabs)
+        
+        # Recent transactions table
+        transactions_section = self.create_card("Recent Transactions", "")
+        transactions_layout = self.create_flex_layout("column", False)
+        transactions_layout.set_spacing(8)
+        
         self.ream_transactions_table = self.create_table(0, 5)
-        self.ream_transactions_table.setHorizontalHeaderLabels(["Admission Number", "Reams Count", "Date Added", "Type", "Balance"])
-        ream_transactions_layout.add_widget(self.ream_transactions_table)
-
-        ream_transactions_form.setLayout(ream_transactions_layout._layout)
-        ream_transactions_section.layout.addWidget(ream_transactions_form)
-        layout.add_widget(ream_transactions_section)
-
-        tab.setLayout(layout._layout)
+        self.ream_transactions_table.setHorizontalHeaderLabels([
+            "Student ID", "Reams", "Date", "Type", "Balance"
+        ])
+        transactions_layout.add_widget(self.ream_transactions_table)
+        
+        transactions_section.layout.addLayout(transactions_layout._layout)
+        main_layout.add_widget(transactions_section)
+        
+        tab.setLayout(main_layout._layout)
         return tab
 
     def _create_library_activity_tab(self) -> QWidget:
@@ -479,17 +717,33 @@ class StudentWindow(BaseWindow):
         return tab
 
     def _create_import_export_tab(self) -> QWidget:
-        """Create the import/export tab."""
+        """Create the import/export tab with enhanced user guidance."""
         tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
+        main_layout = self.create_flex_layout("column", False)
+        main_layout.setContentsMargins(16, 16, 16, 16)
+        main_layout.set_spacing(12)
 
-        # Import Students Section
-        import_section = self.create_card("Import Students from Excel", "")
+        # Import Students Section with detailed instructions
+        import_section = self.create_card("Import Students from Excel",
+                                         "Please ensure your Excel file follows the required format:")
         import_form = QWidget()
         import_layout = self.create_flex_layout("column", False)
         import_layout.set_spacing(10)
+
+        # Detailed instructions
+        instructions_label = QLabel("""
+        <b>Required Excel Format:</b><br>
+        • Column A: Student ID (Admission Number)<br>
+        • Column B: Name (Full Student Name)<br>
+        • Column C: Stream (Student Stream)<br>
+        <br>
+        <b>Example:</b><br>
+        | A1: Student ID | B1: Name | C1: Stream |<br>
+        | A2: S001 | B2: John Doe | C2: Science |<br>
+        | A3: S002 | B3: Jane Smith | C2: Arts |
+        """)
+        instructions_label.setWordWrap(True)
+        import_layout.add_widget(instructions_label)
 
         # File selection
         self.import_file_label = QLabel("No file selected")
@@ -497,34 +751,48 @@ class StudentWindow(BaseWindow):
 
         # Browse button
         browse_button = self.create_button("Browse Excel File", "primary")
+        browse_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton))
         browse_button.clicked.connect(self._on_browse_import_file)
         import_layout.add_widget(browse_button)
 
         # Import button
         import_button = self.create_button("Import Students", "secondary")
+        import_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_ArrowRight))
         import_button.clicked.connect(self._on_import_students)
         import_layout.add_widget(import_button)
 
+        # Import status
+        self.import_status_label = QLabel("")
+        self.import_status_label.setStyleSheet("color: #666;")
+        import_layout.add_widget(self.import_status_label)
+
         import_form.setLayout(import_layout._layout)
         import_section.layout.addWidget(import_form)
-        layout.add_widget(import_section)
+        main_layout.add_widget(import_section)
 
         # Export Students Section
-        export_section = self.create_card("Export Students to Excel", "")
+        export_section = self.create_card("Export Students to Excel",
+                                         "Export all student data to Excel format")
         export_form = QWidget()
         export_layout = self.create_flex_layout("column", False)
         export_layout.set_spacing(10)
 
         # Export button
         export_button = self.create_button("Export All Students", "primary")
+        export_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
         export_button.clicked.connect(self._on_export_students)
         export_layout.add_widget(export_button)
 
+        # Export status
+        self.export_status_label = QLabel("")
+        self.export_status_label.setStyleSheet("color: #666;")
+        export_layout.add_widget(self.export_status_label)
+
         export_form.setLayout(export_layout._layout)
         export_section.layout.addWidget(export_form)
-        layout.add_widget(export_section)
+        main_layout.add_widget(export_section)
 
-        tab.setLayout(layout._layout)
+        tab.setLayout(main_layout._layout)
         return tab
 
     def _create_reports_tab(self) -> QWidget:
@@ -700,18 +968,53 @@ class StudentWindow(BaseWindow):
             show_error_message("Error", f"An error occurred: {str(e)}", self)
 
     def _on_search_students(self, query: str):
-        """Handle student search."""
+        """Handle student search with pagination."""
         try:
+            # Reset to first page when searching
+            self.current_page = 1
+            
             # For now, just refresh the table (search functionality would need to be implemented in service)
             self._refresh_students_table()
         except Exception as e:
             show_error_message("Error", f"Search failed: {str(e)}", self)
 
+    def _on_previous_page(self):
+        """Handle previous page navigation."""
+        if self.current_page > 1:
+            self.current_page -= 1
+            self._refresh_students_table()
+
+    def _on_next_page(self):
+        """Handle next page navigation."""
+        if self.current_page < self.total_pages:
+            self.current_page += 1
+            self._refresh_students_table()
+
+    def _on_items_per_page_changed(self, items_per_page_str: str):
+        """Handle items per page change."""
+        self.items_per_page = int(items_per_page_str)
+        self.current_page = 1  # Reset to first page
+        self._refresh_students_table()
+
     def _refresh_students_table(self):
-        """Refresh the students table."""
+        """Refresh the students table with pagination."""
         try:
-            students = self.student_service.get_all_students()
-            self._populate_students_table(students)
+            all_students = self.student_service.get_all_students()
+            
+            # Apply pagination
+            start_index = (self.current_page - 1) * self.items_per_page
+            end_index = start_index + self.items_per_page
+            paginated_students = all_students[start_index:end_index]
+            
+            # Calculate total pages
+            self.total_pages = max(1, (len(all_students) + self.items_per_page - 1) // self.items_per_page)
+            
+            # Update pagination controls
+            self.prev_page_btn.setEnabled(self.current_page > 1)
+            self.next_page_btn.setEnabled(self.current_page < self.total_pages)
+            self.page_label.setText(f"Page {self.current_page} of {self.total_pages}")
+            
+            self._populate_students_table(paginated_students)
         except Exception as e:
             show_error_message("Error", f"Failed to refresh students: {str(e)}", self)
 
@@ -746,6 +1049,47 @@ class StudentWindow(BaseWindow):
             # Show error message for failed operations
             show_error_message("Error", message, self)
 
+    def _show_create_student_dialog(self):
+        """Show create student dialog with form validation."""
+        from school_system.gui.dialogs.input_dialog import InputDialog
+        
+        # Create dialog with form fields
+        dialog = InputDialog("Create New Student", "Enter student details:", self)
+        
+        # Add form fields
+        student_id_input = dialog.add_input_field("Admission Number:", "Enter student ID")
+        name_input = dialog.add_input_field("Name:", "Enter student name")
+        stream_input = dialog.add_input_field("Stream:", "Enter student stream")
+        
+        # Show dialog and handle result
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            student_data = {
+                'student_id': student_id_input.text().strip(),
+                'name': name_input.text().strip(),
+                'stream': stream_input.text().strip()
+            }
+            
+            # Validate required fields
+            if not student_data['student_id'] or not student_data['name']:
+                show_error_message("Validation Error", "Student ID and Name are required", self)
+                return
+            
+            try:
+                student = self.student_service.create_student(student_data)
+                show_success_message("Success", f"Student created successfully with ID: {student.student_id}", self)
+                self._refresh_students_table()
+                
+                # Track operation for undo
+                self._track_operation('create', {
+                    'student_id': student.student_id,
+                    'student_data': student_data
+                })
+                
+            except (ValidationError, DatabaseException) as e:
+                show_error_message("Error", str(e), self)
+            except Exception as e:
+                show_error_message("Error", f"An error occurred: {str(e)}", self)
+
     def _populate_students_table(self, students):
         """Populate the students table with data and enhanced features."""
         self.students_table.setRowCount(0)
@@ -764,27 +1108,25 @@ class StudentWindow(BaseWindow):
             action_layout.setContentsMargins(0, 0, 0, 0)
             action_layout.setSpacing(5)
 
-            # View button
+            # View button with icon
             view_button = self.create_button("View", "secondary")
+            view_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton))
             view_button.clicked.connect(lambda _, sid=student.student_id: self._view_student_details(sid))
             action_layout.addWidget(view_button)
 
-            # Edit button
+            # Edit button with icon
             edit_button = self.create_button("Edit", "primary")
+            edit_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView))
             edit_button.clicked.connect(lambda _, sid=student.student_id: self._start_edit_workflow(sid))
             action_layout.addWidget(edit_button)
 
-            # Delete button
+            # Delete button with icon
             delete_button = self.create_button("Delete", "danger")
+            delete_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
             delete_button.clicked.connect(lambda _, sid=student.student_id: self._start_delete_workflow(sid))
             action_layout.addWidget(delete_button)
 
             self.students_table.setCellWidget(row_position, 3, action_widget)
-            
-            # Add undo placeholder (will be populated if undo is available)
-            undo_button = self.create_button("Undo", "secondary")
-            undo_button.setVisible(False)  # Initially hidden
-            self.students_table.setCellWidget(row_position, 4, undo_button)
 
     def _start_edit_workflow(self, student_id: str):
         """Start the edit workflow for a specific student."""
@@ -1054,33 +1396,58 @@ class StudentWindow(BaseWindow):
             self.import_file_path = file_path
 
     def _on_import_students(self):
-        """Handle import students button click."""
+        """Handle import students button click with enhanced feedback."""
         try:
             if not hasattr(self, 'import_file_path'):
                 show_error_message("Error", "Please select a file first", self)
                 return
 
+            self.import_status_label.setText("Importing students...")
+            self.import_status_label.setStyleSheet("color: #2196F3;")
+            self.repaint()
+
             students = self.student_service.import_students_from_excel(self.import_file_path)
-            show_success_message("Success", f"Imported {len(students)} students successfully", self)
-            self._refresh_students_table()
+            
+            if students:
+                self.import_status_label.setText(f"✓ Successfully imported {len(students)} students")
+                self.import_status_label.setStyleSheet("color: #4CAF50;")
+                show_success_message("Success", f"Imported {len(students)} students successfully", self)
+                self._refresh_students_table()
+            else:
+                self.import_status_label.setText("✗ No students were imported")
+                self.import_status_label.setStyleSheet("color: #F44336;")
+                show_error_message("Error", "No valid student data found in the file", self)
 
         except Exception as e:
+            self.import_status_label.setText(f"✗ Import failed: {str(e)}")
+            self.import_status_label.setStyleSheet("color: #F44336;")
             show_error_message("Error", f"Import failed: {str(e)}", self)
 
     def _on_export_students(self):
-        """Handle export students button click."""
+        """Handle export students button click with enhanced feedback."""
         try:
             file_dialog = QFileDialog()
             file_path, _ = file_dialog.getSaveFileName(self, "Save Excel File", "students_export.xlsx", "Excel Files (*.xlsx)")
 
             if file_path:
+                self.export_status_label.setText("Exporting students...")
+                self.export_status_label.setStyleSheet("color: #2196F3;")
+                self.repaint()
+
                 success = self.student_service.export_students_to_excel(file_path)
+                
                 if success:
+                    self.export_status_label.setText(f"✓ Students exported successfully to {file_path}")
+                    self.export_status_label.setStyleSheet("color: #4CAF50;")
                     show_success_message("Success", "Students exported successfully", self)
                 else:
+                    self.export_status_label.setText("✗ Export failed")
+                    self.export_status_label.setStyleSheet("color: #F44336;")
                     show_error_message("Error", "Export failed", self)
 
         except Exception as e:
+            self.export_status_label.setText(f"✗ Export failed: {str(e)}")
+            self.export_status_label.setStyleSheet("color: #F44336;")
             show_error_message("Error", f"Export failed: {str(e)}", self)
 
     # Event handlers for Reports
