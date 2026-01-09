@@ -1335,6 +1335,9 @@ class StudentWindow(BaseWindow):
             self.add_ream_student_id_input.clear()
             self.add_ream_count_input.clear()
 
+            # Refresh ream transactions table for this student
+            self._refresh_ream_transactions_table(student_id)
+
         except ValueError:
             show_error_message("Error", "Invalid reams count", self)
         except Exception as e:
@@ -1357,6 +1360,9 @@ class StudentWindow(BaseWindow):
             # Clear form
             self.deduct_ream_student_id_input.clear()
             self.deduct_ream_count_input.clear()
+
+            # Refresh ream transactions table for this student
+            self._refresh_ream_transactions_table(student_id)
 
         except ValueError:
             show_error_message("Error", "Invalid reams count", self)
@@ -1386,6 +1392,10 @@ class StudentWindow(BaseWindow):
                 self.transfer_to_student_id_input.clear()
                 self.transfer_ream_count_input.clear()
                 self.transfer_reason_input.clear()
+                
+                # Refresh ream transactions table for both students
+                self._refresh_ream_transactions_table(from_student_id)
+                self._refresh_ream_transactions_table(to_student_id)
             else:
                 show_error_message("Error", "Failed to transfer reams", self)
 
@@ -1427,6 +1437,16 @@ class StudentWindow(BaseWindow):
             self.ream_transactions_table.setItem(row_position, 2, QTableWidgetItem(transaction.date_added or ""))
             self.ream_transactions_table.setItem(row_position, 3, QTableWidgetItem("Add" if transaction.reams_count > 0 else "Deduct"))
             self.ream_transactions_table.setItem(row_position, 4, QTableWidgetItem(str(current_balance)))
+
+    def _refresh_ream_transactions_table(self, student_id: str):
+        """Refresh the ream transactions table for a specific student."""
+        try:
+            if student_id:  # Only refresh if we have a valid student ID
+                transactions = self.student_service.get_student_ream_transaction_history(student_id)
+                self._populate_ream_transactions_table(transactions)
+        except Exception as e:
+            print(f"Error refreshing ream transactions table: {e}")
+            # Don't show error to user as this is an automatic refresh
 
     # Event handlers for Library Activity
     def _on_view_borrowed_books(self):

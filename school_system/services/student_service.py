@@ -41,15 +41,10 @@ class StudentService:
         Returns:
             The Student object if found, otherwise None.
         """
-        # Try to find by student_id first
-        try:
-            student_id_int = int(student_id)
-            student = self.student_repository.get_by_id(student_id_int)
-            if student:
-                return student
-        except ValueError:
-            # If student_id is not an integer, try to find by admission_number
-            pass
+        # First try to find by student_id (which should be the same as admission_number in our schema)
+        student = self.student_repository.get_by_id(student_id)
+        if student:
+            return student
         
         # If not found by student_id, try to find by admission_number
         students = self.student_repository.find_by_field('admission_number', student_id)
@@ -564,12 +559,12 @@ class StudentService:
     def add_reams_to_student(self, student_id: str, reams_count: int, source: str = "Distribution") -> ReamEntry:
         """
         Add reams to a student's account with source tracking.
-          
+           
         Args:
             student_id: Student ID or admission number of the student
             reams_count: Number of reams to add
             source: Source of the reams (Distribution, Purchase, Transfer, etc.)
-               
+                
         Returns:
             The created ream entry
         """
@@ -580,21 +575,22 @@ class StudentService:
             # If not found by student_id, try to find by admission_number
             students = self.student_repository.find_by_field('admission_number', student_id)
             student = students[0] if students else None
-        
+         
         if not student:
-            raise ValueError(f"Student with ID {student_id} not found")
-          
+            logger.error(f"Student with ID {student_id} not found in database")
+            raise ValueError(f"Student with ID {student_id} not found in database. Please ensure the student exists before adding reams.")
+         
         logger.info(f"Adding {reams_count} reams to student {student_id} from source: {source}")
-          
+           
         ream_entry = ReamEntry(
             student_id=student.student_id,
             reams_count=reams_count,
             date_added=datetime.now().strftime('%Y-%m-%d')
         )
-          
+           
         ream_entry_repository = ReamEntryRepository()
         created_entry = ream_entry_repository.create(ream_entry)
-          
+           
         logger.info(f"Successfully added {reams_count} reams to student {student_id}")
         return created_entry
 
@@ -826,12 +822,12 @@ class StudentService:
     def deduct_reams_from_student(self, student_id: str, reams_count: int, purpose: str = "Usage") -> ReamEntry:
         """
         Deduct reams from a student's account with purpose tracking.
-            
+             
         Args:
             student_id: Student ID or admission number of the student
             reams_count: Number of reams to deduct
             purpose: Purpose of the deduction (Usage, Transfer, Loss, etc.)
-                
+                 
         Returns:
             The created ream entry
         """
@@ -842,47 +838,62 @@ class StudentService:
             # If not found by student_id, try to find by admission_number
             students = self.student_repository.find_by_field('admission_number', student_id)
             student = students[0] if students else None
-        
+         
         if not student:
-            raise ValueError(f"Student with ID {student_id} not found")
-            
+            logger.error(f"Student with ID {student_id} not found in database")
+            raise ValueError(f"Student with ID {student_id} not found in database. Please ensure the student exists before deducting reams.")
+              
         logger.info(f"Deducting {reams_count} reams from student {student_id} for purpose: {purpose}")
-            
+             
         # Use negative value to represent deduction
         ream_entry = ReamEntry(
             student_id=student.student_id,
             reams_count=-reams_count,
             date_added=datetime.now().strftime('%Y-%m-%d')
         )
-            
+             
         ream_entry_repository = ReamEntryRepository()
         created_entry = ream_entry_repository.create(ream_entry)
-            
+             
         logger.info(f"Successfully deducted {reams_count} reams from student {student_id}")
         return created_entry
 
     def transfer_reams_between_students(self, from_student_id: str, to_student_id: str, reams_count: int, reason: str = "") -> bool:
         """
         Transfer reams between two students with reason tracking.
-            
+             
         Args:
             from_student_id: ID or admission number of the student sending reams
             to_student_id: ID or admission number of the student receiving reams
             reams_count: Number of reams to transfer
             reason: Reason for the transfer
-                
+                 
         Returns:
             True if transfer was successful, False otherwise
         """
         logger.info(f"Transferring {reams_count} reams from student {from_student_id} to student {to_student_id}")
-            
+             
         try:
+            # Check if source student has enough reams
+            source_balance = self.get_student_ream_balance(from_student_id)
+            
+            if source_balance < reams_count:
+                logger.warning(f"Source student {from_student_id} only has {source_balance} reams, cannot transfer {reams_count}")
+                # Transfer only what's available
+                actual_transfer_amount = source_balance
+                if actual_transfer_amount <= 0:
+                    logger.error(f"Source student {from_student_id} has insufficient reams for transfer")
+                    return False
+                
+                logger.info(f"Adjusting transfer amount from {reams_count} to {actual_transfer_amount} due to insufficient balance")
+                reams_count = actual_transfer_amount
+            
             # Deduct from source student
             self.deduct_reams_from_student(from_student_id, reams_count, f"Transfer to {to_student_id}")
-                
+                 
             # Add to destination student
             self.add_reams_to_student(to_student_id, reams_count, f"Transfer from {from_student_id}")
-                
+                 
             logger.info(f"Successfully transferred {reams_count} reams from student {from_student_id} to student {to_student_id}")
             return True
         except Exception as e:

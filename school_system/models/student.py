@@ -20,21 +20,20 @@ class Student(BaseModel):
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO students (admission_number, name, stream, created_at) VALUES (?, ?, ?, ?)",
-            (self.admission_number, self.name, self.stream, self.created_at)
+            "INSERT INTO students (student_id, admission_number, name, stream, created_at) VALUES (?, ?, ?, ?, ?)",
+            (self.student_id, self.admission_number, self.name, self.stream, self.created_at)
         )
         db.commit()
-        # Retrieve the auto-generated student_id
-        self.student_id = cursor.lastrowid
     
     def __repr__(self):
         return f"<Student(student_id={self.student_id}, name={self.name})>"
 
 class ReamEntry(BaseModel):
     __tablename__ = 'ream_entries'
-    __pk__ = "student_id"
-    def __init__(self, student_id, reams_count, date_added=None, created_at=None):
+    __pk__ = "id"
+    def __init__(self, student_id, reams_count, date_added=None, created_at=None, id=None):
         super().__init__()
+        self.id = id
         self.student_id = student_id
         self.reams_count = reams_count
         self.date_added = date_added
@@ -51,7 +50,7 @@ class ReamEntry(BaseModel):
         db.commit()
     
     def __repr__(self):
-        return f"<ReamEntry(student_id={self.student_id}, reams_count={self.reams_count})>"
+        return f"<ReamEntry(id={self.id}, student_id={self.student_id}, reams_count={self.reams_count})>"
 
 class TotalReams(BaseModel):
     __tablename__ = 'total_reams'
