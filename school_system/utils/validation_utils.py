@@ -69,8 +69,8 @@ class ValidationUtils:
         Returns:
             True if the student ID is valid, False otherwise
         """
-        # Common student ID format: letters followed by numbers
-        pattern = r'^[A-Za-z]{2,4}\d{4,6}$'
+        # Common student ID format: letters followed by numbers OR numeric-only
+        pattern = r'^([A-Za-z]{2,4}\d{4,6}|\d{4,8})$'
         return re.match(pattern, student_id) is not None
 
     @staticmethod

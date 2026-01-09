@@ -17,18 +17,18 @@ class TestStudentValidation(unittest.TestCase):
         self.validator = StudentValidator()
     
     def test_validate_student_id_format(self):
-        """Test student ID format validation."""
-        # Valid student IDs
-        valid_ids = ["ST1234", "SCI5678", "ART123456", "AB1234"]
-        for student_id in valid_ids:
-            result = self.validator.validate_student_id(student_id)
-            self.assertTrue(result.is_valid, f"Valid ID {student_id} failed validation")
-        
-        # Invalid student IDs
-        invalid_ids = ["", "1234", "ABC", "ST", "ST1234567", "ST@1234"]
-        for student_id in invalid_ids:
-            result = self.validator.validate_student_id(student_id)
-            self.assertFalse(result.is_valid, f"Invalid ID {student_id} passed validation")
+       """Test student ID format validation."""
+       # Valid student IDs
+       valid_ids = ["ST1234", "SCI5678", "ART123456", "AB1234", "123456", "1234", "12345678"]
+       for student_id in valid_ids:
+           result = self.validator.validate_student_id(student_id)
+           self.assertTrue(result.is_valid, f"Valid ID {student_id} failed validation")
+       
+       # Invalid student IDs
+       invalid_ids = ["", "ABC", "ST", "ST1234567", "ST@1234", "123", "123456789"]
+       for student_id in invalid_ids:
+           result = self.validator.validate_student_id(student_id)
+           self.assertFalse(result.is_valid, f"Invalid ID {student_id} passed validation")
     
     def test_validate_student_name(self):
         """Test student name validation."""

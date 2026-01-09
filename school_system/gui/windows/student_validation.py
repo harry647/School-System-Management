@@ -30,28 +30,28 @@ class StudentValidator:
         self.student_service = StudentService()
     
     def validate_student_id(self, student_id: str) -> ValidationResult:
-        """Validate student ID format and uniqueness."""
+        """Validate admission number format and uniqueness."""
         if not student_id:
-            return ValidationResult(False, "Student ID is required", "student_id")
-        
+            return ValidationResult(False, "Admission number is required", "admission_number")
+         
         # Check format
         if not ValidationUtils.validate_student_id(student_id):
             return ValidationResult(
-                False, 
-                "Student ID must be 2-4 letters followed by 4-6 digits (e.g., ST1234)",
-                "student_id"
+                False,
+                "Admission number must be 2-4 letters followed by 4-6 digits (e.g., ST1234) or 4-8 digits only (e.g., 123456)",
+                "admission_number"
             )
-        
+         
         # Check uniqueness (case-insensitive)
         existing_student = self.student_service.get_student_by_id(student_id)
         if existing_student:
             return ValidationResult(
-                False, 
-                f"Student ID '{student_id}' already exists",
-                "student_id"
+                False,
+                f"Admission number '{student_id}' already exists",
+                "admission_number"
             )
-        
-        return ValidationResult(True, "Student ID is valid", "student_id")
+         
+        return ValidationResult(True, "Admission number is valid", "admission_number")
     
     def validate_student_name(self, name: str) -> ValidationResult:
         """Validate student name format."""

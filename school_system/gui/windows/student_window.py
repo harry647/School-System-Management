@@ -237,7 +237,7 @@ class StudentWindow(BaseWindow):
 
         # Students table with enhanced features
         self.students_table = self.create_table(0, 5)  # Added column for undo
-        self.students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream", "Actions", ""])
+        self.students_table.setHorizontalHeaderLabels(["Admission Number", "Name", "Stream", "Actions", ""])
         view_layout.add_widget(self.students_table)
 
         view_form.setLayout(view_layout._layout)
@@ -260,10 +260,10 @@ class StudentWindow(BaseWindow):
         add_ream_layout = self.create_flex_layout("column", False)
         add_ream_layout.set_spacing(10)
 
-        # Student ID
-        add_ream_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        add_ream_student_id_label = QLabel("Admission Number:")
         add_ream_layout.add_widget(add_ream_student_id_label)
-        self.add_ream_student_id_input = self.create_input("Enter student ID")
+        self.add_ream_student_id_input = self.create_input("Enter admission number")
         add_ream_layout.add_widget(self.add_ream_student_id_input)
 
         # Reams Count
@@ -294,10 +294,10 @@ class StudentWindow(BaseWindow):
         deduct_ream_layout = self.create_flex_layout("column", False)
         deduct_ream_layout.set_spacing(10)
 
-        # Student ID
-        deduct_ream_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        deduct_ream_student_id_label = QLabel("Admission Number:")
         deduct_ream_layout.add_widget(deduct_ream_student_id_label)
-        self.deduct_ream_student_id_input = self.create_input("Enter student ID")
+        self.deduct_ream_student_id_input = self.create_input("Enter admission number")
         deduct_ream_layout.add_widget(self.deduct_ream_student_id_input)
 
         # Reams Count
@@ -328,16 +328,16 @@ class StudentWindow(BaseWindow):
         transfer_ream_layout = self.create_flex_layout("column", False)
         transfer_ream_layout.set_spacing(10)
 
-        # From Student ID
-        from_student_id_label = QLabel("From Student ID:")
+        # From Admission Number
+        from_student_id_label = QLabel("From Admission Number:")
         transfer_ream_layout.add_widget(from_student_id_label)
-        self.transfer_from_student_id_input = self.create_input("Enter source student ID")
+        self.transfer_from_student_id_input = self.create_input("Enter source admission number")
         transfer_ream_layout.add_widget(self.transfer_from_student_id_input)
-
-        # To Student ID
-        to_student_id_label = QLabel("To Student ID:")
+        
+        # To Admission Number
+        to_student_id_label = QLabel("To Admission Number:")
         transfer_ream_layout.add_widget(to_student_id_label)
-        self.transfer_to_student_id_input = self.create_input("Enter destination student ID")
+        self.transfer_to_student_id_input = self.create_input("Enter destination admission number")
         transfer_ream_layout.add_widget(self.transfer_to_student_id_input)
 
         # Reams Count
@@ -367,10 +367,10 @@ class StudentWindow(BaseWindow):
         ream_transactions_layout = self.create_flex_layout("column", False)
         ream_transactions_layout.set_spacing(10)
 
-        # Student ID for transactions
-        transactions_student_id_label = QLabel("Student ID:")
+        # Admission Number for transactions
+        transactions_student_id_label = QLabel("Admission Number:")
         ream_transactions_layout.add_widget(transactions_student_id_label)
-        self.transactions_student_id_input = self.create_input("Enter student ID")
+        self.transactions_student_id_input = self.create_input("Enter admission number")
         ream_transactions_layout.add_widget(self.transactions_student_id_input)
 
         # View transactions button
@@ -380,7 +380,7 @@ class StudentWindow(BaseWindow):
 
         # Ream transactions table
         self.ream_transactions_table = self.create_table(0, 5)
-        self.ream_transactions_table.setHorizontalHeaderLabels(["Student ID", "Reams Count", "Date Added", "Type", "Balance"])
+        self.ream_transactions_table.setHorizontalHeaderLabels(["Admission Number", "Reams Count", "Date Added", "Type", "Balance"])
         ream_transactions_layout.add_widget(self.ream_transactions_table)
 
         ream_transactions_form.setLayout(ream_transactions_layout._layout)
@@ -403,10 +403,10 @@ class StudentWindow(BaseWindow):
         borrowed_layout = self.create_flex_layout("column", False)
         borrowed_layout.set_spacing(10)
 
-        # Student ID
-        borrowed_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        borrowed_student_id_label = QLabel("Admission Number:")
         borrowed_layout.add_widget(borrowed_student_id_label)
-        self.borrowed_student_id_input = self.create_input("Enter student ID")
+        self.borrowed_student_id_input = self.create_input("Enter admission number")
         borrowed_layout.add_widget(self.borrowed_student_id_input)
 
         # View borrowed books button
@@ -429,10 +429,10 @@ class StudentWindow(BaseWindow):
         history_layout = self.create_flex_layout("column", False)
         history_layout.set_spacing(10)
 
-        # Student ID
-        history_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        history_student_id_label = QLabel("Admission Number:")
         history_layout.add_widget(history_student_id_label)
-        self.history_student_id_input = self.create_input("Enter student ID")
+        self.history_student_id_input = self.create_input("Enter admission number")
         history_layout.add_widget(self.history_student_id_input)
 
         # View history button
@@ -455,10 +455,10 @@ class StudentWindow(BaseWindow):
         overdue_layout = self.create_flex_layout("column", False)
         overdue_layout.set_spacing(10)
 
-        # Student ID
-        overdue_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        overdue_student_id_label = QLabel("Admission Number:")
         overdue_layout.add_widget(overdue_student_id_label)
-        self.overdue_student_id_input = self.create_input("Enter student ID")
+        self.overdue_student_id_input = self.create_input("Enter admission number")
         overdue_layout.add_widget(self.overdue_student_id_input)
 
         # View overdue books button
@@ -540,10 +540,10 @@ class StudentWindow(BaseWindow):
         summary_layout = self.create_flex_layout("column", False)
         summary_layout.set_spacing(10)
 
-        # Student ID
-        summary_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        summary_student_id_label = QLabel("Admission Number:")
         summary_layout.add_widget(summary_student_id_label)
-        self.summary_student_id_input = self.create_input("Enter student ID")
+        self.summary_student_id_input = self.create_input("Enter admission number")
         summary_layout.add_widget(self.summary_student_id_input)
 
         # Generate summary button
@@ -594,10 +594,10 @@ class StudentWindow(BaseWindow):
         ream_layout = self.create_flex_layout("column", False)
         ream_layout.set_spacing(10)
 
-        # Student ID
-        ream_student_id_label = QLabel("Student ID:")
+        # Admission Number
+        ream_student_id_label = QLabel("Admission Number:")
         ream_layout.add_widget(ream_student_id_label)
-        self.ream_usage_student_id_input = self.create_input("Enter student ID")
+        self.ream_usage_student_id_input = self.create_input("Enter admission number")
         ream_layout.add_widget(self.ream_usage_student_id_input)
 
         # Generate ream usage button
@@ -678,7 +678,7 @@ class StudentWindow(BaseWindow):
             student_id = self.delete_student_id_input.text().strip()
 
             if not student_id:
-                show_error_message("Validation Error", "Student ID is required", self)
+                show_error_message("Validation Error", "Admission number is required", self)
                 return
 
             # Confirm deletion
@@ -851,7 +851,7 @@ class StudentWindow(BaseWindow):
             source = self.add_ream_source_combo.currentText()
 
             if not student_id or reams_count <= 0:
-                show_error_message("Validation Error", "Student ID and positive reams count are required", self)
+                show_error_message("Validation Error", "Admission number and positive reams count are required", self)
                 return
 
             entry = self.student_service.add_reams_to_student(student_id, reams_count, source)
@@ -874,7 +874,7 @@ class StudentWindow(BaseWindow):
             purpose = self.deduct_ream_purpose_combo.currentText()
 
             if not student_id or reams_count <= 0:
-                show_error_message("Validation Error", "Student ID and positive reams count are required", self)
+                show_error_message("Validation Error", "Admission number and positive reams count are required", self)
                 return
 
             entry = self.student_service.deduct_reams_from_student(student_id, reams_count, purpose)
@@ -898,7 +898,7 @@ class StudentWindow(BaseWindow):
             reason = self.transfer_reason_input.text().strip()
 
             if not from_student_id or not to_student_id or reams_count <= 0:
-                show_error_message("Validation Error", "Both student IDs and positive reams count are required", self)
+                show_error_message("Validation Error", "Both admission numbers and positive reams count are required", self)
                 return
 
             success = self.student_service.transfer_reams_between_students(

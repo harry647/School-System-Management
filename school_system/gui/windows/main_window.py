@@ -50,10 +50,10 @@ class MainWindow(BaseApplicationWindow):
         logger.info(f"Main window created for user {username} with role {role}")
 
     def _setup_sidebar(self):
-        """Setup the left-aligned sidebar navigation."""
+        """Setup the left-aligned sidebar navigation with modern styling."""
         # Create sidebar frame
         sidebar = QFrame(self)
-        sidebar.setFixedWidth(200)
+        sidebar.setFixedWidth(220)
         sidebar.setStyleSheet("""
             QFrame {
                 background-color: #2c3e50;
@@ -62,9 +62,10 @@ class MainWindow(BaseApplicationWindow):
             QToolButton {
                 color: white;
                 text-align: left;
-                padding: 10px;
+                padding: 12px;
                 border: none;
                 font-size: 14px;
+                border-radius: 4px;
             }
             QToolButton:hover {
                 background-color: #34495e;
@@ -73,13 +74,13 @@ class MainWindow(BaseApplicationWindow):
                 background-color: #1a252f;
             }
         """)
-        
+         
         # Create vertical layout for sidebar
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        sidebar_layout.setSpacing(0)
-        
-        # Add navigation buttons
+        sidebar_layout.setSpacing(4)
+         
+        # Add navigation buttons with icons
         modules = [
             ("Dashboard", "🏠", self._show_dashboard),
             ("Students", "👨‍🎓", self._show_students),
@@ -89,24 +90,24 @@ class MainWindow(BaseApplicationWindow):
             ("Reports", "📊", self._show_report_management),
             ("Settings", "⚙️", self._show_settings),
         ]
-        
+         
         for text, icon, callback in modules:
             btn = QToolButton()
             btn.setText(f"  {icon}  {text}")
             btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
             btn.clicked.connect(callback)
             sidebar_layout.addWidget(btn)
-        
+         
         # Add stretch to push buttons to top
         sidebar_layout.addStretch()
-        
+         
         # Add sidebar to main layout
         self._main_layout.insertWidget(0, sidebar)
         
     def _setup_top_bar(self):
-        """Setup the top bar for branding, user info, and logout."""
+        """Setup the top bar for branding, user info, and logout with modern styling."""
         top_bar = QFrame(self)
-        top_bar.setFixedHeight(60)
+        top_bar.setFixedHeight(64)
         top_bar.setStyleSheet("""
             QFrame {
                 background-color: #3498db;
@@ -119,14 +120,14 @@ class MainWindow(BaseApplicationWindow):
                 font-weight: bold;
             }
         """)
-        
+         
         # Create horizontal layout for top bar
         top_layout = QHBoxLayout(top_bar)
-        top_layout.setContentsMargins(15, 0, 15, 0)
+        top_layout.setContentsMargins(20, 0, 20, 0)
         
         # School branding
         logo_label = QLabel("🏫 School System Management")
-        logo_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        logo_label.setStyleSheet("font-size: 20px; font-weight: bold;")
         top_layout.addWidget(logo_label)
         
         # Spacer
@@ -140,7 +141,7 @@ class MainWindow(BaseApplicationWindow):
         # Logout button
         logout_btn = QToolButton()
         logout_btn.setText("Logout 🚪")
-        logout_btn.setStyleSheet("color: white; font-size: 14px;")
+        logout_btn.setStyleSheet("color: white; font-size: 14px; padding: 8px 16px;")
         logout_btn.clicked.connect(self._on_logout)
         top_layout.addWidget(logout_btn)
         
@@ -278,14 +279,46 @@ class MainWindow(BaseApplicationWindow):
         account_menu.addAction("Profile", self._show_profile)
         account_menu.addAction("Settings", self._show_settings)
 
+    def clear_content(self):
+        """Clear all widgets from the content area to avoid duplication."""
+        # Clear all widgets from the content layout
+        while self._content_layout.count():
+            item = self._content_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            else:
+                # If it's a layout, clear it as well
+                layout = item.layout()
+                if layout is not None:
+                    self._clear_layout(layout)
+        
+        logger.info("Content area cleared to prevent duplication")
+    
+    def _clear_layout(self, layout):
+        """Recursively clear all widgets from a layout."""
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            else:
+                # If it's a nested layout, clear it as well
+                nested_layout = item.layout()
+                if nested_layout is not None:
+                    self._clear_layout(nested_layout)
+    
     def _setup_content(self):
         """Setup the main content area with statistics display."""
+        # Clear existing content to avoid duplication
+        self.clear_content()
+        
         # Create main vertical layout with clean spacing
         main_layout = self.create_layout("vbox")
-        main_layout.set_spacing(20)
-        main_layout.set_margins(20, 20, 20, 20)
+        main_layout.set_spacing(24)
+        main_layout.set_margins(24, 24, 24, 24)
         self.add_layout_to_content(main_layout)
-        
+         
         # Dynamic welcome header
         self._setup_welcome_header(main_layout)
         
@@ -294,7 +327,7 @@ class MainWindow(BaseApplicationWindow):
         
         # Statistics section - show totals only, no management sections
         stats_layout = self.create_flex_layout(direction="row", wrap=True)
-        stats_layout.set_spacing(16)
+        stats_layout.set_spacing(20)
         
         # Show relevant statistics based on user role
         stats_cards = []
@@ -308,7 +341,7 @@ class MainWindow(BaseApplicationWindow):
             ])
         else:
             stats_cards.append(("Total Books", "0", "📚"))
-        
+         
         for title, count, icon in stats_cards:
             stat_card = self._create_modern_stat_card(title, count, icon)
             stats_layout._layout.addWidget(stat_card)
@@ -334,14 +367,15 @@ class MainWindow(BaseApplicationWindow):
                 background-color: white;
                 border-radius: 12px;
                 border-left: 4px solid #3498db;
-                padding: 20px;
+                padding: 24px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
         """)
-        
+         
         welcome_layout = QVBoxLayout(welcome_card)
-        welcome_layout.setContentsMargins(15, 15, 15, 15)
-        welcome_layout.setSpacing(12)
-        
+        welcome_layout.setContentsMargins(16, 16, 16, 16)
+        welcome_layout.setSpacing(16)
+         
         # Personalized greeting with time-based and role-based message
         self._setup_personalized_greeting(welcome_layout)
         
@@ -573,14 +607,15 @@ class MainWindow(BaseApplicationWindow):
                 background-color: white;
                 border-radius: 12px;
                 border: 1px solid #e1e4e8;
-                padding: 15px;
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
         """)
-        
+         
         quick_actions_layout = QHBoxLayout(quick_actions_card)
-        quick_actions_layout.setContentsMargins(10, 10, 10, 10)
-        quick_actions_layout.setSpacing(10)
-        
+        quick_actions_layout.setContentsMargins(12, 12, 12, 12)
+        quick_actions_layout.setSpacing(12)
+         
         # Quick action buttons
         actions = [
             ("➕ Add Student", self._add_student),
@@ -588,7 +623,7 @@ class MainWindow(BaseApplicationWindow):
             ("📤 Import Distribution", self._show_import),
             ("📄 Generate Report", self._show_report_management),
         ]
-        
+         
         for text, callback in actions:
             btn = QToolButton()
             btn.setText(text)
@@ -597,9 +632,10 @@ class MainWindow(BaseApplicationWindow):
                     background-color: white;
                     border: 1px solid #3498db;
                     color: #3498db;
-                    padding: 8px 15px;
-                    border-radius: 6px;
+                    padding: 10px 16px;
+                    border-radius: 8px;
                     font-size: 14px;
+                    font-weight: 500;
                 }
                 QToolButton:hover {
                     background-color: rgba(52, 152, 219, 0.1);
@@ -607,7 +643,7 @@ class MainWindow(BaseApplicationWindow):
             """)
             btn.clicked.connect(callback)
             quick_actions_layout.addWidget(btn)
-        
+         
         main_layout._layout.addWidget(quick_actions_card)
     
     def _create_modern_stat_card(self, title, count, icon):
@@ -619,31 +655,32 @@ class MainWindow(BaseApplicationWindow):
                 border-radius: 12px;
                 border-left: 4px solid #3498db;
                 border: 1px solid #e1e4e8;
-                padding: 16px;
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
             QFrame:hover {
                 border-color: #2980b9;
                 background-color: rgba(52, 152, 219, 0.05);
             }
         """)
-        card.setMinimumWidth(150)
-        card.setMaximumWidth(200)
-        card.setMinimumHeight(120)
-        
+        card.setMinimumWidth(160)
+        card.setMaximumWidth(220)
+        card.setMinimumHeight(130)
+         
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(10, 10, 10, 10)
-        
+        layout.setContentsMargins(12, 12, 12, 12)
+         
         # Icon and title
         title_label = QLabel(f"{icon} {title}")
-        title_label.setStyleSheet("font-size: 14px; color: #7f8c8d;")
+        title_label.setStyleSheet("font-size: 14px; color: #7f8c8d; font-weight: 500;")
         layout.addWidget(title_label)
-        
+         
         # Large number
         count_label = QLabel(count)
-        count_label.setStyleSheet("font-size: 32px; font-weight: bold; color: #2c3e50;")
+        count_label.setStyleSheet("font-size: 36px; font-weight: bold; color: #2c3e50;")
         count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(count_label)
-        
+         
         return card
     
     
