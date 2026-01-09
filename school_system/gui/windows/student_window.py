@@ -26,6 +26,7 @@ from school_system.gui.windows.student_workflow_components import (
     StudentWorkflowManager, StudentCreationWorkflow,
     StudentUpdateWorkflow, StudentDeletionWorkflow
 )
+from school_system.database.repositories.student_repo import ReamEntryRepository
 
 
 class StudentWindow(BaseWindow):
@@ -79,6 +80,9 @@ class StudentWindow(BaseWindow):
         
         # Refresh students table to populate initial data
         self._refresh_students_table()
+        
+        # Schedule population of recent transactions table after UI is fully initialized
+        QTimer.singleShot(100, self._populate_recent_transactions_on_startup)
 
     def _apply_modern_styling(self):
         """Apply modern styling to the student window."""
@@ -681,10 +685,13 @@ class StudentWindow(BaseWindow):
         transactions_layout = self.create_flex_layout("column", False)
         transactions_layout.set_spacing(8)
         
-        self.ream_transactions_table = self.create_table(0, 5)
+        # Create table with proper column count
+        self.ream_transactions_table = self.create_table(0, 0)
+        self.ream_transactions_table.setColumnCount(5)  # Set column count explicitly
         self.ream_transactions_table.setHorizontalHeaderLabels([
             "Student ID", "Reams", "Date", "Type", "Balance"
         ])
+        
         transactions_layout.add_widget(self.ream_transactions_table)
         
         # Add the transactions layout widget to the section instead of its internal layout
@@ -1421,22 +1428,38 @@ class StudentWindow(BaseWindow):
 
     def _populate_ream_transactions_table(self, transactions):
         """Populate the ream transactions table with data."""
+        # Clear the table
         self.ream_transactions_table.setRowCount(0)
+        
+        # Check if transactions list is empty
+        if not transactions:
+            return
+            
+        # Set the correct number of rows at once for better performance
+        self.ream_transactions_table.setRowCount(len(transactions))
 
-        # Get current balance for the student
-        current_balance = 0
-        if transactions:
-            current_balance = self.student_service.get_student_ream_balance(transactions[0].student_id)
+        for row_position, transaction in enumerate(transactions):
+            # Get current balance for this specific student
+            current_balance = self.student_service.get_student_ream_balance(transaction.student_id)
 
-        for transaction in transactions:
-            row_position = self.ream_transactions_table.rowCount()
-            self.ream_transactions_table.insertRow(row_position)
-
-            self.ream_transactions_table.setItem(row_position, 0, QTableWidgetItem(str(transaction.student_id)))
-            self.ream_transactions_table.setItem(row_position, 1, QTableWidgetItem(str(transaction.reams_count)))
-            self.ream_transactions_table.setItem(row_position, 2, QTableWidgetItem(transaction.date_added or ""))
-            self.ream_transactions_table.setItem(row_position, 3, QTableWidgetItem("Add" if transaction.reams_count > 0 else "Deduct"))
-            self.ream_transactions_table.setItem(row_position, 4, QTableWidgetItem(str(current_balance)))
+            # Create and set items for each column
+            student_id_item = QTableWidgetItem(str(transaction.student_id))
+            reams_count_item = QTableWidgetItem(str(transaction.reams_count))
+            date_item = QTableWidgetItem(transaction.date_added or "")
+            type_item = QTableWidgetItem("Add" if transaction.reams_count > 0 else "Deduct")
+            balance_item = QTableWidgetItem(str(current_balance))
+            
+            # Set items in the table
+            self.ream_transactions_table.setItem(row_position, 0, student_id_item)
+            self.ream_transactions_table.setItem(row_position, 1, reams_count_item)
+            self.ream_transactions_table.setItem(row_position, 2, date_item)
+            self.ream_transactions_table.setItem(row_position, 3, type_item)
+            self.ream_transactions_table.setItem(row_position, 4, balance_item)
+        
+        # Ensure the table is visible and properly laid out
+        self.ream_transactions_table.setVisible(True)
+        self.ream_transactions_table.resizeColumnsToContents()
+        self.ream_transactions_table.resizeRowsToContents()
 
     def _refresh_ream_transactions_table(self, student_id: str):
         """Refresh the ream transactions table for a specific student."""
@@ -1447,6 +1470,36 @@ class StudentWindow(BaseWindow):
         except Exception as e:
             print(f"Error refreshing ream transactions table: {e}")
             # Don't show error to user as this is an automatic refresh
+
+    def _populate_recent_transactions_on_startup(self):
+        """Populate the recent transactions table with recent transactions from all students on startup."""
+        try:
+            # Check if the table is initialized
+            if not hasattr(self, 'ream_transactions_table'):
+                return
+            
+            # Get all ream entries from the database (most recent first)
+            ream_entry_repository = ReamEntryRepository()
+            all_transactions = ream_entry_repository.get_all()
+            
+            # Sort by date_added (newest first) and limit to 20 most recent
+            sorted_transactions = sorted(
+                all_transactions,
+                key=lambda x: x.date_added if x.date_added else '',
+                reverse=True
+            )[:20]  # Show 20 most recent transactions
+            
+            # Populate the table with these transactions
+            self._populate_ream_transactions_table(sorted_transactions)
+            
+            # Ensure the table is visible and properly laid out
+            self.ream_transactions_table.setVisible(True)
+            self.ream_transactions_table.resizeColumnsToContents()
+            self.ream_transactions_table.resizeRowsToContents()
+            
+        except Exception as e:
+            # Don't show error to user as this is automatic
+            pass
 
     # Event handlers for Library Activity
     def _on_view_borrowed_books(self):

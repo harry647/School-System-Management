@@ -211,12 +211,26 @@ class CustomTableWidget(QTableWidget):
     def sort_by_column(self, column: int, order: Qt.SortOrder = Qt.SortOrder.AscendingOrder):
         """
         Sort table by a specific column.
-        
+         
         Args:
             column: Column index to sort by
             order: Sort order (Ascending or Descending)
         """
         self.sortItems(column, order)
+    
+    def horizontalHeaderLabels(self) -> List[str]:
+        """
+        Get the current horizontal header labels.
+        
+        Returns:
+            List of header labels as strings
+        """
+        headers = []
+        horizontal_header = self.horizontalHeader()
+        for i in range(self.columnCount()):
+            item = horizontal_header.model().headerData(i, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole)
+            headers.append(str(item) if item else "")
+        return headers
 
 
 class SortFilterProxyModel(QSortFilterProxyModel):
