@@ -258,6 +258,7 @@ class StudentWindow(BaseWindow):
         # Reports Tab
         reports_tab = self._create_reports_tab()
         tab_widget.addTab(reports_tab, "Reports")
+        tab_widget.setCurrentIndex(0)
 
     def _setup_undo_system(self):
         """Setup the undo system for student operations."""
@@ -481,10 +482,17 @@ class StudentWindow(BaseWindow):
             suggestions = []
             
             for student in all_students:
+                # Check if stream is not None before calling lower()
+                stream_match = False
+                if student.stream is not None:
+                    stream_match = text.lower() in student.stream.lower()
+                
                 if (text.lower() in student.student_id.lower() or
                     text.lower() in student.name.lower() or
-                    (student.stream and text.lower() in student.stream.lower())):
-                    suggestions.append(f"{student.student_id} - {student.name} ({student.stream})")
+                    stream_match):
+                    # Handle None stream in display
+                    stream_display = student.stream if student.stream is not None else "No Stream"
+                    suggestions.append(f"{student.student_id} - {student.name} ({stream_display})")
             
             # Populate suggestions list
             self.search_suggestions.clear()
@@ -1154,16 +1162,26 @@ class StudentWindow(BaseWindow):
 
     def _populate_students_table(self, students):
         """Populate the students table with data and enhanced features."""
+        # Ensure table has correct column count
+        if self.students_table.columnCount() != 4:
+            self.students_table.setColumnCount(4)
+            self.students_table.setHorizontalHeaderLabels([
+                "Admission Number",
+                "Name",
+                "Stream",
+                "Actions"
+            ])
+        
         self.students_table.setRowCount(0)
-
+ 
         for student in students:
             row_position = self.students_table.rowCount()
             self.students_table.insertRow(row_position)
 
-            self.students_table.setItem(row_position, 0, QTableWidgetItem(str(student.student_id)))
+            self.students_table.setItem(row_position, 0, QTableWidgetItem(str(student.admission_number)))
             self.students_table.setItem(row_position, 1, QTableWidgetItem(student.name))
             self.students_table.setItem(row_position, 2, QTableWidgetItem(student.stream or ""))
-
+ 
             # Add action buttons container
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
@@ -1173,19 +1191,19 @@ class StudentWindow(BaseWindow):
             # View button with icon
             view_button = self.create_button("View", "secondary")
             view_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton))
-            view_button.clicked.connect(lambda _, sid=student.student_id: self._view_student_details(sid))
+            view_button.clicked.connect(lambda _, sid=student.admission_number: self._view_student_details(sid))
             action_layout.addWidget(view_button)
 
             # Edit button with icon
             edit_button = self.create_button("Edit", "primary")
             edit_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView))
-            edit_button.clicked.connect(lambda _, sid=student.student_id: self._start_edit_workflow(sid))
+            edit_button.clicked.connect(lambda _, sid=student.admission_number: self._start_edit_workflow(sid))
             action_layout.addWidget(edit_button)
 
             # Delete button with icon
             delete_button = self.create_button("Delete", "danger")
             delete_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
-            delete_button.clicked.connect(lambda _, sid=student.student_id: self._start_delete_workflow(sid))
+            delete_button.clicked.connect(lambda _, sid=student.admission_number: self._start_delete_workflow(sid))
             action_layout.addWidget(delete_button)
 
             self.students_table.setCellWidget(row_position, 3, action_widget)
@@ -1239,7 +1257,8 @@ class StudentWindow(BaseWindow):
         try:
             student = self.student_service.get_student_by_id(student_id)
             if student:
-                details = f"Student Details:\n\nID: {student.student_id}\nName: {student.name}\nStream: {student.stream}"
+                stream_display = student.stream if student.stream is not None else "No Stream"
+                details = f"Student Details:\n\nID: {student.student_id}\nName: {student.name}\nStream: {stream_display}"
                 show_success_message("Student Details", details, self)
             else:
                 show_error_message("Error", "Student not found", self)
@@ -1536,7 +1555,8 @@ class StudentWindow(BaseWindow):
 
             # Generate summary report
             report_text = f"Student Summary Report for {student.name} (ID: {student.student_id})\n\n"
-            report_text += f"Stream: {student.stream}\n"
+            stream_display = student.stream if student.stream is not None else "No Stream"
+            report_text += f"Stream: {stream_display}\n"
             report_text += f"Ream Balance: {ream_balance}\n\n"
             report_text += "Library Activity:\n"
             report_text += f"  Total Books Borrowed: {library_summary.get('total_books_borrowed', 0)}\n"
