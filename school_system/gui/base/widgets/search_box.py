@@ -31,8 +31,8 @@ class SearchBox(QWidget):
         
         # Create layout
         self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(2, 2, 2, 2)
+        self.layout.setSpacing(2)
         
         # Create search input
         self.search_input = QLineEdit()
@@ -40,11 +40,11 @@ class SearchBox(QWidget):
         self.search_input.setClearButtonEnabled(True)
         self.search_input.setStyleSheet("""
             QLineEdit {
-                padding: 8px 12px;
+                padding: 4px 8px;
                 border: 1px solid #ddd;
                 border-radius: 4px 0 0 4px;
-                font-size: 14px;
-                min-width: 200px;
+                font-size: 13px;
+                min-width: 150px;
             }
             QLineEdit:focus {
                 border: 1px solid #4CAF50;
@@ -62,12 +62,12 @@ class SearchBox(QWidget):
         
         self.search_button.setStyleSheet("""
             QPushButton {
-                padding: 8px 12px;
+                padding: 4px 8px;
                 background-color: #4CAF50;
                 color: white;
                 border: 1px solid #4CAF50;
                 border-radius: 0 4px 4px 0;
-                font-size: 14px;
+                font-size: 13px;
             }
             QPushButton:hover {
                 background-color: #45a049;

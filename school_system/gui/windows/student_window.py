@@ -374,8 +374,8 @@ class StudentWindow(BaseWindow):
         
         # Smart search box with suggestions
         self.search_box = self.create_search_box("Search students by name, ID, or stream...")
-        self.search_box.setMinimumWidth(300)
-        self.search_box.setMaximumWidth(400)
+        self.search_box.setMinimumWidth(180)
+        self.search_box.setMaximumWidth(250)
         
         # Add search suggestions dropdown
         self.search_suggestions = QListWidget()

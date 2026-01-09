@@ -250,6 +250,8 @@ class TeacherWindow(BaseWindow):
 
         # Search box with real-time validation
         self.search_box = self.create_search_box("Search teachers...")
+        self.search_box.setMinimumWidth(180)
+        self.search_box.setMaximumWidth(250)
         self.search_box.search_text_changed.connect(self._on_search_teachers)
         view_layout.add_widget(self.search_box)
 
