@@ -20,8 +20,8 @@ from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
 from school_system.config.logging import logger
 from school_system.services.furniture_service import FurnitureService
 from school_system.core.exceptions import DatabaseException, ValidationError
-from school_system.gui.windows.furniture_validation import FurnitureValidator, ValidationResult, FieldValidator
-from school_system.gui.windows.furniture_workflow_components import (
+from school_system.gui.windows.furniture_window.furniture_validation import FurnitureValidator, ValidationResult, FieldValidator
+from school_system.gui.windows.furniture_window.furniture_workflow_components import (
     FurnitureWorkflowManager, ChairCreationWorkflow,
     LockerCreationWorkflow, FurnitureUpdateWorkflow, FurnitureDeletionWorkflow
 )

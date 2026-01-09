@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any, Callable
 from school_system.gui.base.base_window import BaseWindow
 from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
 from school_system.gui.base.widgets import ModernButton, ModernInput
-from school_system.gui.windows.user_validation import UserValidator, ValidationResult
+from school_system.gui.windows.user_window.user_validation import UserValidator, ValidationResult
 from school_system.services.auth_service import AuthService
 from school_system.config.logging import logger
 

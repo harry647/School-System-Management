@@ -21,8 +21,8 @@ from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
 from school_system.config.logging import logger
 from school_system.services.student_service import StudentService
 from school_system.core.exceptions import DatabaseException, ValidationError
-from school_system.gui.windows.student_validation import StudentValidator, ValidationResult, FieldValidator
-from school_system.gui.windows.student_workflow_components import (
+from school_system.gui.windows.student_window.student_validation import StudentValidator, ValidationResult, FieldValidator
+from school_system.gui.windows.student_window.student_workflow_components import (
     StudentWorkflowManager, StudentCreationWorkflow,
     StudentUpdateWorkflow, StudentDeletionWorkflow
 )

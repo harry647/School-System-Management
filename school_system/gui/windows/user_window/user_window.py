@@ -18,8 +18,8 @@ from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
 from school_system.config.logging import logger
 from school_system.services.auth_service import AuthService
 from school_system.core.exceptions import AuthenticationError, ValidationError
-from school_system.gui.windows.user_validation import UserValidator, ValidationResult, FieldValidator
-from school_system.gui.windows.user_workflow_components import (
+from school_system.gui.windows.user_window.user_validation import UserValidator, ValidationResult, FieldValidator
+from school_system.gui.windows.user_window.user_workflow_components import (
     UserWorkflowManager, UserCreationWorkflow,
     UserUpdateWorkflow, UserDeletionWorkflow
 )
