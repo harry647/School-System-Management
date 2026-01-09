@@ -56,6 +56,12 @@ class BaseRepository(Generic[T]):
             placeholders = ', '.join(['?'] * len(kwargs))
             cursor.execute(f"INSERT INTO {self.model.__tablename__} ({columns}) VALUES ({placeholders})", tuple(kwargs.values()))
             self.db.commit()
+            
+            # Retrieve the auto-generated ID for models that have auto-increment primary keys
+            pk = getattr(self.model, '__pk__', None)
+            if pk and self.model.__tablename__ == 'students':  # Specifically handle student_id for students table
+                kwargs[pk] = cursor.lastrowid
+            
             return self.model(**kwargs)
         except Exception as e:
             raise DatabaseException(f"Error creating entity: {e}")

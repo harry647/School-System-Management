@@ -233,8 +233,8 @@ class StudentCreationWorkflow(StudentOperationWorkflow):
     
     def _setup_creation_form(self):
         """Setup the student creation form."""
-        # Student ID
-        self.add_field("Student ID", "text", "Enter student ID (e.g., ST1234)", True)
+        # Admission Number
+        self.add_field("Admission Number", "text", "Enter admission number", True)
         
         # Name
         self.add_field("Name", "text", "Enter student name", True)
@@ -242,23 +242,18 @@ class StudentCreationWorkflow(StudentOperationWorkflow):
         # Stream
         self.add_field("Stream", "text", "Enter stream (e.g., Science, Arts)", True)
         
-        # Date of Birth
-        self.add_field("Date of Birth", "text", "YYYY-MM-DD", True)
-        
         # Action buttons
         self.add_action_button("Clear", "secondary", self._clear_form)
         self.add_action_button("Create Student", "primary", self._on_create_student)
     
     def _clear_form(self):
         """Clear the form."""
-        if hasattr(self, 'student_id_input'):
-            self.student_id_input.clear()
+        if hasattr(self, 'admission_number_input'):
+            self.admission_number_input.clear()
         if hasattr(self, 'name_input'):
             self.name_input.clear()
         if hasattr(self, 'stream_input'):
             self.stream_input.clear()
-        if hasattr(self, 'date_of_birth_input'):
-            self.date_of_birth_input.clear()
     
     def _on_create_student(self):
         """Handle student creation with full workflow."""
@@ -276,10 +271,9 @@ class StudentCreationWorkflow(StudentOperationWorkflow):
         
         # Prepare summary data
         summary_data = {
-            'Student ID': self.student_id_input.text(),
+            'Admission Number': self.admission_number_input.text(),
             'Name': self.name_input.text(),
-            'Stream': self.stream_input.text(),
-            'Date of Birth': self.date_of_birth_input.text()
+            'Stream': self.stream_input.text()
         }
         
         # Show confirmation
@@ -289,7 +283,7 @@ class StudentCreationWorkflow(StudentOperationWorkflow):
         # Execute operation
         try:
             student_data = {
-                'student_id': self.student_id_input.text(),
+                'admission_number': self.admission_number_input.text(),
                 'name': self.name_input.text(),
                 'stream': self.stream_input.text()
             }
@@ -311,9 +305,9 @@ class StudentCreationWorkflow(StudentOperationWorkflow):
         """Validate all creation fields."""
         results = {}
         
-        if hasattr(self, 'student_id_input'):
-            results['student_id'] = self.validator.validate_student_id(
-                self.student_id_input.text()
+        if hasattr(self, 'admission_number_input'):
+            results['admission_number'] = self.validator.validate_student_id(
+                self.admission_number_input.text()
             )
         
         if hasattr(self, 'name_input'):
@@ -324,11 +318,6 @@ class StudentCreationWorkflow(StudentOperationWorkflow):
         if hasattr(self, 'stream_input'):
             results['stream'] = self.validator.validate_stream(
                 self.stream_input.text()
-            )
-        
-        if hasattr(self, 'date_of_birth_input'):
-            results['dob'] = self.validator.validate_age(
-                self.date_of_birth_input.text()
             )
         
         return results

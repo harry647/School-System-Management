@@ -31,17 +31,19 @@ class StudentService:
         """
         return self.student_repository.get_all()
 
-    def get_student_by_id(self, student_id: int) -> Optional[Student]:
+    def get_student_by_id(self, admission_number: str) -> Optional[Student]:
         """
-        Retrieve a student by their ID.
+        Retrieve a student by their admission number.
 
         Args:
-            student_id: The ID of the student.
+            admission_number: The admission number of the student.
 
         Returns:
             The Student object if found, otherwise None.
         """
-        return self.student_repository.get_by_id(student_id)
+        # Find student by admission_number
+        students = self.student_repository.find_by_field('admission_number', admission_number)
+        return students[0] if students else None
 
     def create_student(self, student_data: dict) -> Student:
         """
@@ -55,47 +57,59 @@ class StudentService:
         """
         logger.info(f"Creating a new student with data: {student_data}")
         ValidationUtils.validate_input(student_data.get('name'), "Student name cannot be empty")
+        ValidationUtils.validate_input(student_data.get('admission_number'), "Admission number cannot be empty")
         
-        student = Student(**student_data)
+        # Remove 'created_at' and 'student_id' from student_data if they exist to avoid passing them to the Student constructor
+        student_data_copy = student_data.copy()
+        student_data_copy.pop('created_at', None)
+        student_data_copy.pop('student_id', None)
+        
+        student = Student(**student_data_copy)
         created_student = self.student_repository.create(student)
-        logger.info(f"Student created successfully with ID: {created_student.id}")
+        logger.info(f"Student created successfully with ID: {created_student.student_id}")
         return created_student
 
-    def update_student(self, student_id: int, student_data: dict) -> Optional[Student]:
+    def update_student(self, admission_number: str, student_data: dict) -> Optional[Student]:
         """
         Update an existing student.
 
         Args:
-            student_id: The ID of the student to update.
+            admission_number: The admission number of the student to update.
             student_data: A dictionary containing updated student data.
 
         Returns:
             The updated Student object if successful, otherwise None.
         """
-        student = self.student_repository.get_by_id(student_id)
-        if not student:
+        # Find student by admission_number first
+        students = self.student_repository.find_by_field('admission_number', admission_number)
+        if not students:
             return None
+        
+        student = students[0]
 
         for key, value in student_data.items():
             setattr(student, key, value)
 
-        return self.student_repository.update(student)
+        return self.student_repository.update(student.student_id)
 
-    def delete_student(self, student_id: int) -> bool:
+    def delete_student(self, admission_number: str) -> bool:
         """
         Delete a student.
 
         Args:
-            student_id: The ID of the student to delete.
+            admission_number: The admission number of the student to delete.
 
         Returns:
             True if the student was deleted, otherwise False.
         """
-        student = self.student_repository.get_by_id(student_id)
-        if not student:
+        # Find student by admission_number first
+        students = self.student_repository.find_by_field('admission_number', admission_number)
+        if not students:
             return False
+        
+        student = students[0]
 
-        self.student_repository.delete(student)
+        self.student_repository.delete(student.student_id)
         return True
 
 
@@ -199,7 +213,12 @@ class StudentService:
             students = []
             
             for student_data in data:
-                student = Student(**student_data)
+                # Remove 'created_at' and 'student_id' from student_data if they exist to avoid passing them to the Student constructor
+                student_data_copy = student_data.copy()
+                student_data_copy.pop('created_at', None)
+                student_data_copy.pop('student_id', None)
+                
+                student = Student(**student_data_copy)
                 created_student = self.student_repository.create(student)
                 students.append(created_student)
             
@@ -232,56 +251,76 @@ class StudentService:
     
         # Library-Related Methods
     
-        def get_books_borrowed_by_student(self, student_id: int) -> List[BorrowedBookStudent]:
+        def get_books_borrowed_by_student(self, admission_number: str) -> List[BorrowedBookStudent]:
             """
             Get all books currently borrowed by a student.
             
             Args:
-                student_id: ID of the student
-                 
+                admission_number: Admission number of the student
+                  
             Returns:
                 List of books currently borrowed by the student
             """
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return []
+            
             borrowed_book_repository = BorrowedBookStudentRepository()
-            return borrowed_book_repository.find_by_field('student_id', student_id)
+            return borrowed_book_repository.find_by_field('student_id', student.student_id)
     
-        def get_student_borrowing_history(self, student_id: int) -> List[BorrowedBookStudent]:
+        def get_student_borrowing_history(self, admission_number: str) -> List[BorrowedBookStudent]:
             """
             Get complete borrowing history for a student.
             
             Args:
-                student_id: ID of the student
-                 
+                admission_number: Admission number of the student
+                  
             Returns:
                 List of all borrowing records for the student
             """
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return []
+            
             borrowed_book_repository = BorrowedBookStudentRepository()
-            return borrowed_book_repository.find_by_field('student_id', student_id)
+            return borrowed_book_repository.find_by_field('student_id', student.student_id)
     
-        def get_student_current_borrowed_books(self, student_id: int) -> List[BorrowedBookStudent]:
+        def get_student_current_borrowed_books(self, admission_number: str) -> List[BorrowedBookStudent]:
             """
             Get books currently borrowed (not returned) by a student.
             
             Args:
-                student_id: ID of the student
-                 
+                admission_number: Admission number of the student
+                  
             Returns:
                 List of currently borrowed books
             """
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return []
+            
             borrowed_book_repository = BorrowedBookStudentRepository()
             # Assuming there's a returned_on field that's NULL for currently borrowed books
-            return borrowed_book_repository.get_by_fields(student_id=student_id, returned_on=None)
+            return borrowed_book_repository.get_by_fields(student_id=student.student_id, returned_on=None)
     
-        def get_student_overdue_books(self, student_id: int) -> List[BorrowedBookStudent]:
+        def get_student_overdue_books(self, admission_number: str) -> List[BorrowedBookStudent]:
             """
             Get overdue books for a student.
             
             Args:
-                student_id: ID of the student
-                 
+                admission_number: Admission number of the student
+                  
             Returns:
                 List of overdue books
             """
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return []
+            
             borrowed_book_repository = BorrowedBookStudentRepository()
             # This would need implementation based on due dates
             # For now, return empty list as placeholder
@@ -473,18 +512,23 @@ class StudentService:
     
         # Ream-Related Methods
     
-        def get_student_ream_balance(self, student_id: int) -> int:
+        def get_student_ream_balance(self, admission_number: str) -> int:
             """
             Get the current ream balance for a student.
             
             Args:
-                student_id: ID of the student
-                 
+                admission_number: Admission number of the student
+                  
             Returns:
                 Current ream balance
             """
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return 0
+            
             ream_entry_repository = ReamEntryRepository()
-            ream_entries = ream_entry_repository.find_by_field('student_id', student_id)
+            ream_entries = ream_entry_repository.find_by_field('student_id', student.student_id)
             
             balance = 0
             for entry in ream_entries:
@@ -492,22 +536,27 @@ class StudentService:
             
             return balance
     
-        def add_reams_to_student(self, student_id: int, reams_count: int, source: str = "Distribution") -> ReamEntry:
+        def add_reams_to_student(self, admission_number: str, reams_count: int, source: str = "Distribution") -> ReamEntry:
             """
             Add reams to a student's account with source tracking.
             
             Args:
-                student_id: ID of the student
+                admission_number: Admission number of the student
                 reams_count: Number of reams to add
                 source: Source of the reams (Distribution, Purchase, Transfer, etc.)
-                 
+                  
             Returns:
                 The created ream entry
             """
-            logger.info(f"Adding {reams_count} reams to student {student_id} from source: {source}")
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                raise ValueError(f"Student with admission number {admission_number} not found")
+            
+            logger.info(f"Adding {reams_count} reams to student {admission_number} from source: {source}")
             
             ream_entry = ReamEntry(
-                student_id=student_id,
+                student_id=student.student_id,
                 reams_count=reams_count,
                 date_added=datetime.now().strftime('%Y-%m-%d')
             )
@@ -515,7 +564,7 @@ class StudentService:
             ream_entry_repository = ReamEntryRepository()
             created_entry = ream_entry_repository.create(ream_entry)
             
-            logger.info(f"Successfully added {reams_count} reams to student {student_id}")
+            logger.info(f"Successfully added {reams_count} reams to student {admission_number}")
             return created_entry
     
         def record_ream_distribution(self, distribution_data: dict) -> dict:
@@ -592,19 +641,24 @@ class StudentService:
             
             return breakdown
     
-        def get_student_ream_transaction_history(self, student_id: int, date_range: tuple = None) -> List[ReamEntry]:
+        def get_student_ream_transaction_history(self, admission_number: str, date_range: tuple = None) -> List[ReamEntry]:
             """
             Get complete ream transaction history for a student.
             
             Args:
-                student_id: ID of the student
+                admission_number: Admission number of the student
                 date_range: Optional tuple of (start_date, end_date)
-                 
+                  
             Returns:
                 List of ream transaction records
             """
+            # First get the student to find their student_id
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return []
+            
             ream_entry_repository = ReamEntryRepository()
-            transactions = ream_entry_repository.find_by_field('student_id', student_id)
+            transactions = ream_entry_repository.find_by_field('student_id', student.student_id)
             
             # Filter by date range if provided
             if date_range:
