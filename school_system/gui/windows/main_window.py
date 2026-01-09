@@ -317,18 +317,20 @@ class MainWindow(BaseApplicationWindow):
         main_layout = self.create_layout("vbox")
         main_layout.set_spacing(24)
         main_layout.set_margins(24, 24, 24, 24)
-        self.add_layout_to_content(main_layout)
-         
+        
+        # Add the main layout widget to content (not the layout itself)
+        self.add_widget_to_content(main_layout)
+          
         # Dynamic welcome header
         self._setup_welcome_header(main_layout)
-        
+         
         # Quick actions section
         self._setup_quick_actions(main_layout)
-        
+         
         # Statistics section - show totals only, no management sections
         stats_layout = self.create_flex_layout(direction="row", wrap=True)
         stats_layout.set_spacing(20)
-        
+         
         # Show relevant statistics based on user role
         stats_cards = []
         if self.role in ['admin', 'librarian']:
@@ -341,12 +343,13 @@ class MainWindow(BaseApplicationWindow):
             ])
         else:
             stats_cards.append(("Total Books", "0", "📚"))
-         
+          
         for title, count, icon in stats_cards:
             stat_card = self._create_modern_stat_card(title, count, icon)
-            stats_layout._layout.addWidget(stat_card)
-        
-        main_layout._layout.addWidget(stats_layout)
+            stats_layout.add_widget(stat_card)
+         
+        # Add stats layout widget to main layout widget
+        main_layout.add_layout(stats_layout)
         
         # Basic information card
         info_card = self.create_card(
@@ -355,7 +358,7 @@ class MainWindow(BaseApplicationWindow):
         )
         info_card.setMinimumHeight(60)
         info_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        main_layout._layout.addWidget(info_card)
+        main_layout.add_widget(info_card)
     
     def _setup_welcome_header(self, main_layout):
         """Setup the enhanced welcome header with personalized greeting, role-specific overview, and system insights."""
@@ -368,7 +371,6 @@ class MainWindow(BaseApplicationWindow):
                 border-radius: 12px;
                 border-left: 4px solid #3498db;
                 padding: 24px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
         """)
          
@@ -388,7 +390,7 @@ class MainWindow(BaseApplicationWindow):
         # System insights
         self._setup_system_insights(welcome_layout)
         
-        main_layout._layout.addWidget(welcome_card)
+        main_layout.add_widget(welcome_card)
         
         # Log user interaction
         logger.info(f"User {self.username} viewed welcome header at {QTime.currentTime().toString()}")
@@ -608,7 +610,6 @@ class MainWindow(BaseApplicationWindow):
                 border-radius: 12px;
                 border: 1px solid #e1e4e8;
                 padding: 20px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
         """)
          
@@ -644,7 +645,7 @@ class MainWindow(BaseApplicationWindow):
             btn.clicked.connect(callback)
             quick_actions_layout.addWidget(btn)
          
-        main_layout._layout.addWidget(quick_actions_card)
+        main_layout.add_widget(quick_actions_card)
     
     def _create_modern_stat_card(self, title, count, icon):
         """Create a modern statistics card with icon, large number, and label."""
@@ -656,7 +657,6 @@ class MainWindow(BaseApplicationWindow):
                 border-left: 4px solid #3498db;
                 border: 1px solid #e1e4e8;
                 padding: 20px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
             QFrame:hover {
                 border-color: #2980b9;

@@ -101,7 +101,7 @@ ModernCard:focus {
 }
 
 ModernCard:hover {
-    box-shadow: 0 0 20px var(--shadow-color);
+    border: 1px solid var(--focus-color);
 }
 
 /* Scrollable Container Styling */

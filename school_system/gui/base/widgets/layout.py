@@ -66,6 +66,19 @@ class ModernLayout(QWidget):
             if item.widget():
                 item.widget().deleteLater()
 
+    def add_layout(self, layout):
+        """Add a layout to this layout."""
+        # If the layout is a ModernLayout or FlexLayout, add the widget itself
+        if hasattr(layout, '_layout'):
+            self._layout.addWidget(layout)
+        else:
+            # Regular QLayout, add it directly
+            self._layout.addLayout(layout)
+    
+    def addLayout(self, layout):
+        """Alias for add_layout to support camelCase naming convention."""
+        return self.add_layout(layout)
+
 
 class FlexLayout(ModernLayout):
     """
@@ -107,9 +120,9 @@ class FlexLayout(ModernLayout):
      
     def add_layout(self, layout):
         """Add a layout to this layout."""
-        # If the layout is a FlexLayout, use its underlying _layout
+        # If the layout is a FlexLayout, add the widget itself
         if hasattr(layout, '_layout'):
-            self._layout.addLayout(layout._layout)
+            self._layout.addWidget(layout)
         else:
             self._layout.addLayout(layout)
       

@@ -18,6 +18,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 
 from school_system.gui.base.base_dialog import BaseDialog
+from school_system.gui.base.widgets import ModernInput
 from school_system.config.logging import logger
 
 
@@ -89,6 +90,10 @@ class InputDialog(BaseDialog):
         self._input_type = input_type
         self._icon = icon
         self._is_valid = False
+
+        # For multiple input fields support
+        self._input_fields = {}
+        self._field_labels = {}
         
         # Initialize UI
         self._initialize_ui()
@@ -104,33 +109,35 @@ class InputDialog(BaseDialog):
     
     def _initialize_ui(self):
         """Initialize the user interface components using enhanced BaseDialog functionality."""
-        # Create label
-        self._label_widget = QLabel(self._label_text)
-        self._label_widget.setStyleSheet(f"""
-            font-size: 14px;
-            color: {self._theme_manager.get_color('text')};
-            margin-bottom: 8px;
-        """)
-        self._label_widget.setAccessibleName("Input label")
-        self._label_widget.setAccessibleDescription("Label for input field")
-         
-        # Add label to content
-        self.add_content_widget(self._label_widget)
-         
-        # Create input field using enhanced BaseDialog method
-        if self._input_type == "password":
-            self._input_field = self.create_input(self._placeholder, "text")
-            self._input_field.setEchoMode(ModernInput.EchoMode.Password)
-        elif self._input_type == "email":
-            self._input_field = self.create_input(self._placeholder, "email")
-        else:
-            self._input_field = self.create_input(self._placeholder, "text")
-         
-        self._input_field.setAccessibleName("Input field")
-        self._input_field.setAccessibleDescription("Input field for user data")
-         
-        # Add input field to content
-        self.add_content_widget(self._input_field)
+        # Only create default input if label is provided (single field mode)
+        if self._label_text:
+            # Create label
+            self._label_widget = QLabel(self._label_text)
+            self._label_widget.setStyleSheet(f"""
+                font-size: 14px;
+                color: {self._theme_manager.get_color('text')};
+                margin-bottom: 8px;
+            """)
+            self._label_widget.setAccessibleName("Input label")
+            self._label_widget.setAccessibleDescription("Label for input field")
+
+            # Add label to content
+            self.add_content_widget(self._label_widget)
+
+            # Create input field using enhanced BaseDialog method
+            if self._input_type == "password":
+                self._input_field = self.create_input(self._placeholder, "text")
+                self._input_field.setEchoMode(ModernInput.EchoMode.Password)
+            elif self._input_type == "email":
+                self._input_field = self.create_input(self._placeholder, "email")
+            else:
+                self._input_field = self.create_input(self._placeholder, "text")
+
+            self._input_field.setAccessibleName("Input field")
+            self._input_field.setAccessibleDescription("Input field for user data")
+
+            # Add input field to content
+            self.add_content_widget(self._input_field)
          
         # Create error message area (hidden by default)
         self._error_frame = QFrame()
@@ -174,9 +181,72 @@ class InputDialog(BaseDialog):
         self.register_widget("cancel_button", self._cancel_button)
         
         # Disable OK button initially if required
-        if self._required:
+        if self._required and hasattr(self, '_input_field'):
             self._ok_button.setEnabled(False)
-    
+
+    def add_input_field(self, label_text: str, placeholder: str = "", input_type: str = "text", required: bool = True):
+        """
+        Add an input field to the dialog (for multi-field dialogs).
+
+        Args:
+            label_text: Text for the field label
+            placeholder: Placeholder text for the input
+            input_type: Type of input ('text', 'password', 'email')
+            required: Whether this field is required
+
+        Returns:
+            The created input field widget
+        """
+        # Create label
+        label = QLabel(label_text)
+        label.setStyleSheet(f"""
+            font-size: 14px;
+            color: {self._theme_manager.get_color('text')};
+            margin-bottom: 4px;
+        """)
+        self.add_content_widget(label)
+
+        # Create input field
+        if input_type == "password":
+            input_field = self.create_input(placeholder, "text")
+            input_field.setEchoMode(ModernInput.EchoMode.Password)
+        elif input_type == "email":
+            input_field = self.create_input(placeholder, "email")
+        else:
+            input_field = self.create_input(placeholder, "text")
+
+        input_field.setAccessibleName(f"{label_text} input field")
+        input_field.setAccessibleDescription(f"Input field for {label_text}")
+
+        # Add to content
+        self.add_content_widget(input_field)
+
+        # Store reference
+        field_name = label_text.lower().replace(" ", "_").replace(":", "")
+        self._input_fields[field_name] = input_field
+        self._field_labels[field_name] = label
+
+        # Connect validation
+        input_field.textChanged.connect(self._validate_multi_field_input)
+
+        # Register widget
+        self.register_widget(f"input_{field_name}", input_field)
+
+        return input_field
+
+    def _validate_multi_field_input(self):
+        """Validate all input fields for multi-field dialogs."""
+        all_valid = True
+
+        for field_name, input_field in self._input_fields.items():
+            text = input_field.text().strip()
+            if not text:  # Simple check - can be enhanced
+                all_valid = False
+                break
+
+        self._is_valid = all_valid
+        self._ok_button.setEnabled(all_valid)
+
     def _apply_button_theme(self):
         """Apply theme-specific styling to buttons using enhanced BaseDialog functionality."""
         # Buttons are already themed through the create_button method
@@ -189,7 +259,8 @@ class InputDialog(BaseDialog):
         """Connect signals for button actions and input validation."""
         self._ok_button.clicked.connect(self._handle_ok)
         self._cancel_button.clicked.connect(self.reject)
-        self._input_field.textChanged.connect(self._validate_input)
+        if hasattr(self, '_input_field'):
+            self._input_field.textChanged.connect(self._validate_input)
         
         # Connect theme change signals
         if hasattr(self._theme_manager, 'theme_changed'):
@@ -313,13 +384,18 @@ class InputDialog(BaseDialog):
     def showEvent(self, event):
         """
         Handle dialog show events.
-        
+
         Args:
             event: Show event
         """
         super().showEvent(event)
-        # Focus the input field by default for better UX
-        self._input_field.setFocus()
+        # Focus the first input field for better UX
+        if hasattr(self, '_input_field'):
+            self._input_field.setFocus()
+        elif self._input_fields:
+            # Focus the first multi-field input
+            first_field = next(iter(self._input_fields.values()))
+            first_field.setFocus()
         logger.debug(f"InputDialog '{self.windowTitle()}' shown")
     
     def accept(self):

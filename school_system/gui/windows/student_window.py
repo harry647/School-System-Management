@@ -462,7 +462,11 @@ class StudentWindow(BaseWindow):
         self.items_per_page = 25
         self.total_pages = 1
         
-        tab.setLayout(main_layout._layout)
+        # Create a main layout for the tab and add our layout widget to it
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.setSpacing(0)
+        tab_layout.addWidget(main_layout)
         return tab
 
     def _show_search_suggestions(self, text):
@@ -548,7 +552,11 @@ class StudentWindow(BaseWindow):
         add_ream_button.clicked.connect(self._on_add_reams)
         add_layout.add_widget(add_ream_button)
         
-        add_tab.setLayout(add_layout._layout)
+        # Create a layout for the add tab and add our layout widget to it
+        add_tab_layout = QVBoxLayout(add_tab)
+        add_tab_layout.setContentsMargins(0, 0, 0, 0)
+        add_tab_layout.setSpacing(0)
+        add_tab_layout.addWidget(add_layout)
         ream_tabs.addTab(add_tab, "Add Reams")
         
         # Deduct Reams tab
@@ -576,7 +584,11 @@ class StudentWindow(BaseWindow):
         deduct_ream_button.clicked.connect(self._on_deduct_reams)
         deduct_layout.add_widget(deduct_ream_button)
         
-        deduct_tab.setLayout(deduct_layout._layout)
+        # Create a layout for the deduct tab and add our layout widget to it
+        deduct_tab_layout = QVBoxLayout(deduct_tab)
+        deduct_tab_layout.setContentsMargins(0, 0, 0, 0)
+        deduct_tab_layout.setSpacing(0)
+        deduct_tab_layout.addWidget(deduct_layout)
         ream_tabs.addTab(deduct_tab, "Deduct Reams")
         
         # Transfer Reams tab
@@ -606,7 +618,11 @@ class StudentWindow(BaseWindow):
         transfer_ream_button.clicked.connect(self._on_transfer_reams)
         transfer_layout.add_widget(transfer_ream_button)
         
-        transfer_tab.setLayout(transfer_layout._layout)
+        # Create a layout for the transfer tab and add our layout widget to it
+        transfer_tab_layout = QVBoxLayout(transfer_tab)
+        transfer_tab_layout.setContentsMargins(0, 0, 0, 0)
+        transfer_tab_layout.setSpacing(0)
+        transfer_tab_layout.addWidget(transfer_layout)
         ream_tabs.addTab(transfer_tab, "Transfer Reams")
         
         main_layout.add_widget(ream_tabs)
@@ -622,10 +638,15 @@ class StudentWindow(BaseWindow):
         ])
         transactions_layout.add_widget(self.ream_transactions_table)
         
-        transactions_section.layout.addLayout(transactions_layout._layout)
+        # Add the transactions layout widget to the section instead of its internal layout
+        transactions_section.layout.addWidget(transactions_layout)
         main_layout.add_widget(transactions_section)
         
-        tab.setLayout(main_layout._layout)
+        # Create a main layout for the tab and add our layout widget to it
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.setSpacing(0)
+        tab_layout.addWidget(main_layout)
         return tab
 
     def _create_library_activity_tab(self) -> QWidget:
@@ -657,7 +678,11 @@ class StudentWindow(BaseWindow):
         self.borrowed_books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Borrowed On", "Due Date", "Status"])
         borrowed_layout.add_widget(self.borrowed_books_table)
 
-        borrowed_form.setLayout(borrowed_layout._layout)
+        # Create a layout for the borrowed form and add our layout widget to it
+        borrowed_form_layout = QVBoxLayout(borrowed_form)
+        borrowed_form_layout.setContentsMargins(0, 0, 0, 0)
+        borrowed_form_layout.setSpacing(0)
+        borrowed_form_layout.addWidget(borrowed_layout)
         borrowed_section.layout.addWidget(borrowed_form)
         layout.add_widget(borrowed_section)
 
@@ -683,7 +708,11 @@ class StudentWindow(BaseWindow):
         self.borrowing_history_table.setHorizontalHeaderLabels(["Book ID", "Title", "Borrowed On", "Returned On", "Condition", "Fine"])
         history_layout.add_widget(self.borrowing_history_table)
 
-        history_form.setLayout(history_layout._layout)
+        # Create a layout for the history form and add our layout widget to it
+        history_form_layout = QVBoxLayout(history_form)
+        history_form_layout.setContentsMargins(0, 0, 0, 0)
+        history_form_layout.setSpacing(0)
+        history_form_layout.addWidget(history_layout)
         history_section.layout.addWidget(history_form)
         layout.add_widget(history_section)
 
@@ -709,11 +738,19 @@ class StudentWindow(BaseWindow):
         self.overdue_books_table.setHorizontalHeaderLabels(["Book ID", "Title", "Borrowed On", "Due Date", "Days Overdue"])
         overdue_layout.add_widget(self.overdue_books_table)
 
-        overdue_form.setLayout(overdue_layout._layout)
+        # Create a layout for the overdue form and add our layout widget to it
+        overdue_form_layout = QVBoxLayout(overdue_form)
+        overdue_form_layout.setContentsMargins(0, 0, 0, 0)
+        overdue_form_layout.setSpacing(0)
+        overdue_form_layout.addWidget(overdue_layout)
         overdue_section.layout.addWidget(overdue_form)
         layout.add_widget(overdue_section)
 
-        tab.setLayout(layout._layout)
+        # Create a main layout for the tab and add our layout widget to it
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.setSpacing(0)
+        tab_layout.addWidget(layout)
         return tab
 
     def _create_import_export_tab(self) -> QWidget:
@@ -766,7 +803,11 @@ class StudentWindow(BaseWindow):
         self.import_status_label.setStyleSheet("color: #666;")
         import_layout.add_widget(self.import_status_label)
 
-        import_form.setLayout(import_layout._layout)
+        # Create a layout for the import form and add our layout widget to it
+        import_form_layout = QVBoxLayout(import_form)
+        import_form_layout.setContentsMargins(0, 0, 0, 0)
+        import_form_layout.setSpacing(0)
+        import_form_layout.addWidget(import_layout)
         import_section.layout.addWidget(import_form)
         main_layout.add_widget(import_section)
 
@@ -788,11 +829,19 @@ class StudentWindow(BaseWindow):
         self.export_status_label.setStyleSheet("color: #666;")
         export_layout.add_widget(self.export_status_label)
 
-        export_form.setLayout(export_layout._layout)
+        # Create a layout for the export form and add our layout widget to it
+        export_form_layout = QVBoxLayout(export_form)
+        export_form_layout.setContentsMargins(0, 0, 0, 0)
+        export_form_layout.setSpacing(0)
+        export_form_layout.addWidget(export_layout)
         export_section.layout.addWidget(export_form)
         main_layout.add_widget(export_section)
 
-        tab.setLayout(main_layout._layout)
+        # Create a main layout for the tab and add our layout widget to it
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.setSpacing(0)
+        tab_layout.addWidget(main_layout)
         return tab
 
     def _create_reports_tab(self) -> QWidget:
@@ -825,7 +874,10 @@ class StudentWindow(BaseWindow):
         self.summary_results_display.setMaximumHeight(200)
         summary_layout.add_widget(self.summary_results_display)
 
-        summary_form.setLayout(summary_layout._layout)
+        # Add the summary layout widget to the form instead of setting its internal layout
+        summary_form_layout = QVBoxLayout(summary_form)
+        summary_form_layout.setContentsMargins(0, 0, 0, 0)
+        summary_form_layout.addWidget(summary_layout)
         summary_section.layout.addWidget(summary_form)
         layout.add_widget(summary_section)
 
@@ -852,7 +904,10 @@ class StudentWindow(BaseWindow):
         self.stream_analysis_results_display.setMaximumHeight(200)
         stream_layout.add_widget(self.stream_analysis_results_display)
 
-        stream_form.setLayout(stream_layout._layout)
+        # Add the stream layout widget to the form instead of setting its internal layout
+        stream_form_layout = QVBoxLayout(stream_form)
+        stream_form_layout.setContentsMargins(0, 0, 0, 0)
+        stream_form_layout.addWidget(stream_layout)
         stream_section.layout.addWidget(stream_form)
         layout.add_widget(stream_section)
 
@@ -879,11 +934,18 @@ class StudentWindow(BaseWindow):
         self.ream_usage_results_display.setMaximumHeight(200)
         ream_layout.add_widget(self.ream_usage_results_display)
 
-        ream_form.setLayout(ream_layout._layout)
+        # Add the ream layout widget to the form instead of setting its internal layout
+        ream_form_layout = QVBoxLayout(ream_form)
+        ream_form_layout.setContentsMargins(0, 0, 0, 0)
+        ream_form_layout.addWidget(ream_layout)
         ream_section.layout.addWidget(ream_form)
         layout.add_widget(ream_section)
 
-        tab.setLayout(layout._layout)
+        # Create a main layout for the tab and add our layout widget to it
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.setSpacing(0)
+        tab_layout.addWidget(layout)
         return tab
 
     # Event handlers for Student Management
