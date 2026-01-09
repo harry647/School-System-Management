@@ -76,6 +76,9 @@ class StudentWindow(BaseWindow):
          
         # Add undo action to menu
         self._add_undo_action()
+        
+        # Refresh students table to populate initial data
+        self._refresh_students_table()
 
     def _apply_modern_styling(self):
         """Apply modern styling to the student window."""
@@ -292,27 +295,28 @@ class StudentWindow(BaseWindow):
         """Handle undo operation."""
         if self.undo_stack:
             last_operation = self.undo_stack.pop()
-            
+             
             try:
                 # Attempt to undo the operation
                 if last_operation['type'] == 'create':
-                    # Undo create by deleting
-                    self.student_service.delete_student(last_operation['student_id'])
+                    # Undo create by deleting - get student_id from the operation data
+                    student_id = last_operation['data']['student_id']
+                    self.student_service.delete_student(student_id)
                     show_success_message("Undo Successful",
-                                        f"Student creation undone: {last_operation['student_id']}", self)
+                                        f"Student creation undone: {student_id}", self)
                 elif last_operation['type'] == 'delete':
                     # Undo delete by recreating
-                    student_data = last_operation['student_data']
+                    student_data = last_operation['data']['student_data']
                     self.student_service.create_student(student_data)
                     show_success_message("Undo Successful",
-                                        f"Student deletion undone: {last_operation['student_id']}", self)
-                
+                                        f"Student deletion undone: {last_operation['data']['student_id']}", self)
+                 
                 # Refresh table
                 self._refresh_students_table()
-                
+                 
                 # Update undo action state
                 self.undo_action.setEnabled(len(self.undo_stack) > 0)
-                
+                 
             except Exception as e:
                 show_error_message("Undo Failed",
                                  f"Failed to undo operation: {str(e)}", self)
@@ -385,6 +389,9 @@ class StudentWindow(BaseWindow):
         self.stream_filter.addItem("All Streams")
         self.stream_filter.setMinimumWidth(150)
         search_container.add_widget(self.stream_filter)
+        
+        # Populate stream filter with actual streams from database
+        self._populate_stream_filter()
         
         action_bar.add_layout(search_container)
         
@@ -512,13 +519,47 @@ class StudentWindow(BaseWindow):
             print(f"Error showing search suggestions: {e}")
             self.search_suggestions.hide()
 
+    def _populate_stream_filter(self):
+        """Populate the stream filter dropdown with unique streams from the database."""
+        try:
+            # Get all students to extract unique streams
+            all_students = self.student_service.get_all_students()
+            
+            # Extract unique streams (excluding None values)
+            unique_streams = set()
+            for student in all_students:
+                if student.stream and student.stream.strip():
+                    unique_streams.add(student.stream.strip())
+            
+            # Add unique streams to the filter dropdown
+            for stream in sorted(unique_streams):
+                self.stream_filter.addItem(stream)
+                
+            # Connect the stream filter to refresh table when changed
+            self.stream_filter.currentTextChanged.connect(self._on_stream_filter_changed)
+                
+        except Exception as e:
+            print(f"Error populating stream filter: {e}")
+
+    def _on_stream_filter_changed(self, stream: str):
+        """Handle stream filter change to filter students by selected stream."""
+        try:
+            # Reset to first page when filtering
+            self.current_page = 1
+            
+            # Refresh the students table with the new filter
+            self._refresh_students_table()
+                
+        except Exception as e:
+            show_error_message("Error", f"Failed to apply stream filter: {str(e)}", self)
+
     def _on_suggestion_selected(self, item):
         """Handle search suggestion selection."""
         # Extract student ID from suggestion and search for it
         suggestion_text = item.text()
         student_id = suggestion_text.split(' - ')[0]
         
-        self.search_box.setText(student_id)
+        self.search_box.set_search_text(student_id)
         self.search_suggestions.hide()
         
         # Perform search
@@ -1067,17 +1108,24 @@ class StudentWindow(BaseWindow):
         self._refresh_students_table()
 
     def _refresh_students_table(self):
-        """Refresh the students table with pagination."""
+        """Refresh the students table with pagination and stream filtering."""
         try:
             all_students = self.student_service.get_all_students()
+            
+            # Apply stream filter if a specific stream is selected (not "All Streams")
+            selected_stream = self.stream_filter.currentText()
+            if selected_stream and selected_stream != "All Streams":
+                filtered_students = [s for s in all_students if s.stream == selected_stream]
+            else:
+                filtered_students = all_students
             
             # Apply pagination
             start_index = (self.current_page - 1) * self.items_per_page
             end_index = start_index + self.items_per_page
-            paginated_students = all_students[start_index:end_index]
+            paginated_students = filtered_students[start_index:end_index]
             
-            # Calculate total pages
-            self.total_pages = max(1, (len(all_students) + self.items_per_page - 1) // self.items_per_page)
+            # Calculate total pages based on filtered results
+            self.total_pages = max(1, (len(filtered_students) + self.items_per_page - 1) // self.items_per_page)
             
             # Update pagination controls
             self.prev_page_btn.setEnabled(self.current_page > 1)
@@ -1216,15 +1264,17 @@ class StudentWindow(BaseWindow):
                 # Create update workflow and pre-populate with student data
                 update_workflow = StudentUpdateWorkflow(self)
                 update_workflow.operation_completed.connect(self._handle_operation_completed)
-                
+                  
                 # Pre-populate the student ID field
                 if hasattr(update_workflow, 'student_id_input'):
                     update_workflow.student_id_input.setText(student.student_id)
                     update_workflow.student_id_input.setReadOnly(True)
-                
-                # Show the workflow
+                  
+                # Show the workflow by calling start_workflow on the workflow manager
+                print(f"DEBUG: Calling workflow_manager.start_workflow('update')")
                 self.workflow_manager.start_workflow("update")
-                
+                print(f"DEBUG: Called workflow_manager.start_workflow('update')")
+                  
             else:
                 show_error_message("Error", "Student not found", self)
         except Exception as e:
@@ -1238,15 +1288,15 @@ class StudentWindow(BaseWindow):
                 # Create delete workflow and pre-populate with student data
                 delete_workflow = StudentDeletionWorkflow(self)
                 delete_workflow.operation_completed.connect(self._handle_operation_completed)
-                
+                 
                 # Pre-populate the student ID field
                 if hasattr(delete_workflow, 'student_id_input'):
                     delete_workflow.student_id_input.setText(student.student_id)
                     delete_workflow.student_id_input.setReadOnly(True)
-                
-                # Show the workflow
+                 
+                # Show the workflow by calling start_workflow on the workflow manager
                 self.workflow_manager.start_workflow("delete")
-                
+                 
             else:
                 show_error_message("Error", "Student not found", self)
         except Exception as e:
@@ -1258,6 +1308,7 @@ class StudentWindow(BaseWindow):
             student = self.student_service.get_student_by_id(student_id)
             if student:
                 stream_display = student.stream if student.stream is not None else "No Stream"
+                # Display student_id which should now be properly populated (same as admission_number)
                 details = f"Student Details:\n\nID: {student.student_id}\nName: {student.name}\nStream: {stream_display}"
                 show_success_message("Student Details", details, self)
             else:
@@ -1547,8 +1598,8 @@ class StudentWindow(BaseWindow):
                 show_error_message("Error", "Student not found", self)
                 return
 
-            # Get library activity summary
-            library_summary = self.student_service.get_student_library_activity_summary(student_id)
+            # Get library activity summary - convert student_id to int as expected by the service
+            library_summary = self.student_service.get_student_library_activity_summary(int(student_id))
 
             # Get ream balance
             ream_balance = self.student_service.get_student_ream_balance(student_id)

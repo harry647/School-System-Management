@@ -133,11 +133,12 @@ class TestStudentWindow(unittest.TestCase):
         mock_student = Student(student_id=1, admission_number="S001", name="John Doe", stream="Science")
         self.mock_student_service.get_student_by_id.return_value = mock_student
         
-        # Mock the update workflow creation
+        # Mock the workflow manager's start_workflow method to return a mock workflow
         mock_update_workflow = Mock()
         mock_update_workflow.operation_completed = Mock()
         
-        # Mock the workflow manager to return our mock workflow
+        # Assign the mock workflow manager to the student window and mock the start_workflow method
+        self.student_window.workflow_manager = self.mock_workflow_manager
         self.student_window.workflow_manager.start_workflow = Mock(return_value=mock_update_workflow)
         
         # Trigger edit workflow

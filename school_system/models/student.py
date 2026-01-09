@@ -8,7 +8,8 @@ class Student(BaseModel):
     
     def __init__(self, admission_number, name, stream, student_id=None, created_at=None):
         super().__init__()
-        self.student_id = student_id
+        # In this schema, student_id should be the same as admission_number
+        self.student_id = admission_number if student_id is None else student_id
         self.admission_number = admission_number
         self.name = name
         self.stream = stream

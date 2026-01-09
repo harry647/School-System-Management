@@ -96,6 +96,16 @@ class MessageDialog(BaseDialog):
         self._connect_signals()
         
         logger.info(f"MessageDialog '{title}' initialized with type: {message_type}")
+        
+        # Log the message content based on message type
+        if message_type == MessageDialog.ERROR:
+            logger.error(f"Error: {message}")
+        elif message_type == MessageDialog.WARNING:
+            logger.warning(f"Warning: {message}")
+        elif message_type == MessageDialog.INFO:
+            logger.info(f"Info: {message}")
+        elif message_type == MessageDialog.SUCCESS:
+            logger.info(f"Success: {message}")
     
     def _initialize_ui(self):
         """Initialize the user interface components."""
@@ -341,15 +351,18 @@ def show_info_message(title: str, message: str, parent=None):
 def show_warning_message(title: str, message: str, parent=None):
     """
     Show a warning message dialog.
-    
+     
     Args:
         title: Dialog title
         message: Message content
         parent: Parent widget
-        
+         
     Returns:
         Dialog result
     """
+    # Log the warning message before showing the dialog
+    logger.warning(f"Warning Dialog - {title}: {message}")
+    
     dialog = MessageDialog(
         title=title,
         message=message,
@@ -362,15 +375,18 @@ def show_warning_message(title: str, message: str, parent=None):
 def show_error_message(title: str, message: str, parent=None):
     """
     Show an error message dialog.
-    
+     
     Args:
         title: Dialog title
         message: Message content
         parent: Parent widget
-        
+         
     Returns:
         Dialog result
     """
+    # Log the error message before showing the dialog
+    logger.error(f"Error Dialog - {title}: {message}")
+    
     dialog = MessageDialog(
         title=title,
         message=message,

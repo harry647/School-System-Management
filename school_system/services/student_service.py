@@ -59,11 +59,12 @@ class StudentService:
         ValidationUtils.validate_input(student_data.get('name'), "Student name cannot be empty")
         ValidationUtils.validate_input(student_data.get('admission_number'), "Admission number cannot be empty")
         
-        # Remove 'created_at' and 'student_id' from student_data if they exist to avoid passing them to the Student constructor
+        # Remove 'created_at' from student_data if it exists to avoid passing it to the Student constructor
+        # Keep student_id if provided, otherwise it will be set to admission_number in Student model
         student_data_copy = student_data.copy()
         student_data_copy.pop('created_at', None)
-        student_data_copy.pop('student_id', None)
-        
+        # Don't remove student_id - let the Student model handle it
+         
         student = Student(**student_data_copy)
         created_student = self.student_repository.create(student)
         logger.info(f"Student created successfully with ID: {created_student.student_id}")
@@ -207,21 +208,35 @@ class StudentService:
         """
         logger.info(f"Importing students from Excel file: {filename}")
         ValidationUtils.validate_input(filename, "Filename cannot be empty")
-        
+         
         try:
             data = self.import_export_service.import_from_excel(filename)
             students = []
-            
+             
             for student_data in data:
-                # Remove 'created_at' and 'student_id' from student_data if they exist to avoid passing them to the Student constructor
+                # Remove 'created_at' from student_data if it exists to avoid passing it to the Student constructor
+                # Keep student_id if provided, otherwise it will be set to admission_number in Student model
                 student_data_copy = student_data.copy()
                 student_data_copy.pop('created_at', None)
-                student_data_copy.pop('student_id', None)
+                # Don't remove student_id - let the Student model handle it
                 
+                # Map Excel column names to Student model attributes
+                # Excel uses 'Student_ID' but Student model expects 'admission_number'
+                if 'Student_ID' in student_data_copy:
+                    student_data_copy['admission_number'] = student_data_copy.pop('Student_ID')
+                 
+                # Excel uses 'Name' (capital N) but Student model expects 'name' (lowercase n)
+                if 'Name' in student_data_copy:
+                    student_data_copy['name'] = student_data_copy.pop('Name')
+                 
+                # Excel uses 'Stream' (capital S) but Student model expects 'stream' (lowercase s)
+                if 'Stream' in student_data_copy:
+                    student_data_copy['stream'] = student_data_copy.pop('Stream')
+                 
                 student = Student(**student_data_copy)
                 created_student = self.student_repository.create(student)
                 students.append(created_student)
-            
+             
             logger.info(f"Successfully imported {len(students)} students from {filename}")
             return students
         except Exception as e:
