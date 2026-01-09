@@ -20,13 +20,13 @@ class DatabaseConnection:
     def __init__(self):
         self._connection = None
         self._config = DATABASE_CONFIG
-          
+           
     def get_connection(self) -> Optional[sqlite3.Connection]:
         """Get a database connection, creating one if necessary."""
         if self._connection is None:
             self._connection = self._create_connection()
         return self._connection
-      
+       
     def _create_connection(self) -> Optional[sqlite3.Connection]:
         """Create a new database connection."""
         try:
@@ -46,7 +46,7 @@ class DatabaseConnection:
         except SQLiteError as e:
             logger.error(f"Failed to create database connection: {e}")
             raise DatabaseException(f"Failed to create database connection: {e}")
-      
+       
     def close_connection(self):
         """Close the database connection."""
         if self._connection is not None:
@@ -58,7 +58,7 @@ class DatabaseConnection:
                 raise DatabaseException(f"Error closing database connection: {e}")
             finally:
                 self._connection = None
-    
+     
     def __enter__(self):
         """Context manager entry."""
         return self.get_connection()
@@ -274,6 +274,7 @@ def initialize_database():
                 student_id TEXT,
                 reams_count INTEGER NOT NULL,
                 date_added DATE DEFAULT (DATE('now')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
             )
         """)

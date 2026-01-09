@@ -33,19 +33,20 @@ class Student(BaseModel):
 class ReamEntry(BaseModel):
     __tablename__ = 'ream_entries'
     __pk__ = "student_id"
-    def __init__(self, student_id, reams_count, date_added=None):
+    def __init__(self, student_id, reams_count, date_added=None, created_at=None):
         super().__init__()
         self.student_id = student_id
         self.reams_count = reams_count
         self.date_added = date_added
+        self.created_at = created_at
     
     def save(self):
         """Save the ream entry to the database."""
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO ream_entries (student_id, reams_count, date_added) VALUES (?, ?, ?)",
-            (self.student_id, self.reams_count, self.date_added)
+            "INSERT INTO ream_entries (student_id, reams_count, date_added, created_at) VALUES (?, ?, ?, ?)",
+            (self.student_id, self.reams_count, self.date_added, self.created_at)
         )
         db.commit()
     
