@@ -36,11 +36,37 @@ class FlexLayout:
     
     def add_widget(self, widget):
         """Add a widget to the layout."""
-        self._layout.addWidget(widget)
+        if isinstance(widget, FlexLayout):
+            # If it's a FlexLayout, add its underlying layout
+            self._layout.addLayout(widget._layout)
+        else:
+            # Otherwise, add it as a widget
+            self._layout.addWidget(widget)
+    
+    def addWidget(self, widget):
+        """Alias for add_widget to support camelCase naming convention."""
+        return self.add_widget(widget)
+    
+    def add_Widget(self, widget):
+        """Alias for add_widget to support mixed case naming convention."""
+        return self.add_widget(widget)
     
     def add_layout(self, layout):
         """Add a layout to this layout."""
-        self._layout.addLayout(layout)
+        if isinstance(layout, FlexLayout):
+            # If it's a FlexLayout, add its underlying layout
+            self._layout.addLayout(layout._layout)
+        else:
+            # Otherwise, add it as a regular layout
+            self._layout.addLayout(layout)
+    
+    def addLayout(self, layout):
+        """Alias for add_layout to support camelCase naming convention."""
+        return self.add_layout(layout)
+    
+    def add_Layout(self, layout):
+        """Alias for add_layout to support mixed case naming convention."""
+        return self.add_layout(layout)
     
     def set_spacing(self, spacing):
         """Set the spacing between widgets."""
@@ -315,7 +341,7 @@ class SearchBox(QWidget):
     def __init__(self, placeholder: str = "Search..."):
         """
         Initialize the search box.
-        
+         
         Args:
             placeholder: Placeholder text
         """
@@ -336,6 +362,11 @@ class SearchBox(QWidget):
     def set_text(self, text: str):
         """Set the search text."""
         self.search_input.setText(text)
+    
+    @property
+    def textChanged(self):
+        """Expose the textChanged signal from the search input."""
+        return self.search_input.textChanged
 
 
 class ValidationLabel(QLabel):

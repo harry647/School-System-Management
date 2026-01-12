@@ -555,7 +555,7 @@ class BookWindow(BaseWindow):
         return_selected_btn = Button("Return Selected", "primary")
 
         # Connect signals
-        self.bulk_return_search.textChanged.connect(self._on_bulk_return_search)
+        self.bulk_return_search.search_input.textChanged.connect(self._on_bulk_return_search)
         self.bulk_return_filter_combo.currentTextChanged.connect(self._on_bulk_return_search)
         select_all_btn.clicked.connect(self._select_all_bulk_return)
         deselect_all_btn.clicked.connect(self._deselect_all_bulk_return)

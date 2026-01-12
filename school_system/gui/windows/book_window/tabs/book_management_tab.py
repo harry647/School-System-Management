@@ -32,35 +32,35 @@ class BookManagementTab(QWidget):
     
     def _setup_ui(self):
         """Setup the user interface."""
-        layout = FlexLayout("column", False)
-        layout.set_contents_margins(CARD_PADDING, CARD_PADDING, CARD_PADDING, CARD_PADDING)
-        layout.set_spacing(CARD_SPACING)
+        self.layout = FlexLayout("column", False)
+        self.layout.set_contents_margins(CARD_PADDING, CARD_PADDING, CARD_PADDING, CARD_PADDING)
+        self.layout.set_spacing(CARD_SPACING)
         
         # Add Books Section (Cataloging Workflow)
         add_section = Card("Add Books (Cataloging)", "Create new book entries in the system")
         add_form = self._create_add_book_form()
         add_section.layout.add_widget(add_form)
-        layout.add_widget(add_section)
+        self.layout.add_widget(add_section)
         
         # Edit Books Section (Editing Workflow)
         edit_section = Card("Edit Books", "Modify existing book information")
         edit_form = self._create_edit_book_form()
         edit_section.layout.add_widget(edit_form)
-        layout.add_widget(edit_section)
+        self.layout.add_widget(edit_section)
         
         # Remove Books Section (Decommissioning Workflow)
         remove_section = Card("Remove Books (Decommissioning)", "Permanently remove books from the system")
         remove_form = self._create_remove_book_form()
         remove_section.layout.add_widget(remove_form)
-        layout.add_widget(remove_section)
+        self.layout.add_widget(remove_section)
         
         # View Books Section
         view_section = Card("View Books", "Browse and search existing books")
         view_form = self._create_view_books_section()
         view_section.layout.add_widget(view_form)
-        layout.add_widget(view_section)
+        self.layout.add_widget(view_section)
         
-        self.setLayout(layout._layout)
+        self.setLayout(self.layout._layout)
     
     def _create_add_book_form(self) -> QWidget:
         """Create the add book form following the standardized workflow."""
