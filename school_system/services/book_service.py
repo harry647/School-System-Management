@@ -2,13 +2,14 @@
 Book service for managing book-related operations.
 """
 
-from typing import List, Optional, Union
-from datetime import datetime
+from typing import List, Optional, Union, Tuple
+from datetime import datetime, timedelta
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
 from school_system.services.import_export_service import ImportExportService
+from school_system.services.student_service import StudentService
 
 from school_system.models.book import (Book, BookTag, BorrowedBookStudent, BorrowedBookTeacher,
  DistributionSession, DistributionStudent, DistributionImportLog)
@@ -25,6 +26,7 @@ class BookService:
     def __init__(self):
         self.book_repository = BookRepository()
         self.import_export_service = ImportExportService()
+        self.student_service = StudentService()
 
     def get_all_books(self) -> List[Book]:
         """
@@ -1025,6 +1027,185 @@ class BookService:
                 logger.error(f"Error detecting duplicate books: {e}")
                 return []
     
+        def get_borrowed_books_with_details(self, filter_type: str = "all") -> List[Dict]:
+            """
+            Get all borrowed books with detailed information for bulk return UI.
+    
+            Args:
+                filter_type: Filter by 'all', 'borrowed', or 'overdue'
+    
+            Returns:
+                List of dictionaries with book and borrower details
+            """
+            try:
+                # Get all borrowed books from both students and teachers
+                student_borrowings = self.get_all_borrowed_books_student()
+                teacher_borrowings = self.get_all_borrowed_books_teacher()
+    
+                borrowed_books = []
+    
+                # Process student borrowings
+                for borrowing in student_borrowings:
+                    if borrowing.returned_on:
+                        continue  # Skip already returned books
+    
+                    book = self.get_book_by_id(borrowing.book_id)
+                    if book:
+                        borrowed_books.append({
+                            'book_id': book.id,
+                            'book_number': book.book_number,
+                            'title': book.title,
+                            'borrower_id': borrowing.student_id,
+                            'borrower_name': f"Student {borrowing.student_id}",
+                            'borrower_type': 'student',
+                            'borrowed_on': borrowing.borrowed_on,
+                            'due_date': self._calculate_due_date(borrowing.borrowed_on),
+                            'overdue': self._is_overdue(borrowing.borrowed_on)
+                        })
+    
+                # Process teacher borrowings
+                for borrowing in teacher_borrowings:
+                    if borrowing.returned_on:
+                        continue  # Skip already returned books
+    
+                    book = self.get_book_by_id(borrowing.book_id)
+                    if book:
+                        borrowed_books.append({
+                            'book_id': book.id,
+                            'book_number': book.book_number,
+                            'title': book.title,
+                            'borrower_id': borrowing.teacher_id,
+                            'borrower_name': f"Teacher {borrowing.teacher_id}",
+                            'borrower_type': 'teacher',
+                            'borrowed_on': borrowing.borrowed_on,
+                            'due_date': self._calculate_due_date(borrowing.borrowed_on),
+                            'overdue': self._is_overdue(borrowing.borrowed_on)
+                        })
+    
+                # Apply filtering
+                if filter_type == "borrowed":
+                    return borrowed_books
+                elif filter_type == "overdue":
+                    return [book for book in borrowed_books if book['overdue']]
+                else:
+                    return borrowed_books
+    
+            except Exception as e:
+                logger.error(f"Error getting borrowed books with details: {e}")
+                return []
+    
+        def bulk_return_books(self, book_return_data: List[Dict], current_user: str) -> Tuple[bool, str, dict]:
+            """
+            Bulk return multiple books with comprehensive validation and error handling.
+    
+            Args:
+                book_return_data: List of dictionaries containing return information
+                current_user: Username of the user processing the returns
+    
+            Returns:
+                Tuple of (success, message, statistics)
+            """
+            try:
+                success_count = 0
+                error_count = 0
+                errors = []
+    
+                for return_item in book_return_data:
+                    try:
+                        book_id = return_item['book_id']
+                        borrower_id = return_item['borrower_id']
+                        borrower_type = return_item['borrower_type']
+                        condition = return_item.get('condition', 'Good')
+                        fine_amount = float(return_item.get('fine_amount', 0))
+    
+                        # Validate book exists and is borrowed
+                        book = self.get_book_by_id(book_id)
+                        if not book:
+                            errors.append(f"Book {book_id} not found")
+                            error_count += 1
+                            continue
+    
+                        # Process return based on borrower type
+                        if borrower_type == 'student':
+                            success = self.return_book_student(
+                                borrower_id, book_id, condition, fine_amount, current_user
+                            )
+                        else:
+                            success = self.return_book_teacher(borrower_id, book_id)
+    
+                        if success:
+                            success_count += 1
+                        else:
+                            errors.append(f"Failed to return book {book_id} for {borrower_type} {borrower_id}")
+                            error_count += 1
+    
+                    except Exception as e:
+                        errors.append(f"Error processing return: {str(e)}")
+                        error_count += 1
+    
+                # Log the bulk operation
+                self.log_user_action(
+                    current_user,
+                    "bulk_return",
+                    f"Bulk return operation: {success_count} successful, {error_count} failed"
+                )
+    
+                statistics = {
+                    'total_attempted': len(book_return_data),
+                    'success_count': success_count,
+                    'error_count': error_count,
+                    'errors': errors
+                }
+    
+                if error_count > 0:
+                    message = f"Bulk return completed with {error_count} errors. {success_count} books returned successfully."
+                else:
+                    message = f"Bulk return completed successfully. {success_count} books returned."
+    
+                return True, message, statistics
+    
+            except Exception as e:
+                logger.error(f"Error in bulk return: {e}")
+                return False, f"Bulk return failed: {str(e)}", {}
+    
+        def _calculate_due_date(self, borrowed_on: str) -> str:
+            """
+            Calculate due date based on borrowed date.
+            
+            Args:
+                borrowed_on: Date when book was borrowed
+                
+            Returns:
+                Due date as string
+            """
+            try:
+                from datetime import datetime, timedelta
+                borrowed_date = datetime.strptime(borrowed_on, '%Y-%m-%d')
+                due_date = borrowed_date + timedelta(days=14)  # 2 weeks borrowing period
+                return due_date.strftime('%Y-%m-%d')
+            except Exception as e:
+                logger.error(f"Error calculating due date: {e}")
+                return "Unknown"
+    
+        def _is_overdue(self, borrowed_on: str) -> bool:
+            """
+            Check if a book is overdue.
+            
+            Args:
+                borrowed_on: Date when book was borrowed
+                
+            Returns:
+                True if book is overdue, False otherwise
+            """
+            try:
+                from datetime import datetime
+                borrowed_date = datetime.strptime(borrowed_on, '%Y-%m-%d')
+                due_date = borrowed_date + timedelta(days=14)
+                return datetime.now() > due_date
+            except Exception as e:
+                logger.error(f"Error checking overdue status: {e}")
+                return False
+    
         def optimize_bulk_import(self, session_id: int, file_path: str, imported_by: str, batch_size: int = 100) -> dict:
             """
             Optimized bulk import for large datasets (1,000+ students).
@@ -1142,6 +1323,133 @@ class BookService:
             return self.import_export_service.export_to_excel(data, filename)
         except Exception as e:
             logger.error(f"Error exporting books to Excel: {e}")
+            return False
+    
+    def bulk_borrow_books_from_excel(self, filename: str, current_user: str) -> Tuple[bool, str, dict]:
+        """
+        Bulk borrow books from an Excel file.
+        
+        Args:
+            filename: Path to the Excel file
+            current_user: Username of the user performing the operation
+            
+        Returns:
+            tuple: (success, message, statistics)
+        """
+        logger.info(f"Starting bulk borrow from Excel file: {filename}")
+        
+        try:
+            # Import data with validation
+            success, data, error_msg = self.import_export_service.import_from_excel_with_validation(
+                filename,
+                ['Admission_Number', 'Student_Name', 'Book_Number']
+            )
+            
+            if not success:
+                return False, error_msg, {}
+            
+            if not data:
+                return False, "No data found in the Excel file", {}
+            
+            # Validate data
+            from school_system.gui.windows.book_window.utils.validation import BookValidationHelper
+            is_valid, validation_errors = BookValidationHelper.validate_bulk_borrow_data(
+                data, self.student_service, self
+            )
+            
+            if not is_valid:
+                error_message = "Validation errors:\n" + "\n".join(validation_errors)
+                return False, error_message, {}
+            
+            # Process bulk borrowing
+            success_count = 0
+            error_count = 0
+            errors = []
+            
+            for i, row in enumerate(data, 1):
+                try:
+                    admission_number = row['Admission_Number'].strip()
+                    book_number = row['Book_Number'].strip()
+                    
+                    # Get book ID by book number
+                    book = self.get_book_by_number(book_number)
+                    if not book:
+                        errors.append(f"Row {i}: Book '{book_number}' not found")
+                        error_count += 1
+                        continue
+                    
+                    # Borrow the book
+                    success, message = self.reserve_book(admission_number, 'student', book.id)
+                    if success:
+                        success_count += 1
+                    else:
+                        errors.append(f"Row {i}: {message}")
+                        error_count += 1
+                        
+                except Exception as e:
+                    errors.append(f"Row {i}: Error processing - {str(e)}")
+                    error_count += 1
+            
+            # Log the operation
+            self.log_user_action(
+                current_user,
+                "bulk_borrow",
+                f"Bulk borrow operation: {success_count} successful, {error_count} failed"
+            )
+            
+            statistics = {
+                'total_records': len(data),
+                'success_count': success_count,
+                'error_count': error_count,
+                'errors': errors
+            }
+            
+            if error_count > 0:
+                message = f"Bulk borrow completed with {error_count} errors. {success_count} books borrowed successfully."
+            else:
+                message = f"Bulk borrow completed successfully. {success_count} books borrowed."
+            
+            return True, message, statistics
+            
+        except Exception as e:
+            logger.error(f"Error in bulk borrow from Excel: {e}")
+            return False, f"Error processing bulk borrow: {str(e)}", {}
+    
+    def get_book_by_number(self, book_number: str) -> Optional[Book]:
+        """
+        Get a book by its book number.
+        
+        Args:
+            book_number: The book number to search for
+            
+        Returns:
+            The Book object if found, otherwise None
+        """
+        try:
+            books = self.book_repository.find_by_field('book_number', book_number)
+            return books[0] if books else None
+        except Exception as e:
+            logger.error(f"Error getting book by number: {e}")
+            return None
+    
+    def log_user_action(self, username: str, action_type: str, details: str) -> bool:
+        """
+        Log user action to audit trail.
+        
+        Args:
+            username: Username of the user
+            action_type: Type of action performed
+            details: Details about the action
+            
+        Returns:
+            True if logging was successful, False otherwise
+        """
+        try:
+            # This would be implemented in a real system
+            logger.info(f"User action logged: {username} - {action_type} - {details}")
+            return True
+        except Exception as e:
+            logger.error(f"Error logging user action: {e}")
             return False
 
     def check_book_availability(self, book_id: int) -> bool:

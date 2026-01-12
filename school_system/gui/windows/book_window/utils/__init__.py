@@ -15,7 +15,10 @@ from .constants import (
     STANDARD_CLASSES,
     STANDARD_STREAMS,
     STANDARD_TERMS,
-    EXPORT_FORMATS
+    EXPORT_FORMATS,
+    EXCEL_BOOK_IMPORT_COLUMNS,
+    EXCEL_BORROWED_BOOKS_COLUMNS,
+    EXCEL_BULK_BORROW_COLUMNS
 )
 
 from .validation import BookValidationHelper

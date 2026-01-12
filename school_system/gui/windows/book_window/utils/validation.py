@@ -3,7 +3,12 @@ Validation utilities for the book management system.
 """
 
 from typing import List, Dict, Tuple
-from school_system.gui.windows.book_window.utils.constants import REQUIRED_FIELDS
+from school_system.gui.windows.book_window.utils.constants import (
+    REQUIRED_FIELDS,
+    EXCEL_BOOK_IMPORT_COLUMNS,
+    EXCEL_BORROWED_BOOKS_COLUMNS,
+    EXCEL_BULK_BORROW_COLUMNS
+)
 
 
 class BookValidationHelper:
@@ -33,6 +38,71 @@ class BookValidationHelper:
                 return False, f"Book number '{book_number}' already exists"
                 
         return True, ""
+    
+    @staticmethod
+    def validate_excel_columns(headers: List[str], required_columns: List[str]) -> Tuple[bool, str]:
+        """
+        Validate that Excel file contains all required columns.
+        
+        Args:
+            headers: List of column headers from Excel file
+            required_columns: List of required column names
+            
+        Returns:
+            tuple: (is_valid, error_message)
+        """
+        missing_columns = []
+        for column in required_columns:
+            if column not in headers:
+                missing_columns.append(column)
+        
+        if missing_columns:
+            return False, f"Missing required columns: {', '.join(missing_columns)}"
+        
+        return True, ""
+    
+    @staticmethod
+    def validate_bulk_borrow_data(data: List[Dict], student_service, book_service) -> Tuple[bool, List[str]]:
+        """
+        Validate bulk borrow data from Excel.
+        
+        Args:
+            data: List of dictionaries containing borrow data
+            student_service: Student service for validation
+            book_service: Book service for validation
+            
+        Returns:
+            tuple: (is_valid, error_messages)
+        """
+        errors = []
+        
+        for i, row in enumerate(data, 1):
+            admission_number = row.get('Admission_Number', '').strip()
+            book_number = row.get('Book_Number', '').strip()
+            
+            # Validate admission number
+            if not admission_number:
+                errors.append(f"Row {i}: Missing admission number")
+                continue
+            
+            # Check if student exists
+            student_exists = student_service.get_student_by_admission_number(admission_number)
+            if not student_exists:
+                errors.append(f"Row {i}: Student with admission number '{admission_number}' not found")
+            
+            # Validate book number
+            if not book_number:
+                errors.append(f"Row {i}: Missing book number")
+                continue
+            
+            # Check if book exists and is available
+            book = book_service.get_book_by_number(book_number)
+            if not book:
+                errors.append(f"Row {i}: Book with number '{book_number}' not found")
+            elif not book.available:
+                errors.append(f"Row {i}: Book '{book_number}' is not available")
+        
+        return len(errors) == 0, errors
         
     @staticmethod
     def validate_required_fields(data: Dict[str, str], required_fields: List[str] = REQUIRED_FIELDS) -> Tuple[bool, str]:

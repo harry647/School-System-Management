@@ -23,7 +23,8 @@ from .book_workflows import (
     BookRemoveWorkflow,
     BookBorrowWorkflow,
     BookReturnWorkflow,
-    BookSearchWorkflow
+    BookSearchWorkflow,
+    BulkReturnWorkflow
 )
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     'BookRemoveWorkflow',
     'BookBorrowWorkflow',
     'BookReturnWorkflow',
-    'BookSearchWorkflow'
+    'BookSearchWorkflow',
+    'BulkReturnWorkflow'
 ]

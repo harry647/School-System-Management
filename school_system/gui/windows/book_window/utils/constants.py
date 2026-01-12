@@ -14,10 +14,37 @@ CARD_SPACING = 15
 # Form field constants
 REQUIRED_FIELDS = [
     'subject',
-    'class', 
+    'class',
     'book_number',
     'title',
     'author'
+]
+
+# Excel import/export constants
+EXCEL_BOOK_IMPORT_COLUMNS = [
+    'ISBN',
+    'Title',
+    'Author',
+    'Book_Number',
+    'Subject',
+    'Class',
+    'Category',
+    'Publication_Date',
+    'Condition'
+]
+
+EXCEL_BORROWED_BOOKS_COLUMNS = [
+    'Book_ID',
+    'Student_ID',
+    'Due_Date',
+    'Borrow_Date',
+    'Condition'
+]
+
+EXCEL_BULK_BORROW_COLUMNS = [
+    'Admission_Number',
+    'Student_Name',
+    'Book_Number'
 ]
 
 # Book conditions

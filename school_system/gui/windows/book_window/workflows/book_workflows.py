@@ -2,7 +2,7 @@
 Book workflow components for the book management system.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from PyQt6.QtWidgets import QMessageBox
 import time
 
@@ -230,7 +230,7 @@ class BookReturnWorkflow(BookWorkflowBase):
 
 class BookSearchWorkflow(BookWorkflowBase):
     """Workflow for searching books."""
-    
+
     def execute_search_books(self, query: str) -> Tuple[List, str]:
         """Execute book search."""
         try:
@@ -238,8 +238,77 @@ class BookSearchWorkflow(BookWorkflowBase):
                 books = self.book_service.search_books(query)
             else:
                 books = self.book_service.get_all_books()
-            
+
             return books, ""
-            
+
         except Exception as e:
             return [], f"Search failed: {str(e)}"
+
+
+class BulkReturnWorkflow(BookWorkflowBase):
+    """Workflow for bulk book returns with checkbox selection."""
+
+    def execute_bulk_return(self, return_data: List[Dict]) -> Tuple[bool, str, dict]:
+        """
+        Execute the complete bulk return workflow.
+
+        Args:
+            return_data: List of dictionaries containing return information
+
+        Returns:
+            Tuple of (success, message, statistics)
+        """
+        try:
+            # Validate input data
+            if not return_data or len(return_data) == 0:
+                return False, "No books selected for return", {}
+
+            # Validate each return item
+            validation_errors = []
+            for item in return_data:
+                if not item.get('book_id'):
+                    validation_errors.append("Missing book ID")
+                elif not isinstance(item['book_id'], int):
+                    validation_errors.append(f"Invalid book ID type: {type(item['book_id'])}")
+                
+                if not item.get('borrower_id'):
+                    validation_errors.append("Missing borrower ID")
+                elif not isinstance(item['borrower_id'], str):
+                    validation_errors.append(f"Invalid borrower ID type: {type(item['borrower_id'])}")
+                
+                if not item.get('borrower_type'):
+                    validation_errors.append("Missing borrower type")
+                elif item['borrower_type'] not in ['student', 'teacher']:
+                    validation_errors.append(f"Invalid borrower type: {item['borrower_type']}")
+                
+                # Validate condition
+                condition = item.get('condition', 'Good')
+                if condition not in ['Good', 'Torn', 'Lost']:
+                    validation_errors.append(f"Invalid condition: {condition}")
+                
+                # Validate fine amount
+                fine_amount = item.get('fine_amount', 0.0)
+                if not isinstance(fine_amount, (int, float)) or fine_amount < 0:
+                    validation_errors.append(f"Invalid fine amount: {fine_amount}")
+
+            if validation_errors:
+                return False, "Validation errors: " + ", ".join(validation_errors), {}
+
+            # Execute bulk return
+            success, message, statistics = self.book_service.bulk_return_books(
+                return_data, self.current_user
+            )
+
+            if success:
+                # Log the action
+                self._log_user_action(
+                    "bulk_return",
+                    f"Bulk return of {len(return_data)} books"
+                )
+
+                return True, message, statistics
+            else:
+                return False, message, statistics
+
+        except Exception as e:
+            return False, f"Bulk return failed: {str(e)}", {}

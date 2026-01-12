@@ -5,7 +5,7 @@ Import/Export service for handling data import and export operations.
 import csv
 import json
 import openpyxl
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import FileOperationException
@@ -152,6 +152,90 @@ class ImportExportService:
         except Exception as e:
             print(f"Error importing from Excel: {e}")
             return []
+    
+    def import_from_excel_with_validation(self, filename: str, required_columns: List[str]) -> Tuple[bool, List[Dict], str]:
+        """
+        Import data from Excel with validation.
+        
+        Args:
+            filename: The name of the Excel file.
+            required_columns: List of required column names
+            
+        Returns:
+            tuple: (success, data, error_message)
+        """
+        try:
+            workbook = openpyxl.load_workbook(filename)
+            sheet = workbook.active
+            
+            # Get headers from first row
+            headers = [cell.value for cell in sheet[1]]
+            
+            # Validate required columns
+            missing_columns = []
+            for column in required_columns:
+                if column not in headers:
+                    missing_columns.append(column)
+            
+            if missing_columns:
+                return False, [], f"Missing required columns: {', '.join(missing_columns)}"
+            
+            # Import data
+            data = []
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                if row:
+                    data.append(dict(zip(headers, row)))
+            
+            return True, data, ""
+            
+        except Exception as e:
+            logger.error(f"Error importing from Excel with validation: {e}")
+            return False, [], f"Error importing file: {str(e)}"
+    
+    def generate_excel_template(self, filename: str, columns: List[str], sample_data: List[Dict] = None) -> bool:
+        """
+        Generate an Excel template file with proper headers.
+        
+        Args:
+            filename: The name of the Excel file to create.
+            columns: List of column headers.
+            sample_data: Optional sample data to include.
+            
+        Returns:
+            True if template generation was successful, False otherwise.
+        """
+        try:
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            
+            # Add headers
+            sheet.append(columns)
+            
+            # Add sample data if provided
+            if sample_data:
+                for row in sample_data:
+                    sheet.append([row.get(col, '') for col in columns])
+            
+            # Auto-size columns
+            for column in sheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = (max_length + 2) * 1.2
+                sheet.column_dimensions[column_letter].width = adjusted_width
+            
+            workbook.save(filename)
+            logger.info(f"Excel template generated successfully: {filename}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error generating Excel template: {e}")
+            return False
 
     def export_to_pdf(self, data: List[Dict], filename: str) -> bool:
         """
