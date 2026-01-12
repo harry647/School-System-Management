@@ -93,7 +93,8 @@ class BookWindow(BaseWindow):
         self.add_widget_to_content(tab_widget)
         
         # Book Management Tab with standardized workflows
-        book_tab = BookManagementTab()
+        self.book_tab = BookManagementTab()
+        book_tab = self.book_tab
         
         # Connect signals
         book_tab.add_book_requested.connect(self._start_add_book_workflow)
@@ -162,7 +163,7 @@ class BookWindow(BaseWindow):
         borrow_layout.add_widget(borrow_button)
         
         borrow_form.setLayout(borrow_layout._layout)
-        borrow_section.layout.addWidget(borrow_form)
+        borrow_section.layout.add_widget(borrow_form)
         layout.add_widget(borrow_section)
         
         # Return Book Section
@@ -209,7 +210,7 @@ class BookWindow(BaseWindow):
         return_layout.add_widget(return_button)
         
         return_form.setLayout(return_layout._layout)
-        return_section.layout.addWidget(return_form)
+        return_section.layout.add_widget(return_form)
         layout.add_widget(return_section)
         
         # View Borrowed Books Section
@@ -231,7 +232,7 @@ class BookWindow(BaseWindow):
         borrowed_layout.add_widget(self.borrowed_books_table)
         
         borrowed_form.setLayout(borrowed_layout._layout)
-        borrowed_section.layout.addWidget(borrowed_form)
+        borrowed_section.layout.add_widget(borrowed_form)
         layout.add_widget(borrowed_section)
         
         tab.setLayout(layout._layout)
@@ -286,7 +287,7 @@ class BookWindow(BaseWindow):
         create_session_layout.add_widget(create_session_button)
         
         create_session_form.setLayout(create_session_layout._layout)
-        create_session_section.layout.addWidget(create_session_form)
+        create_session_section.layout.add_widget(create_session_form)
         layout.add_widget(create_session_section)
         
         # View Distribution Sessions Section
@@ -308,7 +309,7 @@ class BookWindow(BaseWindow):
         view_sessions_layout.add_widget(self.distribution_sessions_table)
         
         view_sessions_form.setLayout(view_sessions_layout._layout)
-        view_sessions_section.layout.addWidget(view_sessions_form)
+        view_sessions_section.layout.add_widget(view_sessions_form)
         layout.add_widget(view_sessions_section)
         
         tab.setLayout(layout._layout)
@@ -342,7 +343,7 @@ class BookWindow(BaseWindow):
         import_layout.add_widget(import_button)
         
         import_form.setLayout(import_layout._layout)
-        import_section.layout.addWidget(import_form)
+        import_section.layout.add_widget(import_form)
         layout.add_widget(import_section)
         
         # Export Books Section
@@ -357,7 +358,7 @@ class BookWindow(BaseWindow):
         export_layout.add_widget(export_button)
         
         export_form.setLayout(export_layout._layout)
-        export_section.layout.addWidget(export_form)
+        export_section.layout.add_widget(export_form)
         layout.add_widget(export_section)
         
         tab.setLayout(layout._layout)
@@ -394,7 +395,7 @@ class BookWindow(BaseWindow):
         popular_layout.add_widget(self.popular_books_display)
         
         popular_form.setLayout(popular_layout._layout)
-        popular_section.layout.addWidget(popular_form)
+        popular_section.layout.add_widget(popular_form)
         layout.add_widget(popular_section)
         
         # Overdue Books Section
@@ -415,7 +416,7 @@ class BookWindow(BaseWindow):
         overdue_layout.add_widget(self.overdue_books_display)
         
         overdue_form.setLayout(overdue_layout._layout)
-        overdue_section.layout.addWidget(overdue_form)
+        overdue_section.layout.add_widget(overdue_form)
         layout.add_widget(overdue_section)
         
         tab.setLayout(layout._layout)
@@ -432,21 +433,21 @@ class BookWindow(BaseWindow):
         bulk_return_section = Card("Bulk Return by Stream/Subject",
                                    "Return multiple books at once by selecting stream and subject")
         bulk_return_form = self._create_bulk_return_form()
-        bulk_return_section.layout.addWidget(bulk_return_form)
+        bulk_return_section.layout.add_widget(bulk_return_form)
         layout.add_widget(bulk_return_section)
         
         # Return by Student ID Section
         student_return_section = Card("Return by Student ID",
                                       "Find and return books borrowed by a specific student")
         student_return_form = self._create_student_return_form()
-        student_return_section.layout.addWidget(student_return_form)
+        student_return_section.layout.add_widget(student_return_form)
         layout.add_widget(student_return_section)
         
         # Return by Book Number Section
         book_return_section = Card("Return by Book Number",
                                    "Find and return a specific book by its number")
         book_return_form = self._create_book_return_form()
-        book_return_section.layout.addWidget(book_return_form)
+        book_return_section.layout.add_widget(book_return_form)
         layout.add_widget(book_return_section)
         
         tab.setLayout(layout._layout)
@@ -645,20 +646,20 @@ class BookWindow(BaseWindow):
     
     def _populate_books_table(self, books):
         """Populate the books table with data."""
-        self.books_table.setRowCount(0)
+        self.book_tab.books_table.setRowCount(0)
         
         for book in books:
-            row_position = self.books_table.rowCount()
-            self.books_table.insertRow(row_position)
+            row_position = self.book_tab.books_table.rowCount()
+            self.book_tab.books_table.insertRow(row_position)
             
-            self.books_table.setItem(row_position, 0, QTableWidgetItem(str(book.id)))
-            self.books_table.setItem(row_position, 1, QTableWidgetItem(book.book_number))
-            self.books_table.setItem(row_position, 2, QTableWidgetItem(book.title))
-            self.books_table.setItem(row_position, 3, QTableWidgetItem(book.author))
-            self.books_table.setItem(row_position, 4, QTableWidgetItem(book.category or ""))
-            self.books_table.setItem(row_position, 5, QTableWidgetItem("Yes" if book.available else "No"))
-            self.books_table.setItem(row_position, 6, QTableWidgetItem(book.book_condition or ""))
-            self.books_table.setItem(row_position, 7, QTableWidgetItem(getattr(book, 'subject', '') or ""))
+            self.book_tab.books_table.setItem(row_position, 0, QTableWidgetItem(str(book.id)))
+            self.book_tab.books_table.setItem(row_position, 1, QTableWidgetItem(book.book_number))
+            self.book_tab.books_table.setItem(row_position, 2, QTableWidgetItem(book.title))
+            self.book_tab.books_table.setItem(row_position, 3, QTableWidgetItem(book.author))
+            self.book_tab.books_table.setItem(row_position, 4, QTableWidgetItem(book.category or ""))
+            self.book_tab.books_table.setItem(row_position, 5, QTableWidgetItem("Yes" if book.available else "No"))
+            self.book_tab.books_table.setItem(row_position, 6, QTableWidgetItem(book.book_condition or ""))
+            self.book_tab.books_table.setItem(row_position, 7, QTableWidgetItem(getattr(book, 'subject', '') or ""))
     
     def _on_search_books(self, query: str):
         """Handle book search."""

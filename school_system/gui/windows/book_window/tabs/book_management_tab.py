@@ -2,7 +2,7 @@
 Book Management Tab for the book window.
 """
 
-from PyQt6.QtWidgets import QWidget, QLabel
+from PyQt6.QtWidgets import QWidget, QLabel, QTableWidgetItem
 from PyQt6.QtCore import pyqtSignal
 
 from school_system.gui.windows.book_window.components import (
