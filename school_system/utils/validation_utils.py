@@ -74,6 +74,21 @@ class ValidationUtils:
         return re.match(pattern, student_id) is not None
 
     @staticmethod
+    def validate_teacher_id(teacher_id: str) -> bool:
+        """
+        Validate a teacher ID format.
+
+        Args:
+            teacher_id: Teacher ID to validate
+
+        Returns:
+            True if the teacher ID is valid, False otherwise
+        """
+        # Teacher ID format: 2-4 letters followed by 4-6 digits (e.g., TC1234) OR numeric-only (e.g., 123456)
+        pattern = r'^([A-Za-z]{2,4}\d{4,6}|\d{4,8})$'
+        return re.match(pattern, teacher_id) is not None
+
+    @staticmethod
     def validate_date(date_str: str, format_str: str = '%Y-%m-%d') -> bool:
         """
         Validate a date string format.

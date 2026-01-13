@@ -52,11 +52,12 @@ class TeacherService:
             The created Teacher object.
         """
         logger.info(f"Creating a new teacher with data: {teacher_data}")
-        ValidationUtils.validate_input(teacher_data.get('name'), "Teacher name cannot be empty")
+        ValidationUtils.validate_input(teacher_data.get('teacher_name'), "Teacher name cannot be empty")
+        ValidationUtils.validate_input(teacher_data.get('teacher_id'), "Teacher ID cannot be empty")
         
         teacher = Teacher(**teacher_data)
         created_teacher = self.teacher_repository.create(teacher)
-        logger.info(f"Teacher created successfully with ID: {created_teacher.id}")
+        logger.info(f"Teacher created successfully with ID: {created_teacher.teacher_id}")
         return created_teacher
 
     def update_teacher(self, teacher_id: int, teacher_data: dict) -> Optional[Teacher]:

@@ -49,19 +49,19 @@ class BaseRepository(Generic[T]):
         try:
             if entity is not None:
                 kwargs = vars(entity)
-            # Exclude updated_at if present, as most tables don't have it
-            kwargs = {k: v for k, v in kwargs.items() if k != 'updated_at'}
+            # Exclude updated_at and created_at if present, as most tables don't have them
+            kwargs = {k: v for k, v in kwargs.items() if k not in ['updated_at', 'created_at']}
             cursor = self.db.cursor()
             columns = ', '.join(kwargs.keys())
             placeholders = ', '.join(['?'] * len(kwargs))
             cursor.execute(f"INSERT INTO {self.model.__tablename__} ({columns}) VALUES ({placeholders})", tuple(kwargs.values()))
             self.db.commit()
-            
+             
             # Retrieve the auto-generated ID for models that have auto-increment primary keys
             pk = getattr(self.model, '__pk__', None)
             # Note: student_id is not auto-increment in the current schema, it's TEXT PRIMARY KEY
             # So we don't need to set it from lastrowid
-            
+             
             return self.model(**kwargs)
         except Exception as e:
             raise DatabaseException(f"Error creating entity: {e}")
