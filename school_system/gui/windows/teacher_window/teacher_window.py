@@ -83,25 +83,58 @@ class TeacherWindow(BaseWindow):
         teacher_tab = self._create_teacher_management_tab()
         tab_widget.addTab(teacher_tab, "Teacher Management")
 
-        # Subject & Class Assignment Tab
-        assignment_tab = self._create_assignment_tab()
-        tab_widget.addTab(assignment_tab, "Subject & Class Assignment")
-
-        # Performance & Qualifications Tab
-        performance_tab = self._create_performance_tab()
-        tab_widget.addTab(performance_tab, "Performance & Qualifications")
-
-        # Notifications & Communication Tab
-        notifications_tab = self._create_notifications_tab()
-        tab_widget.addTab(notifications_tab, "Notifications & Communication")
-
         # Import/Export Tab
         import_export_tab = self._create_import_export_tab()
         tab_widget.addTab(import_export_tab, "Import/Export")
 
-        # Reports & Analytics Tab
-        reports_tab = self._create_reports_tab()
-        tab_widget.addTab(reports_tab, "Reports & Analytics")
+    def _create_import_export_tab(self):
+        """Create the import/export tab."""
+        tab = QWidget()
+        layout = self.create_flex_layout("column", False)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.set_spacing(15)
+        
+        # Import Section
+        import_section = self.create_card("Import Teachers", "Import teachers from an Excel file")
+        import_form = QWidget()
+        import_layout = self.create_flex_layout("column", False)
+        import_layout.set_spacing(10)
+        
+        # File selection
+        file_selection_layout = QHBoxLayout()
+        self.import_file_label = QLabel("No file selected")
+        browse_button = self.create_button("Browse", "secondary")
+        browse_button.clicked.connect(self._on_browse_import_file)
+        file_selection_layout.addWidget(self.import_file_label)
+        file_selection_layout.addWidget(browse_button)
+        import_layout.add_layout(file_selection_layout)
+        
+        # Import button
+        import_button = self.create_button("Import Teachers", "primary")
+        import_button.clicked.connect(self._on_import_teachers)
+        import_layout.add_widget(import_button)
+        
+        import_form.setLayout(import_layout._layout)
+        import_section.layout.addWidget(import_form)
+        layout.add_widget(import_section)
+        
+        # Export Section
+        export_section = self.create_card("Export Teachers", "Export teachers to an Excel file")
+        export_form = QWidget()
+        export_layout = self.create_flex_layout("column", False)
+        export_layout.set_spacing(10)
+        
+        # Export button
+        export_button = self.create_button("Export Teachers", "primary")
+        export_button.clicked.connect(self._on_export_teachers)
+        export_layout.add_widget(export_button)
+        
+        export_form.setLayout(export_layout._layout)
+        export_section.layout.addWidget(export_form)
+        layout.add_widget(export_section)
+        
+        tab.setLayout(layout._layout)
+        return tab
 
     def _setup_undo_system(self):
         """Setup the undo system for teacher operations."""
@@ -137,29 +170,8 @@ class TeacherWindow(BaseWindow):
             last_operation = self.undo_stack.pop()
             
             try:
-                # Attempt to undo the operation
-                if last_operation['type'] == 'create':
-                    # Undo create by deleting
-                    teacher_id = last_operation['data']['teacher_id']
-                    self.teacher_service.delete_teacher(teacher_id)
-                    show_success_message("Undo Successful",
-                                        f"Teacher creation undone: {teacher_id}", self)
-                elif last_operation['type'] == 'delete':
-                    # Undo delete by recreating
-                    teacher_data = last_operation['data']
-                    self.teacher_service.create_teacher(teacher_data)
-                    show_success_message("Undo Successful",
-                                        f"Teacher deletion undone: {teacher_data['teacher_id']}", self)
-                elif last_operation['type'] == 'update':
-                    # Undo update by reverting to old data
-                    operation_data = last_operation['data']
-                    teacher_id = operation_data['teacher_id']
-                    old_data = operation_data['old_data']
-                    
-                    # Revert to old data
-                    self.teacher_service.update_teacher(teacher_id, old_data)
-                    show_success_message("Undo Successful",
-                                        f"Teacher update undone: {teacher_id}", self)
+                # Delegate undo operation to the teacher service
+                self.teacher_service.undo_operation(last_operation)
                 
                 # Refresh table
                 self._refresh_teachers_table()
@@ -173,16 +185,8 @@ class TeacherWindow(BaseWindow):
     
     def _track_operation(self, operation_type: str, operation_data: dict):
         """Track an operation for potential undo."""
-        # Add to undo stack (limit to last 10 operations)
-        self.undo_stack.append({
-            'type': operation_type,
-            'data': operation_data,
-            'timestamp': datetime.now().isoformat()
-        })
-        
-        # Limit stack size
-        if len(self.undo_stack) > 10:
-            self.undo_stack.pop(0)
+        # Delegate operation tracking to the teacher service
+        self.teacher_service.track_operation(operation_type, operation_data)
         
         # Enable undo action
         self.undo_action.setEnabled(True)
@@ -194,18 +198,11 @@ class TeacherWindow(BaseWindow):
         self.undo_timer = QTimer(self)
         self.undo_timer.timeout.connect(self._clear_undo_stack)
         self.undo_timer.start(5000)  # 5 seconds
-        
-        # Log the operation for audit purposes
-        if operation_type == 'create':
-            logger.info(f"Teacher created: {operation_data.get('teacher_id', 'Unknown')}")
-        elif operation_type == 'update':
-            logger.info(f"Teacher updated: {operation_data.get('teacher_id', 'Unknown')}")
-        elif operation_type == 'delete':
-            logger.info(f"Teacher deleted: {operation_data.get('teacher_id', 'Unknown')}")
     
     def _clear_undo_stack(self):
         """Clear the undo stack after timeout."""
-        self.undo_stack.clear()
+        # Delegate clearing undo stack to the teacher service
+        self.teacher_service.clear_undo_stack()
         if self.undo_action:
             self.undo_action.setEnabled(False)
         if self.undo_timer:
@@ -272,437 +269,7 @@ class TeacherWindow(BaseWindow):
         tab.setLayout(layout._layout)
         return tab
 
-    def _create_assignment_tab(self) -> QWidget:
-        """Create the subject and class assignment tab."""
-        tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
 
-        # Assign Subject Section
-        subject_section = self.create_card("Assign Subject to Teacher", "")
-        subject_form = QWidget()
-        subject_layout = self.create_flex_layout("column", False)
-        subject_layout.set_spacing(10)
-
-        # Teacher ID
-        subject_teacher_id_label = QLabel("Teacher ID:")
-        subject_layout.add_widget(subject_teacher_id_label)
-        self.assign_subject_teacher_id_input = self.create_input("Enter teacher ID")
-        subject_layout.add_widget(self.assign_subject_teacher_id_input)
-
-        # Subject ID
-        subject_id_label = QLabel("Subject ID:")
-        subject_layout.add_widget(subject_id_label)
-        self.assign_subject_id_input = self.create_input("Enter subject ID")
-        subject_layout.add_widget(self.assign_subject_id_input)
-
-        # Assign subject button
-        assign_subject_button = self.create_button("Assign Subject", "primary")
-        assign_subject_button.clicked.connect(self._on_assign_subject)
-        subject_layout.add_widget(assign_subject_button)
-
-        subject_form.setLayout(subject_layout._layout)
-        subject_section.layout.addWidget(subject_form)
-        layout.add_widget(subject_section)
-
-        # Assign Class Section
-        class_section = self.create_card("Assign Class to Teacher", "")
-        class_form = QWidget()
-        class_layout = self.create_flex_layout("column", False)
-        class_layout.set_spacing(10)
-
-        # Teacher ID
-        class_teacher_id_label = QLabel("Teacher ID:")
-        class_layout.add_widget(class_teacher_id_label)
-        self.assign_class_teacher_id_input = self.create_input("Enter teacher ID")
-        class_layout.add_widget(self.assign_class_teacher_id_input)
-
-        # Class ID
-        class_id_label = QLabel("Class ID:")
-        class_layout.add_widget(class_id_label)
-        self.assign_class_id_input = self.create_input("Enter class ID")
-        class_layout.add_widget(self.assign_class_id_input)
-
-        # Assign class button
-        assign_class_button = self.create_button("Assign Class", "secondary")
-        assign_class_button.clicked.connect(self._on_assign_class)
-        class_layout.add_widget(assign_class_button)
-
-        class_form.setLayout(class_layout._layout)
-        class_section.layout.addWidget(class_form)
-        layout.add_widget(class_section)
-
-        # Update Availability Section
-        availability_section = self.create_card("Update Teacher Availability", "")
-        availability_form = QWidget()
-        availability_layout = self.create_flex_layout("column", False)
-        availability_layout.set_spacing(10)
-
-        # Teacher ID
-        availability_teacher_id_label = QLabel("Teacher ID:")
-        availability_layout.add_widget(availability_teacher_id_label)
-        self.update_availability_teacher_id_input = self.create_input("Enter teacher ID")
-        availability_layout.add_widget(self.update_availability_teacher_id_input)
-
-        # Availability Days
-        availability_days_label = QLabel("Availability Days (comma separated):")
-        availability_layout.add_widget(availability_days_label)
-        self.update_availability_days_input = self.create_input("e.g., Mon,Wed,Fri")
-        availability_layout.add_widget(self.update_availability_days_input)
-
-        # Availability Hours
-        availability_hours_label = QLabel("Availability Hours:")
-        availability_layout.add_widget(availability_hours_label)
-        self.update_availability_hours_input = self.create_input("e.g., 8:00-16:00")
-        availability_layout.add_widget(self.update_availability_hours_input)
-
-        # Update availability button
-        update_availability_button = self.create_button("Update Availability", "primary")
-        update_availability_button.clicked.connect(self._on_update_availability)
-        availability_layout.add_widget(update_availability_button)
-
-        availability_form.setLayout(availability_layout._layout)
-        availability_section.layout.addWidget(availability_form)
-        layout.add_widget(availability_section)
-
-        tab.setLayout(layout._layout)
-        return tab
-
-    def _create_performance_tab(self) -> QWidget:
-        """Create the performance and qualifications tab."""
-        tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
-
-        # Add Performance Record Section
-        performance_section = self.create_card("Add Performance Record", "")
-        performance_form = QWidget()
-        performance_layout = self.create_flex_layout("column", False)
-        performance_layout.set_spacing(10)
-
-        # Teacher ID
-        performance_teacher_id_label = QLabel("Teacher ID:")
-        performance_layout.add_widget(performance_teacher_id_label)
-        self.add_performance_teacher_id_input = self.create_input("Enter teacher ID")
-        performance_layout.add_widget(self.add_performance_teacher_id_input)
-
-        # Performance Date
-        performance_date_label = QLabel("Performance Date (YYYY-MM-DD):")
-        performance_layout.add_widget(performance_date_label)
-        self.add_performance_date_input = self.create_input("Enter date")
-        performance_layout.add_widget(self.add_performance_date_input)
-
-        # Performance Score
-        performance_score_label = QLabel("Performance Score (1-100):")
-        performance_layout.add_widget(performance_score_label)
-        self.add_performance_score_input = self.create_input("Enter score")
-        performance_layout.add_widget(self.add_performance_score_input)
-
-        # Performance Notes
-        performance_notes_label = QLabel("Performance Notes:")
-        performance_layout.add_widget(performance_notes_label)
-        self.add_performance_notes_input = self.create_input("Enter notes")
-        performance_layout.add_widget(self.add_performance_notes_input)
-
-        # Add performance button
-        add_performance_button = self.create_button("Add Performance Record", "primary")
-        add_performance_button.clicked.connect(self._on_add_performance_record)
-        performance_layout.add_widget(add_performance_button)
-
-        performance_form.setLayout(performance_layout._layout)
-        performance_section.layout.addWidget(performance_form)
-        layout.add_widget(performance_section)
-
-        # Validate Qualifications Section
-        qualifications_section = self.create_card("Validate Teacher Qualifications", "")
-        qualifications_form = QWidget()
-        qualifications_layout = self.create_flex_layout("column", False)
-        qualifications_layout.set_spacing(10)
-
-        # Teacher ID
-        qualifications_teacher_id_label = QLabel("Teacher ID:")
-        qualifications_layout.add_widget(qualifications_teacher_id_label)
-        self.validate_qualifications_teacher_id_input = self.create_input("Enter teacher ID")
-        qualifications_layout.add_widget(self.validate_qualifications_teacher_id_input)
-
-        # Qualifications (comma separated)
-        qualifications_label = QLabel("Qualifications (comma separated):")
-        qualifications_layout.add_widget(qualifications_label)
-        self.validate_qualifications_input = self.create_input("e.g., B.Ed, M.Ed, PhD")
-        qualifications_layout.add_widget(self.validate_qualifications_input)
-
-        # Validate qualifications button
-        validate_qualifications_button = self.create_button("Validate Qualifications", "secondary")
-        validate_qualifications_button.clicked.connect(self._on_validate_qualifications)
-        qualifications_layout.add_widget(validate_qualifications_button)
-
-        qualifications_form.setLayout(qualifications_layout._layout)
-        qualifications_section.layout.addWidget(qualifications_form)
-        layout.add_widget(qualifications_section)
-
-        # View Performance Records Section
-        view_performance_section = self.create_card("View Performance Records", "")
-        view_performance_form = QWidget()
-        view_performance_layout = self.create_flex_layout("column", False)
-        view_performance_layout.set_spacing(10)
-
-        # Teacher ID
-        view_performance_teacher_id_label = QLabel("Teacher ID:")
-        view_performance_layout.add_widget(view_performance_teacher_id_label)
-        self.view_performance_teacher_id_input = self.create_input("Enter teacher ID")
-        view_performance_layout.add_widget(self.view_performance_teacher_id_input)
-
-        # View performance button
-        view_performance_button = self.create_button("View Performance Records", "primary")
-        view_performance_button.clicked.connect(self._on_view_performance_records)
-        view_performance_layout.add_widget(view_performance_button)
-
-        # Performance records display
-        self.performance_records_display = QTextEdit()
-        self.performance_records_display.setReadOnly(True)
-        self.performance_records_display.setMaximumHeight(200)
-        view_performance_layout.add_widget(self.performance_records_display)
-
-        view_performance_form.setLayout(view_performance_layout._layout)
-        view_performance_section.layout.addWidget(view_performance_form)
-        layout.add_widget(view_performance_section)
-
-        tab.setLayout(layout._layout)
-        return tab
-
-    def _create_notifications_tab(self) -> QWidget:
-        """Create the notifications and communication tab."""
-        tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
-
-        # Send Notification Section
-        notification_section = self.create_card("Send Notification to Teacher", "")
-        notification_form = QWidget()
-        notification_layout = self.create_flex_layout("column", False)
-        notification_layout.set_spacing(10)
-
-        # Teacher ID
-        notification_teacher_id_label = QLabel("Teacher ID:")
-        notification_layout.add_widget(notification_teacher_id_label)
-        self.send_notification_teacher_id_input = self.create_input("Enter teacher ID")
-        notification_layout.add_widget(self.send_notification_teacher_id_input)
-
-        # Notification Message
-        notification_message_label = QLabel("Notification Message:")
-        notification_layout.add_widget(notification_message_label)
-        self.send_notification_message_input = QTextEdit()
-        self.send_notification_message_input.setMaximumHeight(100)
-        notification_layout.add_widget(self.send_notification_message_input)
-
-        # Send notification button
-        send_notification_button = self.create_button("Send Notification", "primary")
-        send_notification_button.clicked.connect(self._on_send_notification)
-        notification_layout.add_widget(send_notification_button)
-
-        notification_form.setLayout(notification_layout._layout)
-        notification_section.layout.addWidget(notification_form)
-        layout.add_widget(notification_section)
-
-        # View Teacher Statistics Section
-        statistics_section = self.create_card("View Teacher Statistics", "")
-        statistics_form = QWidget()
-        statistics_layout = self.create_flex_layout("column", False)
-        statistics_layout.set_spacing(10)
-
-        # Teacher ID
-        statistics_teacher_id_label = QLabel("Teacher ID:")
-        statistics_layout.add_widget(statistics_teacher_id_label)
-        self.view_statistics_teacher_id_input = self.create_input("Enter teacher ID")
-        statistics_layout.add_widget(self.view_statistics_teacher_id_input)
-
-        # View statistics button
-        view_statistics_button = self.create_button("View Statistics", "secondary")
-        view_statistics_button.clicked.connect(self._on_view_teacher_statistics)
-        statistics_layout.add_widget(view_statistics_button)
-
-        # Statistics display
-        self.statistics_display = QTextEdit()
-        self.statistics_display.setReadOnly(True)
-        self.statistics_display.setMaximumHeight(200)
-        statistics_layout.add_widget(self.statistics_display)
-
-        statistics_form.setLayout(statistics_layout._layout)
-        statistics_section.layout.addWidget(statistics_form)
-        layout.add_widget(statistics_section)
-
-        # View Notifications Section
-        view_notifications_section = self.create_card("View Teacher Notifications", "")
-        view_notifications_form = QWidget()
-        view_notifications_layout = self.create_flex_layout("column", False)
-        view_notifications_layout.set_spacing(10)
-
-        # Teacher ID
-        view_notifications_teacher_id_label = QLabel("Teacher ID:")
-        view_notifications_layout.add_widget(view_notifications_teacher_id_label)
-        self.view_notifications_teacher_id_input = self.create_input("Enter teacher ID")
-        view_notifications_layout.add_widget(self.view_notifications_teacher_id_input)
-
-        # View notifications button
-        view_notifications_button = self.create_button("View Notifications", "primary")
-        view_notifications_button.clicked.connect(self._on_view_notifications)
-        view_notifications_layout.add_widget(view_notifications_button)
-
-        # Notifications display
-        self.notifications_display = QTextEdit()
-        self.notifications_display.setReadOnly(True)
-        self.notifications_display.setMaximumHeight(200)
-        view_notifications_layout.add_widget(self.notifications_display)
-
-        view_notifications_form.setLayout(view_notifications_layout._layout)
-        view_notifications_section.layout.addWidget(view_notifications_form)
-        layout.add_widget(view_notifications_section)
-
-        tab.setLayout(layout._layout)
-        return tab
-
-    def _create_import_export_tab(self) -> QWidget:
-        """Create the import/export tab."""
-        tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
-
-        # Import Teachers Section
-        import_section = self.create_card("Import Teachers from Excel", "")
-        import_form = QWidget()
-        import_layout = self.create_flex_layout("column", False)
-        import_layout.set_spacing(10)
-
-        # File selection
-        self.import_file_label = QLabel("No file selected")
-        import_layout.add_widget(self.import_file_label)
-
-        # Browse button
-        browse_button = self.create_button("Browse Excel File", "primary")
-        browse_button.clicked.connect(self._on_browse_import_file)
-        import_layout.add_widget(browse_button)
-
-        # Import button
-        import_button = self.create_button("Import Teachers", "secondary")
-        import_button.clicked.connect(self._on_import_teachers)
-        import_layout.add_widget(import_button)
-
-        import_form.setLayout(import_layout._layout)
-        import_section.layout.addWidget(import_form)
-        layout.add_widget(import_section)
-
-        # Export Teachers Section
-        export_section = self.create_card("Export Teachers to Excel", "")
-        export_form = QWidget()
-        export_layout = self.create_flex_layout("column", False)
-        export_layout.set_spacing(10)
-
-        # Export button
-        export_button = self.create_button("Export All Teachers", "primary")
-        export_button.clicked.connect(self._on_export_teachers)
-        export_layout.add_widget(export_button)
-
-        export_form.setLayout(export_layout._layout)
-        export_section.layout.addWidget(export_form)
-        layout.add_widget(export_section)
-
-        tab.setLayout(layout._layout)
-        return tab
-
-    def _create_reports_tab(self) -> QWidget:
-        """Create the reports and analytics tab."""
-        tab = QWidget()
-        layout = self.create_flex_layout("column", False)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.set_spacing(15)
-
-        # Teacher Summary Section
-        summary_section = self.create_card("Teacher Summary Report", "")
-        summary_form = QWidget()
-        summary_layout = self.create_flex_layout("column", False)
-        summary_layout.set_spacing(10)
-
-        # Teacher ID
-        summary_teacher_id_label = QLabel("Teacher ID:")
-        summary_layout.add_widget(summary_teacher_id_label)
-        self.summary_teacher_id_input = self.create_input("Enter teacher ID")
-        summary_layout.add_widget(self.summary_teacher_id_input)
-
-        # Generate summary button
-        generate_summary_button = self.create_button("Generate Summary", "primary")
-        generate_summary_button.clicked.connect(self._on_generate_teacher_summary)
-        summary_layout.add_widget(generate_summary_button)
-
-        # Summary results display
-        self.summary_results_display = QTextEdit()
-        self.summary_results_display.setReadOnly(True)
-        self.summary_results_display.setMaximumHeight(200)
-        summary_layout.add_widget(self.summary_results_display)
-
-        summary_form.setLayout(summary_layout._layout)
-        summary_section.layout.addWidget(summary_form)
-        layout.add_widget(summary_section)
-
-        # Department Analysis Section
-        department_section = self.create_card("Department Analysis Report", "")
-        department_form = QWidget()
-        department_layout = self.create_flex_layout("column", False)
-        department_layout.set_spacing(10)
-
-        # Department
-        department_label = QLabel("Department:")
-        department_layout.add_widget(department_label)
-        self.department_analysis_department_input = self.create_input("Enter department name")
-        department_layout.add_widget(self.department_analysis_department_input)
-
-        # Generate department analysis button
-        generate_department_button = self.create_button("Generate Department Analysis", "secondary")
-        generate_department_button.clicked.connect(self._on_generate_department_analysis)
-        department_layout.add_widget(generate_department_button)
-
-        # Department analysis results display
-        self.department_analysis_results_display = QTextEdit()
-        self.department_analysis_results_display.setReadOnly(True)
-        self.department_analysis_results_display.setMaximumHeight(200)
-        department_layout.add_widget(self.department_analysis_results_display)
-
-        department_form.setLayout(department_layout._layout)
-        department_section.layout.addWidget(department_form)
-        layout.add_widget(department_section)
-
-        # Performance Trends Section
-        performance_section = self.create_card("Performance Trends Report", "")
-        performance_form = QWidget()
-        performance_layout = self.create_flex_layout("column", False)
-        performance_layout.set_spacing(10)
-
-        # Teacher ID
-        performance_teacher_id_label = QLabel("Teacher ID:")
-        performance_layout.add_widget(performance_teacher_id_label)
-        self.performance_trends_teacher_id_input = self.create_input("Enter teacher ID")
-        performance_layout.add_widget(self.performance_trends_teacher_id_input)
-
-        # Generate performance trends button
-        generate_performance_button = self.create_button("Generate Performance Trends", "primary")
-        generate_performance_button.clicked.connect(self._on_generate_performance_trends)
-        performance_layout.add_widget(generate_performance_button)
-
-        # Performance trends results display
-        self.performance_trends_results_display = QTextEdit()
-        self.performance_trends_results_display.setReadOnly(True)
-        self.performance_trends_results_display.setMaximumHeight(200)
-        performance_layout.add_widget(self.performance_trends_results_display)
-
-        performance_form.setLayout(performance_layout._layout)
-        performance_section.layout.addWidget(performance_form)
-        layout.add_widget(performance_section)
-
-        tab.setLayout(layout._layout)
-        return tab
 
     # Event handlers for Teacher Management
     def _handle_operation_completed(self, success: bool, message: str):
@@ -739,6 +306,7 @@ class TeacherWindow(BaseWindow):
     def _refresh_teachers_table(self):
         """Refresh the teachers table."""
         try:
+            # Delegate teacher retrieval to the teacher service
             teachers = self.teacher_service.get_all_teachers()
             self._populate_teachers_table(teachers)
         except Exception as e:
@@ -787,6 +355,7 @@ class TeacherWindow(BaseWindow):
     def _start_edit_workflow(self, teacher_id: str):
         """Start the edit workflow for a specific teacher."""
         try:
+            # Delegate teacher retrieval to the teacher service
             teacher = self.teacher_service.get_teacher_by_id(teacher_id)
             if teacher:
                 # Create update workflow and pre-populate with teacher data
@@ -809,6 +378,7 @@ class TeacherWindow(BaseWindow):
     def _start_delete_workflow(self, teacher_id: str):
         """Start the delete workflow for a specific teacher."""
         try:
+            # Delegate teacher retrieval to the teacher service
             teacher = self.teacher_service.get_teacher_by_id(teacher_id)
             if teacher:
                 # Create delete workflow and pre-populate with teacher data
@@ -831,9 +401,11 @@ class TeacherWindow(BaseWindow):
     def _view_teacher_details(self, teacher_id: str):
         """View detailed information about a teacher."""
         try:
+            # Delegate teacher retrieval to the teacher service
             teacher = self.teacher_service.get_teacher_by_id(teacher_id)
             if teacher:
-                details = f"Teacher Details:\n\nID: {teacher.teacher_id}\nName: {teacher.teacher_name}\nDepartment: {getattr(teacher, 'department', 'N/A')}"
+                # Delegate details formatting to the teacher service
+                details = self.teacher_service.get_teacher_details(teacher)
                 show_success_message("Teacher Details", details, self)
             else:
                 show_error_message("Error", "Teacher not found", self)
@@ -859,6 +431,7 @@ class TeacherWindow(BaseWindow):
                 show_error_message("Validation Error", "Teacher ID and Subject ID are required", self)
                 return
 
+            # Delegate subject assignment to the teacher service
             success = self.teacher_service.assign_subject_to_teacher(teacher_id, subject_id)
             if success:
                 show_success_message("Success", f"Subject {subject_id} assigned to teacher {teacher_id}", self)
@@ -881,6 +454,7 @@ class TeacherWindow(BaseWindow):
                 show_error_message("Validation Error", "Teacher ID and Class ID are required", self)
                 return
 
+            # Delegate class assignment to the teacher service
             success = self.teacher_service.assign_class_to_teacher(teacher_id, class_id)
             if success:
                 show_success_message("Success", f"Class {class_id} assigned to teacher {teacher_id}", self)
@@ -909,6 +483,7 @@ class TeacherWindow(BaseWindow):
                 'hours': hours
             }
 
+            # Delegate availability update to the teacher service
             success = self.teacher_service.update_teacher_availability(teacher_id, availability_data)
             if success:
                 show_success_message("Success", f"Availability updated for teacher {teacher_id}", self)
@@ -941,6 +516,7 @@ class TeacherWindow(BaseWindow):
                 'notes': notes
             }
 
+            # Delegate performance record addition to the teacher service
             success = self.teacher_service.add_teacher_performance_record(teacher_id, performance_data)
             if success:
                 show_success_message("Success", f"Performance record added for teacher {teacher_id}", self)
@@ -969,6 +545,7 @@ class TeacherWindow(BaseWindow):
 
             qualifications = [q.strip() for q in qualifications_text.split(',')]
 
+            # Delegate qualifications validation to the teacher service
             success = self.teacher_service.validate_teacher_qualifications(teacher_id, qualifications)
             if success:
                 show_success_message("Success", f"Qualifications validated for teacher {teacher_id}", self)
@@ -1022,6 +599,7 @@ class TeacherWindow(BaseWindow):
                 show_error_message("Validation Error", "Teacher ID and Message are required", self)
                 return
 
+            # Delegate notification sending to the teacher service
             success = self.teacher_service.send_teacher_notification(teacher_id, message)
             if success:
                 show_success_message("Success", f"Notification sent to teacher {teacher_id}", self)
@@ -1043,6 +621,7 @@ class TeacherWindow(BaseWindow):
                 show_error_message("Validation Error", "Teacher ID is required", self)
                 return
 
+            # Delegate statistics retrieval to the teacher service
             stats = self.teacher_service.get_teacher_statistics(teacher_id)
             if stats:
                 stats_text = f"Teacher Statistics for {teacher_id}:\n\n"
