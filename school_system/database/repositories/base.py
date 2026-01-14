@@ -66,15 +66,21 @@ class BaseRepository(Generic[T]):
         except Exception as e:
             raise DatabaseException(f"Error creating entity: {e}")
 
-    def update(self, id: int, **kwargs) -> Optional[T]:
+    def update(self, entity) -> Optional[T]:
         """Update an existing entity."""
         try:
             cursor = self.db.cursor()
-            set_clause = ', '.join([f"{key} = ?" for key in kwargs.keys()])
+            # Get the primary key value from the entity
             pk = getattr(self.model, '__pk__', 'id')
-            cursor.execute(f"UPDATE {self.model.__tablename__} SET {set_clause} WHERE {pk} = ?", (*kwargs.values(), id))
+            pk_value = getattr(entity, pk)
+            
+            # Get all attributes of the entity except the primary key, created_at, and updated_at
+            kwargs = {k: v for k, v in vars(entity).items() if k not in [pk, 'created_at', 'updated_at']}
+            
+            set_clause = ', '.join([f"{key} = ?" for key in kwargs.keys()])
+            cursor.execute(f"UPDATE {self.model.__tablename__} SET {set_clause} WHERE {pk} = ?", (*kwargs.values(), pk_value))
             self.db.commit()
-            return self.get_by_id(id)
+            return self.get_by_id(pk_value)
         except Exception as e:
             raise DatabaseException(f"Error updating entity: {e}")
 

@@ -1,6 +1,5 @@
 """
 Unit tests for TeacherService CRUD operations.
-
 This module tests the teacher service layer to ensure
 CRUD operations work correctly.
 """
@@ -136,7 +135,7 @@ class TestTeacherService(unittest.TestCase):
         # Verify
         self.assertTrue(result)
         self.mock_repository.get_by_id.assert_called_once_with(teacher_id)
-        self.mock_repository.delete.assert_called_once_with(existing_teacher)
+        self.mock_repository.delete.assert_called_once_with(teacher_id)
 
     def test_delete_teacher_not_found(self):
         """Test deleting a non-existent teacher."""

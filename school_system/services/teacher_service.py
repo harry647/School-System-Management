@@ -95,7 +95,7 @@ class TeacherService:
         if not teacher:
             return False
 
-        self.teacher_repository.delete(teacher)
+        self.teacher_repository.delete(teacher_id)
         return True
 
 
