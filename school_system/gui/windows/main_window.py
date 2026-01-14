@@ -1,13 +1,17 @@
 """
 Main application window for the School System Management.
 
-This module provides the main GUI interface for the school system.
+This module provides the main GUI interface for the school system with
+dropdown menus and dynamic content loading.
 """
 
-from PyQt6.QtWidgets import QLabel, QMessageBox, QMenuBar, QSizePolicy, QFrame, QVBoxLayout, QToolButton, QHBoxLayout, QPushButton
-from PyQt6.QtCore import Qt, QTime, QTimer
-from PyQt6.QtGui import QIcon, QFont
-from typing import Callable
+from PyQt6.QtWidgets import (QLabel, QMessageBox, QMenuBar, QSizePolicy, QFrame,
+                            QVBoxLayout, QToolButton, QHBoxLayout, QPushButton,
+                            QLineEdit, QGridLayout, QSplitter, QScrollArea,
+                            QStackedWidget, QWidget, QMenu)
+from PyQt6.QtCore import Qt, QTime, QTimer, pyqtSignal
+from PyQt6.QtGui import QIcon, QFont, QAction
+from typing import Callable, Dict, Any
 
 from school_system.config.logging import logger
 from school_system.gui.base.base_window import BaseApplicationWindow
@@ -15,8 +19,11 @@ from school_system.gui.windows.user_window.user_window import UserWindow
 
 
 class MainWindow(BaseApplicationWindow):
-    """Main application window for the school system."""
-    
+    """Main application window for the school system with dropdown menus and dynamic content."""
+
+    # Signal for content changes
+    content_changed = pyqtSignal(str)
+
     def __init__(self, parent, username: str, role: str, on_logout: Callable):
         """
         Initialize the main window.
@@ -33,264 +40,361 @@ class MainWindow(BaseApplicationWindow):
         self.role = role
         self.on_logout = on_logout
 
+        # Content management
+        self.current_view = "dashboard"
+        self.content_views = {}
+
         # Connect theme change signal to update UI
         self.theme_changed.connect(self._on_theme_changed)
+        self.content_changed.connect(self._on_content_changed)
 
         self._setup_role_based_menus()
+        self._setup_main_layout()
         self._setup_sidebar()
-        self._setup_top_bar()
-        self._setup_content()
+        self._setup_content_area()
+        self._setup_initial_content()
         self._apply_professional_styling()
 
         logger.info(f"Main window created for user {username} with role {role}")
 
+    def _setup_main_layout(self):
+        """Setup the main splitter layout for sidebar and content area."""
+        self.main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.main_splitter.setHandleWidth(2)
+        self.main_splitter.setStretchFactor(0, 0)  # Sidebar doesn't stretch
+        self.main_splitter.setStretchFactor(1, 1)  # Content area stretches
+        self.setCentralWidget(self.main_splitter)
+
     def _setup_sidebar(self):
-        """Setup modern web-style sidebar navigation."""
+        """Setup modern professional sidebar navigation with dropdown menus."""
         theme_manager = self.get_theme_manager()
         theme = theme_manager._themes[self.get_theme()]
-        
-        # Create sidebar frame with modern styling
-        sidebar = QFrame(self)
-        sidebar.setFixedWidth(260)
+        role_color = self._get_role_color()
+
+        # Create sidebar frame with enhanced professional styling
+        sidebar = QFrame()
+        sidebar.setFixedWidth(300)
         sidebar.setProperty("sidebar", "true")
         sidebar.setStyleSheet(f"""
             QFrame[sidebar="true"] {{
                 background-color: {theme["surface"]};
                 border-right: 1px solid {theme["border"]};
+                border-radius: 8px;
             }}
             QToolButton {{
                 color: {theme["text"]};
                 text-align: left;
-                padding: 14px 20px;
+                padding: 12px 20px;
                 border: none;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 500;
-                border-radius: 8px;
-                margin: 2px 8px;
+                border-radius: 10px;
+                margin: 2px 10px;
+                min-height: 44px;
             }}
             QToolButton:hover {{
                 background-color: {theme["surface_hover"]};
-                color: {theme["primary"]};
+                color: {role_color};
             }}
             QToolButton:pressed {{
                 background-color: {theme["border"]};
             }}
+            QToolButton::menu-indicator {{
+                image: none;
+                width: 0px;
+            }}
+            QLabel[sectionHeader="true"] {{
+                color: {theme["text_secondary"]};
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                padding: 12px 20px 8px 20px;
+                margin-top: 8px;
+                border-bottom: 1px solid {theme["border"]};
+            }}
+            QLabel[sectionIcon="true"] {{
+                font-size: 14px;
+                margin-right: 8px;
+            }}
         """)
-         
+
         # Create vertical layout for sidebar
         sidebar_layout = QVBoxLayout(sidebar)
-        sidebar_layout.setContentsMargins(12, 20, 12, 20)
-        sidebar_layout.setSpacing(4)
-         
-        # Dashboard
-        dashboard_btn = QToolButton()
-        dashboard_btn.setText("  🏠  Dashboard")
-        dashboard_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        dashboard_btn.clicked.connect(self._show_dashboard)
-        sidebar_layout.addWidget(dashboard_btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Students section
-        students_label = QLabel("STUDENTS")
-        students_label.setStyleSheet(f"""
-            color: {theme["text_secondary"]};
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            margin-top: 4px;
-        """)
-        sidebar_layout.addWidget(students_label)
-        
-        students_actions = [
-            ("👁️ View Students", self._show_students),
-            ("➕ Add Student", self._add_student),
-            ("✏️ Edit Student", self._show_edit_student),
-            ("📝 Ream Management", self._show_ream_management_window),
-            ("📚 Library Activity", self._show_library_activity),
-            ("📤 Import/Export", self._show_student_import_export),
-        ]
-        
-        for text, callback in students_actions:
-            btn = QToolButton()
-            btn.setText(f"  {text}")
-            btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-            btn.clicked.connect(callback)
-            sidebar_layout.addWidget(btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Books section
-        books_label = QLabel("BOOKS")
-        books_label.setStyleSheet(f"""
-            color: {theme["text_secondary"]};
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            margin-top: 4px;
-        """)
-        sidebar_layout.addWidget(books_label)
-        
-        books_actions = [
-            ("👁️ View Books", self._show_books),
-            ("➕ Add Book", self._add_book),
-            ("📖 Borrow Book", self._show_borrow_book),
-            ("↩️ Return Book", self._show_return_book),
-            ("📦 Distribution", self._show_distribution),
-            ("📤 Import/Export", self._show_book_import_export),
-        ]
-        
-        for text, callback in books_actions:
-            btn = QToolButton()
-            btn.setText(f"  {text}")
-            btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-            btn.clicked.connect(callback)
-            sidebar_layout.addWidget(btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Teachers section
-        teachers_label = QLabel("TEACHERS")
-        teachers_label.setStyleSheet(f"""
-            color: {theme["text_secondary"]};
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            margin-top: 4px;
-        """)
-        sidebar_layout.addWidget(teachers_label)
-        
-        teachers_actions = [
-            ("👁️ View Teachers", self._show_teachers),
-            ("➕ Add Teacher", self._add_teacher),
-            ("✏️ Edit Teacher", self._show_edit_teacher),
-            ("📤 Import/Export", self._show_teacher_import_export),
-        ]
-        
-        for text, callback in teachers_actions:
-            btn = QToolButton()
-            btn.setText(f"  {text}")
-            btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-            btn.clicked.connect(callback)
-            sidebar_layout.addWidget(btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Furniture section
-        furniture_label = QLabel("FURNITURE")
-        furniture_label.setStyleSheet(f"""
-            color: {theme["text_secondary"]};
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            margin-top: 4px;
-        """)
-        sidebar_layout.addWidget(furniture_label)
-        
-        furniture_actions = [
-            ("🪑 Manage Furniture", self._show_furniture_management),
-            ("📋 Assignments", self._show_furniture_assignments),
-            ("🔧 Maintenance", self._show_furniture_maintenance),
-        ]
-        
-        for text, callback in furniture_actions:
-            btn = QToolButton()
-            btn.setText(f"  {text}")
-            btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-            btn.clicked.connect(callback)
-            sidebar_layout.addWidget(btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Users section
-        users_label = QLabel("USERS")
-        users_label.setStyleSheet(f"""
-            color: {theme["text_secondary"]};
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            margin-top: 4px;
-        """)
-        sidebar_layout.addWidget(users_label)
-        
-        users_btn = QToolButton()
-        users_btn.setText("  👤 Manage Users")
-        users_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        users_btn.clicked.connect(self._show_user_management)
-        sidebar_layout.addWidget(users_btn)
+        sidebar_layout.setContentsMargins(0, 20, 0, 20)
+        sidebar_layout.setSpacing(0)
 
-        view_users_btn = QToolButton()
-        view_users_btn.setText("  👁️ View Users")
-        view_users_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        view_users_btn.clicked.connect(self._show_view_users)
-        sidebar_layout.addWidget(view_users_btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Reports section
-        reports_label = QLabel("REPORTS")
-        reports_label.setStyleSheet(f"""
-            color: {theme["text_secondary"]};
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            margin-top: 4px;
+        # Logo/Brand section
+        logo_section = QFrame()
+        logo_section.setStyleSheet(f"""
+            QFrame {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {role_color}, stop:1 {theme["surface"]});
+                border-radius: 0 0 16px 16px;
+                margin: 0 10px 20px 10px;
+                padding: 20px;
+            }}
         """)
-        sidebar_layout.addWidget(reports_label)
-        
-        reports_actions = [
-            ("📊 Book Reports", self._show_book_reports),
-            ("📊 Student Reports", self._show_student_reports),
-            ("📊 Custom Reports", self._show_custom_reports),
+        logo_layout = QVBoxLayout(logo_section)
+        logo_layout.setContentsMargins(10, 10, 10, 10)
+
+        logo_label = QLabel("🏫")
+        logo_label.setStyleSheet("font-size: 32px; text-align: center;")
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        brand_label = QLabel("School\nManager")
+        brand_label.setStyleSheet(f"""
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+        """)
+        brand_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        logo_layout.addWidget(logo_label)
+        logo_layout.addWidget(brand_label)
+        sidebar_layout.addWidget(logo_section)
+
+        # Dashboard button (prominent)
+        dashboard_btn = QToolButton()
+        dashboard_btn.setText("🏠 Dashboard")
+        dashboard_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        dashboard_btn.setStyleSheet(f"""
+            QToolButton {{
+                background-color: {role_color};
+                color: white;
+                font-weight: 600;
+                border-radius: 12px;
+                margin: 8px 12px;
+                padding: 16px 20px;
+                font-size: 14px;
+            }}
+            QToolButton:hover {{
+                background-color: {theme["primary"]};
+            }}
+        """)
+        dashboard_btn.clicked.connect(lambda: self._load_content("dashboard"))
+        sidebar_layout.addWidget(dashboard_btn)
+
+        sidebar_layout.addSpacing(16)
+
+        # Core Management Sections with Dropdown Menus
+        sections = [
+            {
+                "icon": "👨‍🎓",
+                "title": "Student Management",
+                "menu_items": [
+                    ("👁️ View Students", "view_students"),
+                    ("➕ Add Student", "add_student"),
+                    ("✏️ Edit Student", "edit_student"),
+                    ("📝 Class Management", "class_management"),
+                    ("📚 Library Activity", "library_activity"),
+                    ("📤 Import/Export", "student_import_export"),
+                ]
+            },
+            {
+                "icon": "📚",
+                "title": "Library Management",
+                "menu_items": [
+                    ("👁️ View Books", "view_books"),
+                    ("➕ Add Book", "add_book"),
+                    ("📖 Borrow Book", "borrow_book"),
+                    ("↩️ Return Book", "return_book"),
+                    ("📦 Distribution", "distribution"),
+                    ("📤 Import/Export", "book_import_export"),
+                ]
+            },
+            {
+                "icon": "👩‍🏫",
+                "title": "Staff Management",
+                "menu_items": [
+                    ("👁️ View Teachers", "view_teachers"),
+                    ("➕ Add Teacher", "add_teacher"),
+                    ("✏️ Edit Teacher", "edit_teacher"),
+                    ("📤 Import/Export", "teacher_import_export"),
+                ]
+            },
+            {
+                "icon": "🪑",
+                "title": "Facility Management",
+                "menu_items": [
+                    ("🪑 Manage Furniture", "manage_furniture"),
+                    ("📋 Assignments", "furniture_assignments"),
+                    ("🔧 Maintenance", "furniture_maintenance"),
+                ]
+            },
+            {
+                "icon": "👥",
+                "title": "User Management",
+                "menu_items": [
+                    ("👤 Manage Users", "manage_users"),
+                    ("👁️ View Users", "view_users"),
+                ]
+            },
+            {
+                "icon": "📊",
+                "title": "Reports & Analytics",
+                "menu_items": [
+                    ("📊 Book Reports", "book_reports"),
+                    ("📊 Student Reports", "student_reports"),
+                    ("📊 Custom Reports", "custom_reports"),
+                ]
+            }
         ]
-        
-        for text, callback in reports_actions:
-            btn = QToolButton()
-            btn.setText(f"  {text}")
-            btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-            btn.clicked.connect(callback)
-            sidebar_layout.addWidget(btn)
-        
-        sidebar_layout.addSpacing(12)
-        
-        # Settings
+
+        # Add sections with dropdown menus
+        for section in sections:
+            # Section header with icon
+            section_frame = QFrame()
+            section_layout = QVBoxLayout(section_frame)
+            section_layout.setContentsMargins(0, 0, 0, 0)
+            section_layout.setSpacing(4)
+
+            header_layout = QHBoxLayout()
+            header_layout.setContentsMargins(20, 8, 20, 8)
+
+            icon_label = QLabel(section["icon"])
+            icon_label.setProperty("sectionIcon", "true")
+
+            title_label = QLabel(section["title"].upper())
+            title_label.setProperty("sectionHeader", "true")
+
+            header_layout.addWidget(icon_label)
+            header_layout.addWidget(title_label)
+            header_layout.addStretch()
+
+            section_layout.addLayout(header_layout)
+
+            # Dropdown button for this section
+            dropdown_btn = QToolButton()
+            dropdown_btn.setText(f"  {section['title']} ▼")
+            dropdown_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+            dropdown_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+
+            # Create dropdown menu
+            menu = QMenu(dropdown_btn)
+            dropdown_btn.setMenu(menu)
+
+            for text, action_id in section["menu_items"]:
+                action = QAction(text, self)
+                action.triggered.connect(lambda checked, aid=action_id: self._load_content(aid))
+                menu.addAction(action)
+
+            section_layout.addWidget(dropdown_btn)
+            sidebar_layout.addWidget(section_frame)
+
+        sidebar_layout.addSpacing(20)
+
+        # Settings and Help section at bottom
+        bottom_section = QFrame()
+        bottom_layout = QVBoxLayout(bottom_section)
+        bottom_layout.setContentsMargins(10, 10, 10, 10)
+
+        # Settings button
         settings_btn = QToolButton()
-        settings_btn.setText("  ⚙️  Settings")
+        settings_btn.setText("⚙️ Settings")
         settings_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        settings_btn.clicked.connect(self._show_settings)
-        sidebar_layout.addWidget(settings_btn)
-         
-        # Add stretch to push buttons to top
+        settings_btn.clicked.connect(lambda: self._load_content("settings"))
+        bottom_layout.addWidget(settings_btn)
+
+        # Help button
+        help_btn = QToolButton()
+        help_btn.setText("❓ Help & Support")
+        help_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        help_btn.clicked.connect(lambda: self._load_content("help"))
+        bottom_layout.addWidget(help_btn)
+
+        sidebar_layout.addWidget(bottom_section)
+
+        # Add stretch to push everything to top
         sidebar_layout.addStretch()
-         
-        # Add sidebar to main layout
-        self._main_layout.insertWidget(0, sidebar)
-        
+
+        # Add sidebar to splitter
+        self.main_splitter.addWidget(sidebar)
+
+    def _setup_content_area(self):
+        """Setup the dynamic content area that loads different views."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        # Create main content frame
+        content_frame = QFrame()
+        content_frame.setProperty("contentArea", "true")
+        content_frame.setStyleSheet(f"""
+            QFrame[contentArea="true"] {{
+                background-color: {theme["background"]};
+                border: none;
+            }}
+        """)
+
+        # Create vertical layout for content
+        content_layout = QVBoxLayout(content_frame)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
+
+        # Add top bar to content area
+        self._setup_top_bar()
+        content_layout.addWidget(self.top_bar)
+
+        # Create scroll area for content
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setStyleSheet(f"""
+            QScrollArea {{
+                border: none;
+                background-color: {theme["background"]};
+                border-radius: 8px;
+            }}
+            QScrollBar:vertical {{
+                background-color: {theme["surface"]};
+                width: 12px;
+                border-radius: 6px;
+            }}
+            QScrollBar::handle:vertical {{
+                background-color: {theme["border"]};
+                border-radius: 6px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background-color: {theme["text_secondary"]};
+            }}
+        """)
+
+        # Create stacked widget for different content views
+        self.content_stack = QStackedWidget()
+        self.content_stack.setStyleSheet(f"""
+            QStackedWidget {{
+                background-color: {theme["background"]};
+            }}
+        """)
+
+        scroll_area.setWidget(self.content_stack)
+        scroll_area.setWidgetResizable(True)
+
+        content_layout.addWidget(scroll_area)
+
+        # Add content area to splitter
+        self.main_splitter.addWidget(content_frame)
+
+        # Set splitter proportions (sidebar : content = 1 : 3)
+        self.main_splitter.setSizes([300, 900])
+
     def _setup_top_bar(self):
-        """Setup modern web-style top bar."""
+        """Setup modern professional top bar with search and advanced features."""
         theme_manager = self.get_theme_manager()
         theme = theme_manager._themes[self.get_theme()]
         role_color = self._get_role_color()
-        
-        top_bar = QFrame(self)
-        top_bar.setFixedHeight(72)
-        top_bar.setProperty("topBar", "true")
-        top_bar.setStyleSheet(f"""
+
+        self.top_bar = QFrame()
+        self.top_bar.setFixedHeight(80)
+        self.top_bar.setProperty("topBar", "true")
+        self.top_bar.setStyleSheet(f"""
             QFrame[topBar="true"] {{
                 background-color: {theme["surface"]};
                 border-bottom: 1px solid {theme["border"]};
+                border-radius: 8px;
             }}
             QLabel {{
                 color: {theme["text"]};
@@ -311,55 +415,1178 @@ class MainWindow(BaseApplicationWindow):
                 border-color: {role_color};
                 color: {role_color};
             }}
+            QLineEdit {{
+                background-color: {theme["background"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 20px;
+                padding: 8px 16px;
+                padding-left: 40px;
+                font-size: 14px;
+                color: {theme["text"]};
+            }}
+            QLineEdit:focus {{
+                border-color: {role_color};
+                background-color: {theme["surface"]};
+            }}
+            QLineEdit::placeholder {{
+                color: {theme["text_secondary"]};
+            }}
         """)
-         
+
         # Create horizontal layout for top bar
-        top_layout = QHBoxLayout(top_bar)
-        top_layout.setContentsMargins(24, 0, 24, 0)
-        top_layout.setSpacing(16)
-        
-        # School branding with modern typography
-        logo_label = QLabel("🏫 School System")
-        logo_font = QFont("Segoe UI", 18, QFont.Weight.Bold)
-        logo_label.setFont(logo_font)
-        top_layout.addWidget(logo_label)
-        
+        top_layout = QHBoxLayout(self.top_bar)
+        top_layout.setContentsMargins(32, 16, 32, 16)
+        top_layout.setSpacing(20)
+
+        # Enhanced branding
+        branding_frame = QFrame()
+        branding_layout = QHBoxLayout(branding_frame)
+        branding_layout.setContentsMargins(0, 0, 0, 0)
+        branding_layout.setSpacing(12)
+
+        logo_label = QLabel("🏫")
+        logo_label.setStyleSheet("font-size: 28px;")
+
+        brand_text = QFrame()
+        brand_layout = QVBoxLayout(brand_text)
+        brand_layout.setContentsMargins(0, 0, 0, 0)
+        brand_layout.setSpacing(0)
+
+        title_label = QLabel("School Management System")
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Bold)
+        title_label.setFont(title_font)
+        title_label.setStyleSheet(f"color: {theme['text']};")
+
+        subtitle_label = QLabel("Professional Dashboard")
+        subtitle_label.setStyleSheet(f"""
+            color: {theme["text_secondary"]};
+            font-size: 12px;
+            font-weight: 400;
+        """)
+
+        brand_layout.addWidget(title_label)
+        brand_layout.addWidget(subtitle_label)
+
+        branding_layout.addWidget(logo_label)
+        branding_layout.addWidget(brand_text)
+
+        top_layout.addWidget(branding_frame)
+
+        # Search bar
+        search_frame = QFrame()
+        search_layout = QHBoxLayout(search_frame)
+        search_layout.setContentsMargins(0, 0, 0, 0)
+        search_layout.setSpacing(0)
+
+        search_icon = QLabel("🔍")
+        search_icon.setStyleSheet("font-size: 16px; margin-left: 12px;")
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search students, books, users...")
+        self.search_input.setMinimumWidth(300)
+        self.search_input.textChanged.connect(self._on_search_text_changed)
+
+        search_layout.addWidget(search_icon)
+        search_layout.addWidget(self.search_input)
+
+        top_layout.addWidget(search_frame)
+
         # Spacer
         top_layout.addStretch()
-        
-        # User info badge
-        user_info = QLabel(f"👤 {self.username}")
-        user_info.setStyleSheet(f"""
-            font-size: 14px;
-            font-weight: 500;
-            color: {theme["text"]};
-            padding: 6px 12px;
-            background-color: {theme["surface_hover"]};
-            border-radius: 8px;
+
+        # Quick action buttons
+        quick_actions_layout = QHBoxLayout()
+        quick_actions_layout.setSpacing(8)
+
+        # Theme toggle
+        theme_btn = QToolButton()
+        theme_btn.setText("🌙")
+        theme_btn.setToolTip("Toggle Theme")
+        theme_btn.clicked.connect(self._toggle_theme)
+        theme_btn.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border: none;
+                border-radius: 8px;
+                padding: 8px;
+                font-size: 16px;
+            }}
+            QToolButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
         """)
-        top_layout.addWidget(user_info)
-        
+        quick_actions_layout.addWidget(theme_btn)
+
+        # Notifications
+        notif_btn = QToolButton()
+        notif_btn.setText("🔔")
+        notif_btn.setToolTip("Notifications")
+        notif_btn.clicked.connect(self._show_notifications)
+        notif_btn.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border: none;
+                border-radius: 8px;
+                padding: 8px;
+                font-size: 16px;
+            }}
+            QToolButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        quick_actions_layout.addWidget(notif_btn)
+
+        top_layout.addLayout(quick_actions_layout)
+
+        # User info section
+        user_frame = QFrame()
+        user_layout = QHBoxLayout(user_frame)
+        user_layout.setContentsMargins(0, 0, 0, 0)
+        user_layout.setSpacing(12)
+
+        # User avatar and info
+        user_info_frame = QFrame()
+        user_info_layout = QHBoxLayout(user_info_frame)
+        user_info_layout.setContentsMargins(0, 0, 0, 0)
+        user_info_layout.setSpacing(8)
+
+        avatar_label = QLabel("👤")
+        avatar_label.setStyleSheet(f"""
+            font-size: 24px;
+            background-color: {role_color};
+            color: white;
+            border-radius: 12px;
+            padding: 4px;
+        """)
+
+        user_details = QFrame()
+        details_layout = QVBoxLayout(user_details)
+        details_layout.setContentsMargins(0, 0, 0, 0)
+        details_layout.setSpacing(0)
+
+        username_label = QLabel(self.username)
+        username_label.setStyleSheet(f"""
+            font-size: 14px;
+            font-weight: 600;
+            color: {theme["text"]};
+        """)
+
+        role_label = QLabel(self.role.capitalize())
+        role_label.setStyleSheet(f"""
+            font-size: 11px;
+            color: {theme["text_secondary"]};
+            font-weight: 500;
+        """)
+
+        details_layout.addWidget(username_label)
+        details_layout.addWidget(role_label)
+
+        user_info_layout.addWidget(avatar_label)
+        user_info_layout.addWidget(user_details)
+
         # Role badge
         role_badge = QLabel(self.role.upper())
         role_badge.setStyleSheet(f"""
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 700;
             color: white;
             background-color: {role_color};
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
             letter-spacing: 0.5px;
         """)
-        top_layout.addWidget(role_badge)
-        
+
         # Logout button
         logout_btn = QToolButton()
-        logout_btn.setText("Logout")
+        logout_btn.setText("🚪")
+        logout_btn.setToolTip("Logout")
         logout_btn.clicked.connect(self._on_logout)
-        top_layout.addWidget(logout_btn)
-        
-        # Add top bar to main layout
-        self._main_layout.insertWidget(0, top_bar)
+        logout_btn.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 6px 12px;
+                font-size: 14px;
+            }}
+            QToolButton:hover {{
+                background-color: #ffebee;
+                border-color: #f44336;
+                color: #f44336;
+            }}
+        """)
+
+        user_layout.addWidget(user_info_frame)
+        user_layout.addWidget(role_badge)
+        user_layout.addWidget(logout_btn)
+
+        top_layout.addWidget(user_frame)
+
+    def _setup_initial_content(self):
+        """Setup initial dashboard content."""
+        self._load_content("dashboard")
+
+    def _load_content(self, content_id: str):
+        """Load and display the specified content view."""
+        if content_id in self.content_views:
+            # Switch to existing view
+            self.content_stack.setCurrentWidget(self.content_views[content_id])
+        else:
+            # Create new view
+            view = self._create_content_view(content_id)
+            if view:
+                self.content_views[content_id] = view
+                self.content_stack.addWidget(view)
+                self.content_stack.setCurrentWidget(view)
+
+        self.current_view = content_id
+        self.content_changed.emit(content_id)
+        logger.info(f"Loaded content view: {content_id}")
+
+    def _create_content_view(self, content_id: str) -> QWidget:
+        """Create a content view widget for the given content ID."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        # Content view mapping
+        content_creators = {
+            "dashboard": self._create_dashboard_view,
+            "view_students": lambda: self._create_view_students_view(),
+            "add_student": lambda: self._create_add_student_view(),
+            "edit_student": lambda: self._create_edit_student_view(),
+            "view_books": lambda: self._create_view_books_view(),
+            "add_book": lambda: self._create_add_book_view(),
+            "borrow_book": lambda: self._create_borrow_book_view(),
+            "return_book": lambda: self._create_return_book_view(),
+            "view_teachers": lambda: self._create_view_teachers_view(),
+            "add_teacher": lambda: self._create_add_teacher_view(),
+            "manage_users": lambda: self._create_manage_users_view(),
+            "settings": lambda: self._create_settings_view(),
+            "help": lambda: self._create_help_view(),
+        }
+
+        creator = content_creators.get(content_id)
+        if creator:
+            return creator()
+        else:
+            # Default empty view
+            return self._create_default_view(content_id, theme, role_color)
+
+    def _create_dashboard_view(self) -> QWidget:
+        """Create the main dashboard view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(32)
+
+        # Enhanced welcome header
+        welcome_card = QFrame()
+        welcome_card.setObjectName("welcomeHeader")
+        welcome_card.setStyleSheet(f"""
+            QFrame#welcomeHeader {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {role_color}, stop:1 {theme["primary"]});
+                border-radius: 16px;
+                padding: 24px;
+                color: white;
+                border: 1px solid {role_color};
+            }}
+        """)
+
+        welcome_layout = QVBoxLayout(welcome_card)
+        welcome_layout.setContentsMargins(16, 16, 16, 16)
+        welcome_layout.setSpacing(16)
+
+        # Personalized greeting
+        current_time = QTime.currentTime()
+        hour = current_time.hour()
+        if hour < 12:
+            time_greeting = "Good morning"
+        elif hour < 18:
+            time_greeting = "Good afternoon"
+        else:
+            time_greeting = "Good evening"
+
+        role_capitalized = self.role.capitalize()
+        if self.role == 'admin':
+            role_message = "Administrator"
+        elif self.role == 'teacher':
+            role_message = "Educator"
+        else:
+            role_message = role_capitalized
+
+        greeting_label = QLabel(f"{time_greeting}, {role_message} {self.username}! 👋")
+        greeting_label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        welcome_layout.addWidget(greeting_label)
+
+        welcome_label = QLabel("Welcome back! Here's what's new today:")
+        welcome_label.setStyleSheet("font-size: 16px; color: rgba(255, 255, 255, 0.9);")
+        welcome_layout.addWidget(welcome_label)
+
+        layout.addWidget(welcome_card)
+
+        # Top dashboard row - Quick Actions and Key Metrics
+        self._setup_dashboard_top_row(layout)
+
+        # Middle dashboard row - Statistics and Activity
+        self._setup_dashboard_middle_row(layout)
+
+        # Bottom dashboard row - Additional widgets and notifications
+        self._setup_dashboard_bottom_row(layout)
+
+        return scroll_widget
+
+    def _setup_dashboard_top_row(self, layout):
+        """Setup the top row with quick actions and key performance indicators."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        # Create horizontal layout for top row
+        top_row_layout = QHBoxLayout()
+        top_row_layout.setSpacing(24)
+
+        # Quick Actions Panel (Left side)
+        quick_actions_panel = self._create_quick_actions_panel()
+        top_row_layout.addWidget(quick_actions_panel, 2)  # 2/3 width
+
+        # Key Metrics Panel (Right side)
+        key_metrics_panel = self._create_key_metrics_panel()
+        top_row_layout.addWidget(key_metrics_panel, 1)  # 1/3 width
+
+        layout.addLayout(top_row_layout)
+
+    def _setup_dashboard_middle_row(self, layout):
+        """Setup the middle row with detailed statistics and recent activity."""
+        # Create horizontal layout for middle row
+        middle_row_layout = QHBoxLayout()
+        middle_row_layout.setSpacing(24)
+
+        # Statistics Grid (Left side)
+        stats_panel = self._create_statistics_grid()
+        middle_row_layout.addWidget(stats_panel, 2)  # 2/3 width
+
+        # Activity Panel (Right side)
+        activity_panel = self._create_activity_panel()
+        middle_row_layout.addWidget(activity_panel, 1)  # 1/3 width
+
+        layout.addLayout(middle_row_layout)
+
+    def _setup_dashboard_bottom_row(self, layout):
+        """Setup the bottom row with notifications and system alerts."""
+        # Create horizontal layout for bottom row
+        bottom_row_layout = QHBoxLayout()
+        bottom_row_layout.setSpacing(24)
+
+        # Notifications Panel
+        notifications_panel = self._create_notifications_panel()
+        bottom_row_layout.addWidget(notifications_panel, 1)
+
+        # System Alerts Panel
+        alerts_panel = self._create_system_alerts_panel()
+        bottom_row_layout.addWidget(alerts_panel, 1)
+
+        # Calendar/Events Panel
+        calendar_panel = self._create_calendar_panel()
+        bottom_row_layout.addWidget(calendar_panel, 1)
+
+        layout.addLayout(bottom_row_layout)
+
+    def _create_view_students_view(self) -> QWidget:
+        """Create the view students content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("👨‍🎓 Student Management")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area for student list/table
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Placeholder for student table/list
+        placeholder_label = QLabel("Student list and management tools will be displayed here.\n\nUse the buttons below to manage students.")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        add_btn = QPushButton("➕ Add Student")
+        add_btn.clicked.connect(lambda: self._load_content("add_student"))
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+                opacity: 0.9;
+            }}
+        """)
+
+        edit_btn = QPushButton("✏️ Edit Student")
+        edit_btn.clicked.connect(lambda: self._load_content("edit_student"))
+        edit_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        actions_layout.addWidget(add_btn)
+        actions_layout.addWidget(edit_btn)
+        actions_layout.addStretch()
+
+        card_layout.addLayout(actions_layout)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_add_student_view(self) -> QWidget:
+        """Create the add student content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("➕ Add New Student")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Form placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        form_placeholder = QLabel("Student registration form will be displayed here.\n\nFields: Name, Grade, Contact Info, etc.")
+        form_placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        form_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(form_placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_edit_student_view(self) -> QWidget:
+        """Create the edit student content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("✏️ Edit Student")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder = QLabel("Student selection and editing form will be displayed here.\n\nSelect a student to edit their information.")
+        placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_view_books_view(self) -> QWidget:
+        """Create the view books content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📚 Library Management")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area for book list/table
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Placeholder for book table/list
+        placeholder_label = QLabel("Book catalog and management tools will be displayed here.\n\nUse the buttons below to manage books.")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        add_btn = QPushButton("➕ Add Book")
+        add_btn.clicked.connect(lambda: self._load_content("add_book"))
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+                opacity: 0.9;
+            }}
+        """)
+
+        borrow_btn = QPushButton("📖 Borrow Book")
+        borrow_btn.clicked.connect(lambda: self._load_content("borrow_book"))
+        borrow_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        return_btn = QPushButton("↩️ Return Book")
+        return_btn.clicked.connect(lambda: self._load_content("return_book"))
+        return_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        actions_layout.addWidget(add_btn)
+        actions_layout.addWidget(borrow_btn)
+        actions_layout.addWidget(return_btn)
+        actions_layout.addStretch()
+
+        card_layout.addLayout(actions_layout)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_add_book_view(self) -> QWidget:
+        """Create the add book content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("➕ Add New Book")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Form placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        form_placeholder = QLabel("Book registration form will be displayed here.\n\nFields: Title, Author, ISBN, Category, etc.")
+        form_placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        form_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(form_placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_borrow_book_view(self) -> QWidget:
+        """Create the borrow book content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📖 Borrow Book")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder = QLabel("Book borrowing interface will be displayed here.\n\nSelect a book and student to create a borrowing record.")
+        placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_return_book_view(self) -> QWidget:
+        """Create the return book content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("↩️ Return Book")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder = QLabel("Book return interface will be displayed here.\n\nSelect a borrowed book to mark it as returned.")
+        placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_view_teachers_view(self) -> QWidget:
+        """Create the view teachers content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("👩‍🏫 Staff Management")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area for teacher list/table
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Placeholder for teacher table/list
+        placeholder_label = QLabel("Teacher list and management tools will be displayed here.\n\nUse the buttons below to manage staff.")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        add_btn = QPushButton("➕ Add Teacher")
+        add_btn.clicked.connect(lambda: self._load_content("add_teacher"))
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+                opacity: 0.9;
+            }}
+        """)
+
+        edit_btn = QPushButton("✏️ Edit Teacher")
+        edit_btn.clicked.connect(lambda: self._load_content("edit_teacher"))
+        edit_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        actions_layout.addWidget(add_btn)
+        actions_layout.addWidget(edit_btn)
+        actions_layout.addStretch()
+
+        card_layout.addLayout(actions_layout)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_add_teacher_view(self) -> QWidget:
+        """Create the add teacher content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("➕ Add New Staff Member")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Form placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        form_placeholder = QLabel("Staff registration form will be displayed here.\n\nFields: Name, Subject, Contact Info, etc.")
+        form_placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        form_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(form_placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_manage_users_view(self) -> QWidget:
+        """Create the manage users content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("👥 User Management")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder = QLabel("User management interface will be displayed here.\n\nManage user accounts, roles, and permissions.")
+        placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_settings_view(self) -> QWidget:
+        """Create the settings content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("⚙️ Settings")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Settings content
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        settings_placeholder = QLabel("System settings and preferences will be displayed here.\n\nConfigure themes, notifications, and system options.")
+        settings_placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        settings_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(settings_placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_help_view(self) -> QWidget:
+        """Create the help content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("❓ Help & Support")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Help content
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        help_content = QLabel("""
+Help & Documentation
+
+• Dashboard Navigation: Use the sidebar to navigate between different sections
+• Quick Actions: Access common tasks from the dashboard
+• Search: Use the search bar in the top bar to find students, books, or users
+• Reports: Generate various reports from the Reports section
+• Settings: Configure system preferences and user settings
+
+For additional support, contact your system administrator.
+        """)
+        help_content.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text"]};
+            line-height: 1.6;
+        """)
+        card_layout.addWidget(help_content)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_default_view(self, content_id: str, theme: Dict[str, str], role_color: str) -> QWidget:
+        """Create a default content view for unspecified content IDs."""
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel(f"📄 {content_id.replace('_', ' ').title()}")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder_label = QLabel(f"This is the {content_id.replace('_', ' ')} view.\n\nFeature coming soon! 🚧")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 18px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _on_content_changed(self, content_id: str):
+        """Handle content view changes."""
+        self.update_status(f"Viewing: {content_id.replace('_', ' ').title()}")
+
 
     def _get_role_color(self):
         """Get the accent color based on user role."""
@@ -379,53 +1606,131 @@ class MainWindow(BaseApplicationWindow):
         logger.info(f"Theme changed to {theme_name}, updated main window styling and welcome header")
     
     def _apply_professional_styling(self):
-        """Apply modern web-style professional styling to the main window."""
+        """Apply outstanding professional styling to the main window."""
         theme_manager = self.get_theme_manager()
         theme = theme_manager._themes[self.get_theme()]
         role_color = self._get_role_color()
-        
-        # Apply modern web-style theme
+
+        # Apply comprehensive modern professional theme
         self.setStyleSheet(f"""
             MainWindow {{
                 background-color: {theme["background"]};
                 font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+                color: {theme["text"]};
             }}
+
+            /* Dashboard Panels */
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+            }}
+            QFrame[dashboardPanel="true"]:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+
+            /* Statistics Cards */
             QFrame[statCard="true"] {{
                 background-color: {theme["surface"]};
                 border-radius: 12px;
                 border-left: 4px solid {role_color};
                 border: 1px solid {theme["border"]};
                 padding: 20px;
+                transition: all 0.3s ease;
             }}
             QFrame[statCard="true"]:hover {{
                 border-color: {role_color};
                 background-color: {theme["surface_hover"]};
-                transform: translateY(-2px);
+            }}
+
+            /* Enhanced Statistics Cards */
+            QFrame[enhancedStatCard="true"] {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {theme["surface"]}, stop:1 rgba(255, 255, 255, 0.8));
+                border-radius: 14px;
+                border: 1px solid {theme["border"]};
+            }}
+            QFrame[enhancedStatCard="true"]:hover {{
+                border-color: {role_color};
+            }}
+
+            /* Welcome Header */
+            QFrame#welcomeHeader {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {role_color}, stop:1 {theme["primary"]});
+                border-radius: 16px;
+                padding: 24px;
+                color: white;
+            }}
+
+            /* Buttons */
+            QPushButton {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 10px 16px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {role_color};
+                color: white;
+                border-color: {role_color};
+            }}
+
+            /* Tool Buttons */
+            QToolButton {{
+                border-radius: 8px;
+                padding: 8px 12px;
+            }}
+            QToolButton:hover {{
+            }}
+
+            /* Labels */
+            QLabel {{
+                color: {theme["text"]};
             }}
             QLabel[title="true"] {{
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: 600;
                 color: {theme["text"]};
-                padding: 12px 16px;
+                padding: 16px;
                 border-bottom: 1px solid {theme["border"]};
             }}
             QLabel[content="true"] {{
                 font-size: 14px;
                 color: {theme["text_secondary"]};
                 padding: 16px;
+                line-height: 1.5;
             }}
-            QToolButton[actionButton="true"] {{
+
+            /* Cards */
+            QFrame[card="true"] {{
                 background-color: {theme["surface"]};
-                border: 1px solid {role_color};
-                color: {role_color};
-                padding: 10px 20px;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 500;
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
             }}
-            QToolButton[actionButton="true"]:hover {{
-                background-color: {role_color};
-                color: white;
+            QFrame[card="true"]:hover {{
+            }}
+
+            /* Scroll Areas */
+            QScrollArea {{
+                border: none;
+                background-color: transparent;
+            }}
+            QScrollArea QWidget {{
+                background-color: transparent;
+            }}
+
+            /* Focus States */
+            *:focus {{
+                outline: 2px solid {role_color};
+                outline-offset: 2px;
+            }}
+
+            /* Animations */
+            * {{
+                transition: all 0.2s ease;
             }}
         """)
     
@@ -475,57 +1780,817 @@ class MainWindow(BaseApplicationWindow):
                     self._clear_layout(nested_layout)
     
     def _setup_content(self):
-        """Setup the main content area with statistics display."""
+        """Deprecated: Content is now handled by the dynamic content area system."""
+        pass
+
+    def _setup_old_content(self):
+        """Setup the main content area with a professional dashboard layout."""
         # Clear existing content to avoid duplication
         self.clear_content()
-        
-        # Create main vertical layout with clean spacing
+
+        # Create main vertical layout with modern spacing
         main_layout = self.create_layout("vbox")
-        main_layout.set_spacing(24)
-        main_layout.set_margins(24, 24, 24, 24)
-        
+        main_layout.set_spacing(32)
+        main_layout.set_margins(32, 32, 32, 32)
+
         # Add the main layout to content area
         self.add_layout_to_content(main_layout)
-          
-        # Dynamic welcome header
+
+        # Enhanced welcome header
         self._setup_welcome_header(main_layout)
-         
-        # Quick actions section
-        self._setup_quick_actions(main_layout)
-         
-        # Statistics section - show totals only, no management sections
-        stats_layout = self.create_flex_layout(direction="row", wrap=True)
-        stats_layout.set_spacing(20)
-         
-        # Show relevant statistics based on user role
-        stats_cards = []
+
+        # Top dashboard row - Quick Actions and Key Metrics
+        self._setup_top_dashboard_row(main_layout)
+
+        # Middle dashboard row - Statistics and Activity
+        self._setup_middle_dashboard_row(main_layout)
+
+        # Bottom dashboard row - Additional widgets and notifications
+        self._setup_bottom_dashboard_row(main_layout)
+
+    def _setup_top_dashboard_row(self, main_layout):
+        """Setup the top row with quick actions and key performance indicators."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        # Create horizontal layout for top row
+        top_row_layout = QHBoxLayout()
+        top_row_layout.setSpacing(24)
+
+        # Quick Actions Panel (Left side)
+        quick_actions_panel = self._create_quick_actions_panel()
+        top_row_layout.addWidget(quick_actions_panel, 2)  # 2/3 width
+
+        # Key Metrics Panel (Right side)
+        key_metrics_panel = self._create_key_metrics_panel()
+        top_row_layout.addWidget(key_metrics_panel, 1)  # 1/3 width
+
+        main_layout.addLayout(top_row_layout)
+
+    def _setup_middle_dashboard_row(self, main_layout):
+        """Setup the middle row with detailed statistics and recent activity."""
+        # Create horizontal layout for middle row
+        middle_row_layout = QHBoxLayout()
+        middle_row_layout.setSpacing(24)
+
+        # Statistics Grid (Left side)
+        stats_panel = self._create_statistics_grid()
+        middle_row_layout.addWidget(stats_panel, 2)  # 2/3 width
+
+        # Activity Panel (Right side)
+        activity_panel = self._create_activity_panel()
+        middle_row_layout.addWidget(activity_panel, 1)  # 1/3 width
+
+        main_layout.addLayout(middle_row_layout)
+
+    def _setup_bottom_dashboard_row(self, main_layout):
+        """Setup the bottom row with notifications and system alerts."""
+        # Create horizontal layout for bottom row
+        bottom_row_layout = QHBoxLayout()
+        bottom_row_layout.setSpacing(24)
+
+        # Notifications Panel
+        notifications_panel = self._create_notifications_panel()
+        bottom_row_layout.addWidget(notifications_panel, 1)
+
+        # System Alerts Panel
+        alerts_panel = self._create_system_alerts_panel()
+        bottom_row_layout.addWidget(alerts_panel, 1)
+
+        # Calendar/Events Panel
+        calendar_panel = self._create_calendar_panel()
+        bottom_row_layout.addWidget(calendar_panel, 1)
+
+        main_layout.addLayout(bottom_row_layout)
+
+    def _create_quick_actions_panel(self):
+        """Create a comprehensive quick actions panel."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(20)
+
+        # Panel Title
+        title = QLabel("⚡ Quick Actions")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # Action Categories
+        categories = [
+            {
+                "title": "Student Management",
+                "actions": [
+                    ("➕ Add Student", self._add_student),
+                    ("👁️ View Students", self._show_students),
+                    ("✏️ Edit Student", self._show_edit_student),
+                    ("📤 Import Students", self._show_student_import_export),
+                ]
+            },
+            {
+                "title": "Book Management",
+                "actions": [
+                    ("➕ Add Book", self._add_book),
+                    ("👁️ View Books", self._show_books),
+                    ("📖 Borrow Book", self._show_borrow_book),
+                    ("↩️ Return Book", self._show_return_book),
+                ]
+            },
+            {
+                "title": "Reports & Analytics",
+                "actions": [
+                    ("📊 Book Reports", self._show_book_reports),
+                    ("📊 Student Reports", self._show_student_reports),
+                    ("📊 Custom Reports", self._show_custom_reports),
+                ]
+            }
+        ]
+
+        for category in categories:
+            # Category title
+            cat_title = QLabel(category["title"])
+            cat_title.setStyleSheet(f"""
+                font-size: 14px;
+                font-weight: 600;
+                color: {theme["text_secondary"]};
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 12px;
+                margin-bottom: 8px;
+            """)
+            layout.addWidget(cat_title)
+
+            # Action buttons grid
+            actions_layout = QHBoxLayout()
+            actions_layout.setSpacing(8)
+
+            for action_text, action_callback in category["actions"]:
+                btn = QPushButton(action_text)
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: transparent;
+                        border: 1px solid {role_color};
+                        color: {role_color};
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        min-width: 80px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: {role_color};
+                        color: white;
+                    }}
+                """)
+                btn.clicked.connect(action_callback)
+                actions_layout.addWidget(btn)
+
+            layout.addLayout(actions_layout)
+
+        layout.addStretch()
+        return panel
+
+    def _create_key_metrics_panel(self):
+        """Create a key metrics panel with important KPIs."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # Panel Title
+        title = QLabel("🎯 Key Metrics")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # Key metrics based on role
         if self.role in ['admin', 'librarian']:
-            stats_cards.extend([
-                ("Total Students", "0", "👨‍🎓"),
-                ("Total Teachers", "0", "👩‍🏫"),
-                ("Total Books", "0", "📚"),
-                ("Available Chairs", "0", "🪑"),
-                ("Available Lockers", "0", "🔐")
-            ])
+            metrics = [
+                ("System Health", "98%", "#27ae60", "🟢"),
+                ("Active Users", "247", role_color, "👥"),
+                ("Books Borrowed Today", "23", "#f39c12", "📚"),
+                ("Pending Approvals", "5", "#e74c3c", "⚠️"),
+            ]
         else:
-            stats_cards.append(("Total Books", "0", "📚"))
-          
-        for title, count, icon in stats_cards:
-            stat_card = self._create_modern_stat_card(title, count, icon)
-            stats_layout.add_widget(stat_card)
-         
-        # Add stats layout widget to main layout widget
-        main_layout.add_layout(stats_layout)
-        
-        # Basic information card
-        info_card = self.create_card(
-            title="System Information",
-            content="<p>Use the sidebar and top bar to navigate through the system.</p>"
-        )
-        info_card.setMinimumHeight(60)
-        info_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        main_layout.add_widget(info_card)
-    
+            metrics = [
+                ("Books Available", "1,245", "#27ae60", "📚"),
+                ("Your Borrowed Books", "3", role_color, "📖"),
+                ("Due Soon", "2", "#f39c12", "⏰"),
+            ]
+
+        for metric_name, value, color, icon in metrics:
+            metric_card = QFrame()
+            metric_card.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme["surface_hover"]};
+                    border-radius: 8px;
+                    border-left: 3px solid {color};
+                    padding: 12px;
+                }}
+            """)
+
+            metric_layout = QHBoxLayout(metric_card)
+            metric_layout.setContentsMargins(12, 12, 12, 12)
+
+            # Icon and name
+            icon_label = QLabel(f"{icon} {metric_name}")
+            icon_label.setStyleSheet(f"color: {theme['text']}; font-size: 14px; font-weight: 500;")
+
+            # Value
+            value_label = QLabel(value)
+            value_label.setStyleSheet(f"color: {color}; font-size: 16px; font-weight: bold;")
+
+            metric_layout.addWidget(icon_label)
+            metric_layout.addStretch()
+            metric_layout.addWidget(value_label)
+
+            layout.addWidget(metric_card)
+
+        layout.addStretch()
+        return panel
+
+    def _create_statistics_grid(self):
+        """Create a comprehensive statistics grid."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(20)
+
+        # Panel Title
+        title = QLabel("📊 System Statistics")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # Statistics grid
+        if self.role in ['admin', 'librarian']:
+            stats_data = [
+                ("Total Students", "1,247", "👨‍🎓", "#3498db", "+12%"),
+                ("Total Teachers", "89", "👩‍🏫", "#2ecc71", "+3%"),
+                ("Total Books", "3,456", "📚", "#9b59b6", "+8%"),
+                ("Available Chairs", "245", "🪑", "#f39c12", "-2%"),
+                ("Available Lockers", "67", "🔐", "#e74c3c", "+5%"),
+                ("Books Borrowed", "892", "📖", "#1abc9c", "+15%"),
+            ]
+        else:
+            stats_data = [
+                ("Total Books", "3,456", "📚", "#9b59b6", "+8%"),
+                ("Available Books", "2,564", "📖", "#27ae60", "+12%"),
+                ("Your Borrowed", "3", "📚", "#3498db", "0%"),
+                ("Due Soon", "2", "⏰", "#f39c12", "0%"),
+            ]
+
+        # Create grid layout for stats
+        grid_layout = QGridLayout()
+        grid_layout.setSpacing(16)
+
+        row, col = 0, 0
+        max_cols = 2
+
+        for title, count, icon, color, change in stats_data:
+            stat_card = self._create_enhanced_stat_card(title, count, icon, color, change)
+            grid_layout.addWidget(stat_card, row, col)
+
+            col += 1
+            if col >= max_cols:
+                col = 0
+                row += 1
+
+        layout.addLayout(grid_layout)
+        layout.addStretch()
+        return panel
+
+    def _create_enhanced_stat_card(self, title, count, icon, color, change):
+        """Create an enhanced statistics card with trend indicator."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        card = QFrame()
+        card.setProperty("enhancedStatCard", "true")
+        card.setStyleSheet(f"""
+            QFrame[enhancedStatCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 20px;
+                min-height: 120px;
+            }}
+            QFrame[enhancedStatCard="true"]:hover {{
+                border-color: {color};
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(8)
+
+        # Icon and title
+        header_layout = QHBoxLayout()
+        icon_label = QLabel(icon)
+        icon_label.setStyleSheet(f"font-size: 24px;")
+        title_label = QLabel(title)
+        title_label.setStyleSheet(f"""
+            font-size: 14px;
+            color: {theme["text_secondary"]};
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        """)
+
+        header_layout.addWidget(icon_label)
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
+
+        # Count
+        count_label = QLabel(count)
+        count_font = QFont("Segoe UI", 28, QFont.Weight.Bold)
+        count_label.setFont(count_font)
+        count_label.setStyleSheet(f"color: {theme['text']};")
+        layout.addWidget(count_label)
+
+        # Change indicator
+        change_label = QLabel(f"{change} from last month")
+        change_label.setStyleSheet(f"""
+            font-size: 12px;
+            color: {color};
+            font-weight: 500;
+        """)
+        layout.addWidget(change_label)
+
+        return card
+
+    def _create_activity_panel(self):
+        """Create a recent activity panel."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # Panel Title
+        title = QLabel("📋 Recent Activity")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # Recent activities
+        activities = [
+            ("Book borrowed: 'Python Programming' by John Doe", "2 min ago", "📖"),
+            ("New student registered: Jane Smith", "15 min ago", "👨‍🎓"),
+            ("Book returned: 'Data Science 101'", "1 hour ago", "↩️"),
+            ("Teacher added: Prof. Michael Johnson", "2 hours ago", "👩‍🏫"),
+            ("System backup completed", "3 hours ago", "💾"),
+        ]
+
+        for activity, time, icon in activities:
+            activity_item = QFrame()
+            activity_item.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme["surface_hover"]};
+                    border-radius: 8px;
+                    padding: 12px;
+                }}
+            """)
+
+            item_layout = QHBoxLayout(activity_item)
+            item_layout.setContentsMargins(12, 12, 12, 12)
+
+            # Icon
+            icon_label = QLabel(icon)
+            icon_label.setStyleSheet("font-size: 16px;")
+
+            # Activity text
+            text_label = QLabel(activity)
+            text_label.setStyleSheet(f"""
+                color: {theme['text']};
+                font-size: 13px;
+                font-weight: 500;
+            """)
+            text_label.setWordWrap(True)
+
+            # Time
+            time_label = QLabel(time)
+            time_label.setStyleSheet(f"""
+                color: {theme['text_secondary']};
+                font-size: 11px;
+            """)
+
+            item_layout.addWidget(icon_label)
+            item_layout.addWidget(text_label, 1)
+            item_layout.addWidget(time_label)
+
+            layout.addWidget(activity_item)
+
+        # View all activities button
+        view_all_btn = QPushButton("View All Activities")
+        view_all_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                border: 1px solid {role_color};
+                color: {role_color};
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {role_color};
+                color: white;
+            }}
+        """)
+        layout.addWidget(view_all_btn)
+
+        return panel
+
+    def _create_notifications_panel(self):
+        """Create a notifications panel."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # Panel Title
+        title = QLabel("🔔 Notifications")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # Notifications
+        notifications = [
+            ("Book due soon: 'Advanced Mathematics'", "warning", "2 days left"),
+            ("New system update available", "info", "Version 1.2.0"),
+            ("Student attendance report ready", "success", "Generated"),
+            ("Maintenance scheduled", "warning", "Tomorrow 2:00 PM"),
+        ]
+
+        for notification, type_, detail in notifications:
+            notif_item = QFrame()
+            color_map = {
+                "warning": "#f39c12",
+                "info": role_color,
+                "success": "#27ae60"
+            }
+            notif_color = color_map.get(type_, role_color)
+
+            notif_item.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme["surface_hover"]};
+                    border-radius: 8px;
+                    border-left: 3px solid {notif_color};
+                    padding: 12px;
+                }}
+            """)
+
+            item_layout = QVBoxLayout(notif_item)
+            item_layout.setContentsMargins(12, 12, 12, 12)
+
+            # Notification text
+            text_label = QLabel(notification)
+            text_label.setStyleSheet(f"""
+                color: {theme['text']};
+                font-size: 13px;
+                font-weight: 500;
+            """)
+            text_label.setWordWrap(True)
+
+            # Detail
+            detail_label = QLabel(detail)
+            detail_label.setStyleSheet(f"""
+                color: {notif_color};
+                font-size: 11px;
+                font-weight: 500;
+            """)
+
+            item_layout.addWidget(text_label)
+            item_layout.addWidget(detail_label)
+
+            layout.addWidget(notif_item)
+
+        layout.addStretch()
+        return panel
+
+    def _create_system_alerts_panel(self):
+        """Create a system alerts panel."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # Panel Title
+        title = QLabel("⚠️ System Alerts")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # System alerts
+        alerts = [
+            ("Low inventory: Mathematics textbooks", "critical", "Only 5 left"),
+            ("Server maintenance tonight", "warning", "11:00 PM - 1:00 AM"),
+            ("Database backup successful", "success", "Completed 2 hours ago"),
+            ("New user registrations pending", "info", "3 approvals needed"),
+        ]
+
+        for alert, type_, detail in alerts:
+            alert_item = QFrame()
+            color_map = {
+                "critical": "#e74c3c",
+                "warning": "#f39c12",
+                "success": "#27ae60",
+                "info": role_color
+            }
+            alert_color = color_map.get(type_, role_color)
+
+            alert_item.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme["surface_hover"]};
+                    border-radius: 8px;
+                    border-left: 3px solid {alert_color};
+                    padding: 12px;
+                }}
+            """)
+
+            item_layout = QVBoxLayout(alert_item)
+            item_layout.setContentsMargins(12, 12, 12, 12)
+
+            # Alert text
+            text_label = QLabel(alert)
+            text_label.setStyleSheet(f"""
+                color: {theme['text']};
+                font-size: 13px;
+                font-weight: 500;
+            """)
+            text_label.setWordWrap(True)
+
+            # Detail
+            detail_label = QLabel(detail)
+            detail_label.setStyleSheet(f"""
+                color: {alert_color};
+                font-size: 11px;
+                font-weight: 500;
+            """)
+
+            item_layout.addWidget(text_label)
+            item_layout.addWidget(detail_label)
+
+            layout.addWidget(alert_item)
+
+        layout.addStretch()
+        return panel
+
+    def _create_calendar_panel(self):
+        """Create a calendar/events panel."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        panel = QFrame()
+        panel.setProperty("dashboardPanel", "true")
+        panel.setStyleSheet(f"""
+            QFrame[dashboardPanel="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 16px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # Panel Title
+        title = QLabel("📅 Upcoming Events")
+        title.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(title)
+
+        # Current date
+        current_date = QLabel("Today - January 14, 2026")
+        current_date.setStyleSheet(f"""
+            color: {theme["text_secondary"]};
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        """)
+        layout.addWidget(current_date)
+
+        # Upcoming events
+        events = [
+            ("Parent-Teacher Meeting", "Today, 2:00 PM", "#3498db"),
+            ("Book Return Deadline", "Tomorrow", "#e74c3c"),
+            ("Staff Training Session", "Jan 16, 10:00 AM", "#27ae60"),
+            ("Library Maintenance", "Jan 18, All Day", "#f39c12"),
+        ]
+
+        for event, time, color in events:
+            event_item = QFrame()
+            event_item.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme["surface_hover"]};
+                    border-radius: 8px;
+                    border-left: 3px solid {color};
+                    padding: 12px;
+                }}
+            """)
+
+            item_layout = QVBoxLayout(event_item)
+            item_layout.setContentsMargins(12, 12, 12, 12)
+
+            # Event title
+            title_label = QLabel(event)
+            title_label.setStyleSheet(f"""
+                color: {theme['text']};
+                font-size: 13px;
+                font-weight: 600;
+            """)
+
+            # Time
+            time_label = QLabel(time)
+            time_label.setStyleSheet(f"""
+                color: {color};
+                font-size: 11px;
+                font-weight: 500;
+            """)
+
+            item_layout.addWidget(title_label)
+            item_layout.addWidget(time_label)
+
+            layout.addWidget(event_item)
+
+        # Add event button
+        add_event_btn = QPushButton("📅 Add Event")
+        add_event_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                border: 1px solid {role_color};
+                color: {role_color};
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {role_color};
+                color: white;
+            }}
+        """)
+        layout.addWidget(add_event_btn)
+
+        return panel
+
+    def _on_search_text_changed(self, text):
+        """Handle search input changes."""
+        if len(text.strip()) >= 3:
+            # Perform search across different entities
+            self._perform_global_search(text.strip())
+        elif len(text.strip()) == 0:
+            # Clear search results
+            self._clear_search_results()
+
+    def _perform_global_search(self, query):
+        """Perform global search across students, books, and users."""
+        # This would integrate with your data models
+        # For now, show a placeholder message
+        self.update_status(f"Searching for: {query}")
+        logger.info(f"Global search initiated for: {query}")
+
+    def _clear_search_results(self):
+        """Clear search results and return to normal view."""
+        self.update_status("Search cleared")
+        logger.info("Search results cleared")
+
+    def _toggle_theme(self):
+        """Toggle between light and dark themes."""
+        theme_manager = self.get_theme_manager()
+        current_theme = self.get_theme()
+        new_theme = "dark" if current_theme == "light" else "light"
+        theme_manager.set_theme(new_theme)
+        logger.info(f"Theme toggled to: {new_theme}")
+
+    def _show_notifications(self):
+        """Show notifications panel."""
+        # Create a notification popup or dialog
+        QMessageBox.information(self, "Notifications",
+                               "🔔 You have 3 unread notifications:\n\n"
+                               "• Book return reminder\n"
+                               "• New student registration\n"
+                               "• System maintenance scheduled")
+        logger.info("Notifications panel opened")
+
     def _setup_welcome_header(self, main_layout):
         """Setup the enhanced welcome header with personalized greeting, role-specific overview, and system insights."""
         # Create welcome card with enhanced features
@@ -784,7 +2849,7 @@ class MainWindow(BaseApplicationWindow):
         card_layout.setSpacing(16)
         
         title_label = QLabel("Quick Actions")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.DemiBold)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         card_layout.addWidget(title_label)
@@ -975,6 +3040,15 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open teacher import/export window: {str(e)}")
 
+    def _show_student_import_export(self):
+        """Show student import/export window."""
+        try:
+            from school_system.gui.windows.student_window.student_import_export_window import StudentImportExportWindow
+            window = StudentImportExportWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open student import/export window: {str(e)}")
+
     def _show_user_management(self):
         """Show user management window."""
         try:
@@ -1157,6 +3231,15 @@ Developed for efficient school administration."""
         full_message = f"{message} | User: {self.username} | Role: {self.role}"
         super().update_status(full_message)
     
+    def _show_library_activity(self):
+        """Show library activity window."""
+        try:
+            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
+            window = BorrowBookWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open library activity: {str(e)}")
+
     def _show_ream_management_window(self):
         """Show the ream management window."""
         try:

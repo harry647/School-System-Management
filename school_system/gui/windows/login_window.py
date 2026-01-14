@@ -34,7 +34,7 @@ class LoginWindow(BaseWindow):
         self.auth_service = AuthService()
 
         # Set fixed size for login window (modern web-style dimensions)
-        self.setFixedSize(480, 640)
+        self.setFixedSize(680, 640)
 
         # Use light theme for modern web-style appearance
         self.set_theme("light")
