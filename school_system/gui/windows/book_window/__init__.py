@@ -16,7 +16,7 @@ All components are organized into subpackages:
 """
 
 # Main window class
-from .book_window import BookWindow
+from .view_books_window import ViewBooksWindow as BookWindow
 
 # UI Components
 from .components import (
@@ -54,12 +54,14 @@ from .utils import (
 
 # Workflows
 from .workflows import (
+    BookWorkflowBase,
     BookAddWorkflow,
     BookEditWorkflow,
     BookRemoveWorkflow,
     BookBorrowWorkflow,
     BookReturnWorkflow,
-    BookSearchWorkflow
+    BookSearchWorkflow,
+    BulkReturnWorkflow
 )
 
 __all__ = [
@@ -99,10 +101,12 @@ __all__ = [
     'BookValidationHelper',
     
     # Workflows
+    'BookWorkflowBase',
     'BookAddWorkflow',
     'BookEditWorkflow',
     'BookRemoveWorkflow',
     'BookBorrowWorkflow',
     'BookReturnWorkflow',
-    'BookSearchWorkflow'
+    'BookSearchWorkflow',
+    'BulkReturnWorkflow'
 ]

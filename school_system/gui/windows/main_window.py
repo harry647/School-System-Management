@@ -107,7 +107,8 @@ class MainWindow(BaseApplicationWindow):
         students_actions = [
             ("👁️ View Students", self._show_students),
             ("➕ Add Student", self._add_student),
-            ("📝 Ream Management", self._show_ream_management),
+            ("✏️ Edit Student", self._show_edit_student),
+            ("📝 Ream Management", self._show_ream_management_window),
             ("📚 Library Activity", self._show_library_activity),
             ("📤 Import/Export", self._show_student_import_export),
         ]
@@ -168,6 +169,7 @@ class MainWindow(BaseApplicationWindow):
         teachers_actions = [
             ("👁️ View Teachers", self._show_teachers),
             ("➕ Add Teacher", self._add_teacher),
+            ("✏️ Edit Teacher", self._show_edit_teacher),
             ("📤 Import/Export", self._show_teacher_import_export),
         ]
         
@@ -920,6 +922,15 @@ class MainWindow(BaseApplicationWindow):
         """Show the student management window (legacy - redirects to view students)."""
         self._show_students()
     
+    def _show_edit_student(self):
+        """Show edit student window."""
+        try:
+            from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
+            window = EditStudentWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open edit student window: {str(e)}")
+    
     def _show_teachers(self):
         """Show teacher management window."""
         self._show_teacher_management()
@@ -939,6 +950,24 @@ class MainWindow(BaseApplicationWindow):
             teacher_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open teacher management: {str(e)}")
+
+    def _show_edit_teacher(self):
+        """Show edit teacher window."""
+        try:
+            from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
+            window = EditTeacherWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open edit teacher window: {str(e)}")
+
+    def _show_teacher_import_export(self):
+        """Show teacher import/export window."""
+        try:
+            from school_system.gui.windows.teacher_window.teacher_import_export_window import TeacherImportExportWindow
+            window = TeacherImportExportWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open teacher import/export window: {str(e)}")
 
     def _show_user_management(self):
         """Show user management window."""
@@ -971,6 +1000,42 @@ class MainWindow(BaseApplicationWindow):
             book_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open book management: {str(e)}")
+
+    def _show_borrow_book(self):
+        """Show borrow book window."""
+        try:
+            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
+            borrow_window = BorrowBookWindow(self, self.username, self.role)
+            borrow_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open borrow book window: {str(e)}")
+
+    def _show_return_book(self):
+        """Show return book window."""
+        try:
+            from school_system.gui.windows.book_window.return_book_window import ReturnBookWindow
+            return_window = ReturnBookWindow(self, self.username, self.role)
+            return_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
+
+    def _show_distribution(self):
+        """Show distribution window."""
+        try:
+            from school_system.gui.windows.book_window.distribution_window import DistributionWindow
+            distribution_window = DistributionWindow(self, self.username, self.role)
+            distribution_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open distribution window: {str(e)}")
+
+    def _show_book_import_export(self):
+        """Show book import/export window."""
+        try:
+            from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
+            import_export_window = BookImportExportWindow(self, self.username, self.role)
+            import_export_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open book import/export window: {str(e)}")
     
     def _show_furniture_management(self):
         """Show furniture management window."""
@@ -1076,6 +1141,15 @@ Developed for efficient school administration."""
         """Update the status bar message."""
         full_message = f"{message} | User: {self.username} | Role: {self.role}"
         super().update_status(full_message)
+    
+    def _show_ream_management_window(self):
+        """Show the ream management window."""
+        try:
+            from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
+            window = ReamManagementWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open ream management: {str(e)}")
     
     def closeEvent(self, event):
         """Handle window closing."""

@@ -245,7 +245,7 @@ class LoginWindow(BaseWindow):
         # Login button - modern and prominent
         login_button = self.create_button("Sign In", "primary")
         login_button.setFixedHeight(48)
-        login_font = QFont("Segoe UI", 15, QFont.Weight.SemiBold)
+        login_font = QFont("Segoe UI", 15, QFont.Weight.DemiBold)
         login_button.setFont(login_font)
         login_button.clicked.connect(self._on_login)
         card_layout.addWidget(login_button)
@@ -280,9 +280,9 @@ class LoginWindow(BaseWindow):
         card_layout.addWidget(info_label)
         
         # Add card to main layout with centering
-        main_layout.addStretch()
-        main_layout.add_widget(card_container, alignment=Qt.AlignmentFlag.AlignCenter)
-        main_layout.addStretch()
+        main_layout.add_stretch()
+        main_layout.add_widget(card_container)
+        main_layout.add_stretch()
         
         # Add main layout to content area
         self.add_layout_to_content(main_layout)
