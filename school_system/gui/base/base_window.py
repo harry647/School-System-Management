@@ -100,6 +100,9 @@ class BaseWindow(QMainWindow):
         self.setCentralWidget(self._central_widget)
         self.setStatusBar(self._status_bar)
         
+        # Store a reference to the content layout to prevent premature deletion
+        self._content_layout_ref = self._content_layout
+        
         # Initialize systems
         self._initialize_themes()
         self._initialize_accessibility()
@@ -163,9 +166,28 @@ class BaseWindow(QMainWindow):
     
     def _apply_theme(self, theme_name: str):
         """Apply the specified theme to the window and all child widgets."""
+        # Check if theme application is disabled due to critical errors
+        if hasattr(self, '_theme_application_disabled') and self._theme_application_disabled:
+            logger.warning("Theme application disabled due to previous critical error")
+            return
+        
         qss = self._theme_manager.generate_qss()
         logger.info(f"Applying theme '{theme_name}' with QSS length: {len(qss)}")
-        logger.info(f"Content layout has {self._content_layout.count()} items before theme application")
+        
+        # Check if the content layout is still valid
+        if self._content_layout is None:
+            logger.warning("Content layout is None, cannot apply theme")
+            return
+        
+        try:
+            # Check if the layout is still accessible
+            item_count = self._content_layout.count()
+            logger.info(f"Content layout has {item_count} items before theme application")
+        except RuntimeError as e:
+            logger.error(f"RuntimeError accessing content layout: {e}")
+            # Reinitialize the content layout if it has been deleted
+            self._reinitialize_content_layout()
+            return
         
         self.setStyleSheet(qss)
         
@@ -180,6 +202,31 @@ class BaseWindow(QMainWindow):
         logger.info(f"Content layout has {self._content_layout.count()} items after theme application")
         logger.info(f"Theme '{theme_name}' applied to window '{self.windowTitle()}'")
         self.theme_changed.emit(theme_name)
+    
+    def _reinitialize_content_layout(self):
+        """Reinitialize the content layout if it has been deleted."""
+        logger.warning("Reinitializing content layout due to deletion")
+        
+        try:
+            # Create a new content area and layout
+            self._content_area = ScrollableContainer(self._central_widget)
+            self._content_layout = self._content_area.content_layout
+            self._content_layout.setContentsMargins(10, 10, 10, 10)
+            self._content_layout.setSpacing(10)
+            self._content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            
+            # Re-add to main layout
+            self._main_layout.addWidget(self._content_area, 1)
+            
+            # Store a reference to prevent premature deletion
+            self._content_layout_ref = self._content_layout
+            
+            logger.info("Content layout reinitialized successfully")
+        except RuntimeError as e:
+            logger.error(f"Failed to reinitialize content layout: {e}")
+            logger.error("Critical error: Cannot recover from deleted QWidget")
+            # Set a flag to prevent further theme changes
+            self._theme_application_disabled = True
     
     def _handle_state_change(self, state_name: str, state_value):
         """Handle state changes from the state manager."""

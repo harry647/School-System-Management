@@ -122,7 +122,7 @@ class MainWindow(BaseApplicationWindow):
         # Create vertical layout for sidebar
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 20, 0, 20)
-        sidebar_layout.setSpacing(0)
+        sidebar_layout.setSpacing(8)
 
         # Logo/Brand section
         logo_section = QFrame()
@@ -176,6 +176,7 @@ class MainWindow(BaseApplicationWindow):
         """)
         dashboard_btn.clicked.connect(lambda: self._load_content("dashboard"))
         sidebar_layout.addWidget(dashboard_btn)
+        sidebar_layout.addSpacing(12)
 
         sidebar_layout.addSpacing(16)
 
@@ -249,10 +250,10 @@ class MainWindow(BaseApplicationWindow):
             section_frame = QFrame()
             section_layout = QVBoxLayout(section_frame)
             section_layout.setContentsMargins(0, 0, 0, 0)
-            section_layout.setSpacing(4)
+            section_layout.setSpacing(6)
 
             header_layout = QHBoxLayout()
-            header_layout.setContentsMargins(20, 8, 20, 8)
+            header_layout.setContentsMargins(20, 10, 20, 10)
 
             icon_label = QLabel(section["icon"])
             icon_label.setProperty("sectionIcon", "true")
@@ -271,6 +272,11 @@ class MainWindow(BaseApplicationWindow):
             dropdown_btn.setText(f"  {section['title']} ▼")
             dropdown_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
             dropdown_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+            dropdown_btn.setStyleSheet(f"""
+                QToolButton {{
+                    margin: 0 10px;
+                }}
+            """)
 
             # Create dropdown menu
             menu = QMenu(dropdown_btn)
@@ -283,13 +289,13 @@ class MainWindow(BaseApplicationWindow):
 
             section_layout.addWidget(dropdown_btn)
             sidebar_layout.addWidget(section_frame)
-
-        sidebar_layout.addSpacing(20)
+            sidebar_layout.addSpacing(8)
 
         # Settings and Help section at bottom
         bottom_section = QFrame()
         bottom_layout = QVBoxLayout(bottom_section)
         bottom_layout.setContentsMargins(10, 10, 10, 10)
+        bottom_layout.setSpacing(8)
 
         # Settings button
         settings_btn = QToolButton()
@@ -306,12 +312,40 @@ class MainWindow(BaseApplicationWindow):
         bottom_layout.addWidget(help_btn)
 
         sidebar_layout.addWidget(bottom_section)
+        sidebar_layout.addSpacing(16)
 
         # Add stretch to push everything to top
         sidebar_layout.addStretch()
 
-        # Add sidebar to splitter
-        self.main_splitter.addWidget(sidebar)
+        # Create a scroll area for the sidebar
+        sidebar_scroll = QScrollArea()
+        sidebar_scroll.setWidgetResizable(True)
+        sidebar_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        sidebar_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        sidebar_scroll.setStyleSheet(f"""
+            QScrollArea {{
+                background-color: transparent;
+                border: none;
+            }}
+            QScrollBar:vertical {{
+                background-color: {theme["surface"]};
+                width: 8px;
+                border-radius: 4px;
+            }}
+            QScrollBar::handle:vertical {{
+                background-color: {theme["border"]};
+                border-radius: 4px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background-color: {theme["text_secondary"]};
+            }}
+        """)
+
+        # Set the sidebar frame as the widget for the scroll area
+        sidebar_scroll.setWidget(sidebar)
+
+        # Add scrollable sidebar to splitter
+        self.main_splitter.addWidget(sidebar_scroll)
 
     def _setup_content_area(self):
         """Setup the dynamic content area that loads different views."""
