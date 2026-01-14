@@ -85,159 +85,194 @@ class StudentWindow(BaseWindow):
         QTimer.singleShot(100, self._populate_recent_transactions_on_startup)
 
     def _apply_modern_styling(self):
-        """Apply modern styling to the student window."""
-        # Modern color scheme
-        self.setStyleSheet("""
+        """Apply modern web-style styling to the student window using theme system."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        
+        self.setStyleSheet(f"""
             /* Base styling */
-            QWidget {
-                font-family: 'Segoe UI', Arial, sans-serif;
+            QWidget {{
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
                 font-size: 14px;
-                line-height: 1.4;
-                background-color: #f5f5f5;
-            }
+                background-color: {theme["background"]};
+                color: {theme["text"]};
+            }}
             
             /* Window styling */
-            StudentWindow {
-                background-color: #f5f5f5;
-            }
+            StudentWindow {{
+                background-color: {theme["background"]};
+            }}
             
-            /* Tab widget styling */
-            QTabWidget::pane {
-                border: 1px solid #e0e0e0;
-                background-color: white;
-                border-radius: 4px;
-            }
+            /* Tab widget styling - modern web-style */
+            QTabWidget::pane {{
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                padding: 20px;
+            }}
             
-            QTabBar::tab {
-                padding: 8px 16px;
-                background-color: #e0e0e0;
-                color: #212121;
+            QTabBar::tab {{
+                padding: 12px 24px;
+                background-color: transparent;
+                color: {theme["text_secondary"]};
                 border: none;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-            }
-            
-            QTabBar::tab:selected {
-                background-color: white;
-                color: #4CAF50;
-                border-bottom: 2px solid #4CAF50;
-            }
-            
-            /* Button styling */
-            QPushButton {
-                padding: 8px 16px;
-                border-radius: 4px;
-                border: 1px solid #e0e0e0;
-                background-color: white;
-                min-height: 36px;
-            }
-            
-            QPushButton[button_type="primary"] {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-            }
-            
-            QPushButton[button_type="primary"]:hover {
-                background-color: #45a049;
-            }
-            
-            QPushButton[button_type="primary"]:pressed {
-                background-color: #3d8b40;
-            }
-            
-            QPushButton[button_type="secondary"] {
-                background-color: #2196F3;
-                color: white;
-                border: none;
-            }
-            
-            QPushButton[button_type="secondary"]:hover {
-                background-color: #1e88e5;
-            }
-            
-            QPushButton[button_type="secondary"]:pressed {
-                background-color: #1976d2;
-            }
-            
-            QPushButton[button_type="danger"] {
-                background-color: #F44336;
-                color: white;
-                border: none;
-            }
-            
-            QPushButton[button_type="danger"]:hover {
-                background-color: #e53935;
-            }
-            
-            QPushButton[button_type="danger"]:pressed {
-                background-color: #d32f2f;
-            }
-            
-            /* Input field styling */
-            QLineEdit, QComboBox {
-                padding: 8px 12px;
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-                background-color: white;
-                min-height: 36px;
-            }
-            
-            QLineEdit:focus, QComboBox:focus {
-                border: 1px solid #4CAF50;
-            }
-            
-            /* Table styling */
-            QTableView {
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-                background-color: white;
-            }
-            
-            QHeaderView::section {
-                background-color: #f5f5f5;
-                padding: 8px;
-                border: none;
-                font-weight: 600;
-                color: #212121;
-            }
-            
-            QTableView::item:selected {
-                background-color: #e3f2fd;
-            }
-            
-            /* Card styling */
-            QGroupBox {
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-                background-color: white;
-                margin-top: 8px;
-            }
-            
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 3px;
-                color: #4CAF50;
-                font-weight: 600;
-            }
-            
-            /* Label styling */
-            QLabel {
-                color: #212121;
-            }
-            
-            QLabel.title {
-                font-size: 18px;
-                font-weight: 600;
-                color: #212121;
-            }
-            
-            QLabel.subtitle {
+                border-bottom: 2px solid transparent;
                 font-size: 14px;
                 font-weight: 500;
-                color: #757575;
-            }
+                margin-right: 4px;
+            }}
+            
+            QTabBar::tab:hover {{
+                color: {theme["text"]};
+                background-color: {theme["surface_hover"]};
+            }}
+            
+            QTabBar::tab:selected {{
+                background-color: {theme["surface"]};
+                color: {theme["primary"]};
+                border-bottom: 2px solid {theme["primary"]};
+            }}
+            
+            /* Button styling - using theme */
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+                border-color: {theme["text_secondary"]};
+            }}
+            
+            QPushButton[button_type="primary"] {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+            }}
+            
+            QPushButton[button_type="primary"]:hover {{
+                background-color: {theme["primary_hover"]};
+            }}
+            
+            QPushButton[button_type="primary"]:pressed {{
+                background-color: {theme["primary_pressed"]};
+            }}
+            
+            QPushButton[button_type="secondary"] {{
+                background-color: {theme["secondary"]};
+                color: white;
+                border: none;
+            }}
+            
+            QPushButton[button_type="secondary"]:hover {{
+                background-color: {theme["text_secondary"]};
+            }}
+            
+            QPushButton[button_type="danger"] {{
+                background-color: {theme["danger"]};
+                color: white;
+                border: none;
+            }}
+            
+            QPushButton[button_type="danger"]:hover {{
+                background-color: #dc2626;
+            }}
+            
+            /* Input field styling */
+            QLineEdit, QComboBox, QTextEdit, QPlainTextEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            
+            QLineEdit:hover, QComboBox:hover, QTextEdit:hover, QPlainTextEdit:hover {{
+                border-color: {theme["text_secondary"]};
+            }}
+            
+            QLineEdit:focus, QComboBox:focus, QTextEdit:focus, QPlainTextEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+                background-color: {theme["surface"]};
+            }}
+            
+            /* Table styling - modern web-style */
+            QTableView, QTableWidget {{
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                background-color: {theme["surface"]};
+                gridline-color: {theme["border"]};
+            }}
+            
+            QHeaderView::section {{
+                background-color: {theme["surface"]};
+                padding: 12px 16px;
+                border: none;
+                border-bottom: 2px solid {theme["border"]};
+                font-weight: 600;
+                font-size: 13px;
+                color: {theme["text"]};
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            
+            QTableView::item:selected, QTableWidget::item:selected {{
+                background-color: {theme["primary"]};
+                color: white;
+            }}
+            
+            QTableView::item:hover, QTableWidget::item:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+            
+            /* Card styling - modern web-style */
+            QGroupBox {{
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                background-color: {theme["surface"]};
+                margin-top: 12px;
+                padding: 20px;
+            }}
+            
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 16px;
+                padding: 0 8px;
+                color: {theme["text"]};
+                font-weight: 600;
+                font-size: 15px;
+            }}
+            
+            QFrame[card="true"] {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+            
+            /* Label styling */
+            QLabel {{
+                color: {theme["text"]};
+            }}
+            
+            QLabel.title {{
+                font-size: 18px;
+                font-weight: 600;
+                color: {theme["text"]};
+            }}
+            
+            QLabel.subtitle {{
+                font-size: 14px;
+                font-weight: 500;
+                color: {theme["text_secondary"]};
+            }}
         """)
 
     def _setup_widgets(self):

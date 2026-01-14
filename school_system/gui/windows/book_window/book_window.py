@@ -68,6 +68,9 @@ class BookWindow(BaseWindow):
         # Set minimum size
         self.setMinimumSize(1200, 800)
         
+        # Apply modern web-style styling
+        self._apply_modern_styling()
+        
         # Initialize workflow components
         self.add_workflow = BookAddWorkflow(self.book_service, self.current_user)
         self.edit_workflow = BookEditWorkflow(self.book_service, self.current_user)
@@ -340,7 +343,7 @@ class BookWindow(BaseWindow):
         import_layout.add_widget(columns_label)
         
         columns_info = QLabel(", ".join(EXCEL_BOOK_IMPORT_COLUMNS))
-        columns_info.setStyleSheet("font-style: italic; color: #666;")
+        columns_info.setProperty("info", "true")
         columns_info.setWordWrap(True)
         columns_info.setToolTip("ISBN, Title, Author, Book_Number, Subject, Class, Category, Publication_Date, Condition")
         import_layout.add_widget(columns_info)
@@ -396,7 +399,7 @@ class BookWindow(BaseWindow):
         borrow_layout.add_widget(borrow_columns_label)
         
         borrow_columns_info = QLabel(", ".join(EXCEL_BULK_BORROW_COLUMNS))
-        borrow_columns_info.setStyleSheet("font-style: italic; color: #666;")
+        borrow_columns_info.setProperty("info", "true")
         borrow_columns_info.setWordWrap(True)
         borrow_columns_info.setToolTip("Admission_Number, Student_Name, Book_Number")
         borrow_layout.add_widget(borrow_columns_info)
@@ -546,7 +549,7 @@ class BookWindow(BaseWindow):
 
         # Selection feedback label
         self.bulk_return_feedback_label = QLabel("0 books selected | Estimated fines: KES 0.00")
-        self.bulk_return_feedback_label.setStyleSheet("font-style: italic; color: #666;")
+        self.bulk_return_feedback_label.setProperty("info", "true")
 
         # Action buttons
         action_layout = QHBoxLayout()
@@ -1443,7 +1446,7 @@ class BookWindow(BaseWindow):
             info_text += f"Date Borrowed: {book_info['date_borrowed']}"
             
             self.book_return_info_label.setText(info_text)
-            self.book_return_info_label.setStyleSheet("color: green;")
+            self.book_return_info_label.setProperty("success", "true")
             
         except Exception as e:
             show_error_message("Error", f"Failed to find book: {str(e)}", self)

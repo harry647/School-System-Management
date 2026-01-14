@@ -59,6 +59,9 @@ class TeacherWindow(BaseWindow):
         # Set minimum size
         self.setMinimumSize(1200, 800)
 
+        # Apply modern web-style styling
+        self._apply_modern_styling()
+
         # Initialize UI
         self._setup_widgets()
          

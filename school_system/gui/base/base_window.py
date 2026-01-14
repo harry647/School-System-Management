@@ -314,41 +314,12 @@ class BaseWindow(QMainWindow):
             layout: Layout to add (QLayout, ModernLayout, or FlexLayout)
             stretch: Layout stretch factor
         """
-        # Handle ModernLayout and FlexLayout by adding their internal layout
+        # Handle ModernLayout and FlexLayout by adding the widget itself
+        # Since ModernLayout/FlexLayout are QWidgets, we add them as widgets
         if hasattr(layout, '_layout'):
-            # FlexLayout and ModernLayout are QWidgets that contain layouts
-            # We need to add their internal layout, not the widget itself
-            internal_layout = layout._layout
-            
-            # Remove the internal layout from its current parent first
-            if internal_layout.parent() is not None:
-                # Create a new layout to replace the old one
-                if isinstance(internal_layout, QVBoxLayout):
-                    new_layout = QVBoxLayout()
-                elif isinstance(internal_layout, QHBoxLayout):
-                    new_layout = QHBoxLayout()
-                else:
-                    new_layout = QVBoxLayout()
-                    
-                # Copy settings from old layout
-                new_layout.setContentsMargins(internal_layout.contentsMargins())
-                new_layout.setSpacing(internal_layout.spacing())
-                new_layout.setAlignment(internal_layout.alignment())
-                
-                # Move all items from old layout to new layout
-                while internal_layout.count():
-                    item = internal_layout.takeAt(0)
-                    if item.widget():
-                        new_layout.addWidget(item.widget())
-                    elif item.layout():
-                        new_layout.addLayout(item.layout())
-                
-                # Replace the layout in the parent widget
-                layout.setLayout(new_layout)
-                internal_layout = new_layout
-            
-            # Now add the layout (not the widget) to our content layout
-            self._content_layout.addLayout(internal_layout, stretch)
+            # ModernLayout and FlexLayout are QWidgets that contain layouts
+            # Add the widget itself to maintain its functionality
+            self._content_layout.addWidget(layout, stretch)
         else:
             # Regular QLayout, add it directly
             self._content_layout.addLayout(layout, stretch)

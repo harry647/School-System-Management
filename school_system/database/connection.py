@@ -10,8 +10,6 @@ import os
 import sys
 import json
 from datetime import datetime, date
-import tkinter as tk
-from tkinter import messagebox, simpledialog
 
 
 class DatabaseConnection:
@@ -82,7 +80,8 @@ def create_db_connection():
         return conn
     except SQLiteError as e:
         logger.error(f"Failed to create SQLite connection: {e}")
-        messagebox.showerror("Database Error", f"Failed to connect to SQLite: {e}")
+        # Note: QMessageBox requires QApplication instance, so we log the error instead
+        # The calling code should handle user-facing error messages
         raise DatabaseException(f"Failed to create SQLite connection: {e}")
 
 
@@ -113,7 +112,9 @@ def initialize_database():
             return False
         mydb = create_db_connection()
         if not mydb:
-            messagebox.showerror("Connection Error", "Failed to connect to SQLite database.")
+            logger.error("Failed to connect to SQLite database")
+            # Note: QMessageBox requires QApplication instance, so we log the error instead
+            # The calling code should handle user-facing error messages
             return False
     
     cursor = None
@@ -420,11 +421,13 @@ def initialize_database():
         return mydb
     except SQLiteError as e:
         logger.error(f"SQLite error during initialization: {e}")
-        messagebox.showerror("Database Error", f"SQLite error during initialization: {e}")
+        # Note: QMessageBox requires QApplication instance, so we log the error instead
+        # The calling code should handle user-facing error messages
         raise DatabaseException(f"SQLite error during initialization: {e}")
     except Exception as e:
         logger.error(f"Unexpected error during initialization: {e}")
-        messagebox.showerror("Error", f"Unexpected error: {e}")
+        # Note: QMessageBox requires QApplication instance, so we log the error instead
+        # The calling code should handle user-facing error messages
         raise DatabaseException(f"Unexpected error during initialization: {e}")
     finally:
         if cursor:

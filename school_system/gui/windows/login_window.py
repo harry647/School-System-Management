@@ -4,9 +4,9 @@ Login window for the School System Management application.
 This module provides the login interface for user authentication.
 """
 
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QSizePolicy
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QSizePolicy, QFrame
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtGui import QPixmap, QIcon, QFont
 from typing import Callable, Optional
 
 from school_system.gui.base.base_window import BaseWindow
@@ -33,48 +33,14 @@ class LoginWindow(BaseWindow):
         self.on_success = on_success
         self.auth_service = AuthService()
 
-        # Set fixed size for login window
-        self.setFixedSize(500, 450)
+        # Set fixed size for login window (modern web-style dimensions)
+        self.setFixedSize(480, 640)
 
-        # Set theme to dark for visibility
-        self.set_theme("dark")
-
-        # Set custom stylesheet after theme
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #222;
-            }
-            QLabel {
-                color: white;
-                background-color: transparent;
-            }
-            QLineEdit {
-                background-color: white;
-                color: black;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                padding: 0 10px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #3498DB;
-            }
-            QPushButton {
-                background-color: #3498DB;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 10px;
-            }
-            QPushButton:hover {
-                background-color: #2980B9;
-            }
-            QPushButton:pressed {
-                background-color: #1F618D;
-            }
-        """)
+        # Use light theme for modern web-style appearance
+        self.set_theme("light")
+        
+        # Apply modern web-style login page styling
+        self._apply_modern_login_styling()
 
         # Initialize UI
         self._setup_widgets()
@@ -157,193 +123,173 @@ class LoginWindow(BaseWindow):
             logger.error(f"Account creation error: {str(e)}")
     
     
+    def _apply_modern_login_styling(self):
+        """Apply modern web-style login page styling."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        self.setStyleSheet(f"""
+            QMainWindow {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {theme["background"]}, stop:1 {theme["surface"]});
+            }}
+            QFrame[loginCard="true"] {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 16px;
+                padding: 40px;
+                min-width: 400px;
+                max-width: 400px;
+            }}
+            QLabel[fieldLabel="true"] {{
+                font-size: 13px;
+                font-weight: 600;
+                color: {theme["text"]};
+                margin-bottom: 4px;
+            }}
+            QLabel[infoText="true"] {{
+                font-size: 12px;
+                color: {theme["text_muted"]};
+                padding: 8px;
+            }}
+            QPushButton[buttonType="link"] {{
+                background-color: transparent;
+                color: {theme["primary"]};
+                border: none;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 4px 8px;
+                text-align: left;
+            }}
+            QPushButton[buttonType="link"]:hover {{
+                color: {theme["primary_hover"]};
+                text-decoration: underline;
+            }}
+        """)
+    
     def _setup_widgets(self):
-        """Setup the login form widgets using BaseWindow methods."""
-        # Create main layout
+        """Setup the modern web-style login form widgets."""
+        # Create main container layout
         main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(30, 30, 30, 30)
-        main_layout.set_spacing(20)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.set_spacing(0)
         main_layout.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        # Add school logo
+        
+        # Create centered card container
+        card_container = QFrame()
+        card_container.setObjectName("loginCard")
+        card_container.setProperty("card", "true")
+        card_layout = QVBoxLayout(card_container)
+        card_layout.setContentsMargins(40, 40, 40, 40)
+        card_layout.setSpacing(24)
+        
+        # Logo section
+        logo_container = QFrame()
+        logo_container.setFixedHeight(80)
+        logo_layout = QVBoxLayout(logo_container)
+        logo_layout.setContentsMargins(0, 0, 0, 0)
+        logo_layout.setSpacing(8)
+        
         logo_label = QLabel()
         logo_pixmap = QPixmap("school_system/gui/resources/icons/logo.png")
         if not logo_pixmap.isNull():
-            logo_label.setPixmap(logo_pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))
-            logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            main_layout.add_widget(logo_label)
-
-        # Title
+            logo_label.setPixmap(logo_pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_layout.addWidget(logo_label)
+        
+        # Title with modern typography
         title_label = QLabel("School System Management")
-        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2C3E50;")
+        title_font = QFont("Segoe UI", 28, QFont.Weight.Bold)
+        title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.add_widget(title_label)
-
+        card_layout.addWidget(logo_container)
+        card_layout.addWidget(title_label)
+        
         # Subtitle
-        subtitle_label = QLabel("Please login to continue")
-        subtitle_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
+        subtitle_label = QLabel("Sign in to your account")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.add_widget(subtitle_label)
-
-        # Add spacing
-        main_layout.add_spacing(20)
-
-        # Username field
+        card_layout.addWidget(subtitle_label)
+        card_layout.addSpacing(8)
+        
+        # Username field with modern styling
         username_label = QLabel("Username")
-        username_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
-        main_layout.add_widget(username_label)
-
+        username_label.setProperty("fieldLabel", "true")
+        card_layout.addWidget(username_label)
+        
         self.username_input = self.create_input("Enter your username")
-        self.username_input.setFixedHeight(40)
-        self.username_input.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #BDC3C7;
-                border-radius: 5px;
-                padding: 0 10px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #3498DB;
-            }
-        """)
-        main_layout.add_widget(self.username_input)
-
-        # Add spacing
-        main_layout.add_spacing(10)
-
+        self.username_input.setFixedHeight(44)
+        card_layout.addWidget(self.username_input)
+        
         # Password field
         password_label = QLabel("Password")
-        password_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2C3E50;")
-        main_layout.add_widget(password_label)
-
+        password_label.setProperty("fieldLabel", "true")
+        card_layout.addWidget(password_label)
+        
         # Password input with visibility toggle
-        password_layout = QHBoxLayout()
-        password_layout.setSpacing(5)
-
+        password_container = QHBoxLayout()
+        password_container.setSpacing(8)
+        
         self.password_input = self.create_input("Enter your password")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password_input.setFixedHeight(40)
-        self.password_input.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #BDC3C7;
-                border-radius: 5px;
-                padding: 0 10px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #3498DB;
-            }
-        """)
-        password_layout.addWidget(self.password_input)
-
-        # Visibility toggle button
+        self.password_input.setFixedHeight(44)
+        password_container.addWidget(self.password_input)
+        
+        # Modern visibility toggle button
         self.toggle_password_button = QPushButton("👁")
-        self.toggle_password_button.setFixedSize(40, 40)
-        self.toggle_password_button.setStyleSheet("""
-            QPushButton {
-                background-color: #f0f0f0;
-                border: 1px solid #BDC3C7;
-                border-radius: 5px;
-                font-size: 16px;
-            }
-            QPushButton:hover {
-                background-color: #e0e0e0;
-            }
-            QPushButton:pressed {
-                background-color: #d0d0d0;
-            }
-        """)
+        self.toggle_password_button.setFixedSize(44, 44)
+        self.toggle_password_button.setProperty("buttonType", "outline")
         self.toggle_password_button.clicked.connect(self._toggle_password_visibility)
-        password_layout.addWidget(self.toggle_password_button)
-
-        main_layout.add_layout(password_layout)
-
-        # Add spacing
-        main_layout.add_spacing(20)
-
-        # Login button
-        login_button = self.create_button("Login", "primary")
-        login_button.setFixedHeight(45)
-        login_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3498DB;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #2980B9;
-            }
-            QPushButton:pressed {
-                background-color: #1F618D;
-            }
-        """)
+        password_container.addWidget(self.toggle_password_button)
+        
+        card_layout.addLayout(password_container)
+        
+        # Login button - modern and prominent
+        login_button = self.create_button("Sign In", "primary")
+        login_button.setFixedHeight(48)
+        login_font = QFont("Segoe UI", 15, QFont.Weight.SemiBold)
+        login_button.setFont(login_font)
         login_button.clicked.connect(self._on_login)
-        main_layout.add_widget(login_button)
-
-        # Add spacing
-        main_layout.add_spacing(15)
-
-        # Action buttons layout
+        card_layout.addWidget(login_button)
+        card_layout.addSpacing(8)
+        
+        # Action links - modern link styling
         action_layout = QHBoxLayout()
-        action_layout.setSpacing(10)
-
+        action_layout.setSpacing(16)
+        
         forgot_password_button = QPushButton("Forgot Password?")
-        forgot_password_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #3498DB;
-                border: none;
-                font-size: 12px;
-                text-decoration: underline;
-            }
-            QPushButton:hover {
-                color: #2980B9;
-            }
-        """)
+        forgot_password_button.setProperty("buttonType", "link")
+        forgot_password_button.setCursor(Qt.CursorShape.PointingHandCursor)
         forgot_password_button.clicked.connect(self._on_forgot_password)
         action_layout.addWidget(forgot_password_button)
-
+        
         action_layout.addStretch()
-
+        
         create_account_button = QPushButton("Create Account")
-        create_account_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #3498DB;
-                border: none;
-                font-size: 12px;
-                text-decoration: underline;
-            }
-            QPushButton:hover {
-                color: #2980B9;
-            }
-        """)
+        create_account_button.setProperty("buttonType", "link")
+        create_account_button.setCursor(Qt.CursorShape.PointingHandCursor)
         create_account_button.clicked.connect(self._on_create_account)
         action_layout.addWidget(create_account_button)
-
-        main_layout.add_layout(action_layout)
-
-        # Add spacing
-        main_layout.add_spacing(15)
-
-        # Default credentials info
-        info_text = "Default login: Username: admin | Password: harry123"
+        
+        card_layout.addLayout(action_layout)
+        card_layout.addSpacing(16)
+        
+        # Info text - subtle styling
+        info_text = "Default: admin / harry123"
         info_label = QLabel(info_text)
-        info_label.setStyleSheet("font-size: 11px; color: #95A5A6;")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.add_widget(info_label)
-
+        info_label.setProperty("infoText", "true")
+        card_layout.addWidget(info_label)
+        
+        # Add card to main layout with centering
+        main_layout.addStretch()
+        main_layout.add_widget(card_container, alignment=Qt.AlignmentFlag.AlignCenter)
+        main_layout.addStretch()
+        
         # Add main layout to content area
-        logger.info(f"Adding main layout to content area. Main layout has {main_layout._layout.count()} items")
         self.add_layout_to_content(main_layout)
-        logger.info(f"After adding to content area, content layout has {self._content_layout.count()} items")
-
+        
         # Set focus to username field
         self.username_input.setFocus()
-
+        
         # Connect Enter key for login
         self.username_input.returnPressed.connect(lambda: self.password_input.setFocus())
         self.password_input.returnPressed.connect(self._on_login)

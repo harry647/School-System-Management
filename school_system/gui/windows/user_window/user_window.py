@@ -57,6 +57,9 @@ class UserWindow(BaseWindow):
         # Set minimum size
         self.setMinimumSize(1200, 800)
         
+        # Apply modern web-style styling
+        self._apply_modern_styling()
+        
         # Initialize UI
         self._setup_widgets()
         
@@ -71,6 +74,170 @@ class UserWindow(BaseWindow):
         # Add undo action to menu
         self._add_undo_action()
     
+    def _apply_modern_styling(self):
+        """Apply modern web-style styling to the user window using theme system."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        
+        self.setStyleSheet(f"""
+            /* Base styling */
+            QWidget {{
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+                font-size: 14px;
+                background-color: {theme["background"]};
+                color: {theme["text"]};
+            }}
+            
+            /* Window styling */
+            UserWindow {{
+                background-color: {theme["background"]};
+            }}
+            
+            /* Tab widget styling - modern web-style */
+            QTabWidget::pane {{
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                padding: 20px;
+            }}
+            
+            QTabBar::tab {{
+                padding: 12px 24px;
+                background-color: transparent;
+                color: {theme["text_secondary"]};
+                border: none;
+                border-bottom: 2px solid transparent;
+                font-size: 14px;
+                font-weight: 500;
+                margin-right: 4px;
+            }}
+            
+            QTabBar::tab:hover {{
+                color: {theme["text"]};
+                background-color: {theme["surface_hover"]};
+            }}
+            
+            QTabBar::tab:selected {{
+                background-color: {theme["surface"]};
+                color: {theme["primary"]};
+                border-bottom: 2px solid {theme["primary"]};
+            }}
+            
+            /* Button styling - using theme */
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+                border-color: {theme["text_secondary"]};
+            }}
+            
+            /* Input field styling */
+            QLineEdit, QComboBox, QTextEdit, QPlainTextEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            
+            QLineEdit:hover, QComboBox:hover, QTextEdit:hover, QPlainTextEdit:hover {{
+                border-color: {theme["text_secondary"]};
+            }}
+            
+            QLineEdit:focus, QComboBox:focus, QTextEdit:focus, QPlainTextEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+                background-color: {theme["surface"]};
+            }}
+            
+            /* Table styling - modern web-style */
+            QTableView, QTableWidget {{
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                background-color: {theme["surface"]};
+                gridline-color: {theme["border"]};
+            }}
+            
+            QHeaderView::section {{
+                background-color: {theme["surface"]};
+                padding: 12px 16px;
+                border: none;
+                border-bottom: 2px solid {theme["border"]};
+                font-weight: 600;
+                font-size: 13px;
+                color: {theme["text"]};
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            
+            QTableView::item:selected, QTableWidget::item:selected {{
+                background-color: {theme["primary"]};
+                color: white;
+            }}
+            
+            QTableView::item:hover, QTableWidget::item:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+            
+            /* Card styling - modern web-style */
+            QGroupBox {{
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                background-color: {theme["surface"]};
+                margin-top: 12px;
+                padding: 20px;
+            }}
+            
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 16px;
+                padding: 0 8px;
+                color: {theme["text"]};
+                font-weight: 600;
+                font-size: 15px;
+            }}
+            
+            QFrame[card="true"] {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+            
+            /* Checkbox styling */
+            QCheckBox {{
+                color: {theme["text"]};
+                font-size: 14px;
+                spacing: 8px;
+            }}
+            
+            QCheckBox::indicator {{
+                width: 20px;
+                height: 20px;
+                border: 2px solid {theme["border"]};
+                border-radius: 4px;
+                background-color: {theme["surface"]};
+            }}
+            
+            QCheckBox::indicator:hover {{
+                border-color: {theme["primary"]};
+            }}
+            
+            QCheckBox::indicator:checked {{
+                background-color: {theme["primary"]};
+                border-color: {theme["primary"]};
+            }}
+        """)
+
     def _setup_widgets(self):
         """Setup the user management widgets."""
         # Create tab widget for different sections

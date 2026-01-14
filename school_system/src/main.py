@@ -12,6 +12,8 @@ import os
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
+from PyQt6.QtWidgets import QMessageBox
+
 from school_system.config.logging import logger
 from school_system.config.database import load_db_config
 from school_system.database import initialize_database, get_db_session
@@ -27,7 +29,7 @@ def main():
         config = load_db_config()
         if not config:
             logger.error("Failed to load database configuration")
-            messagebox.showerror("Configuration Error", "Failed to load database configuration")
+            QMessageBox.critical(None, "Configuration Error", "Failed to load database configuration")
             return 1
         
         # Initialize database if needed
@@ -39,7 +41,7 @@ def main():
                 return 1
         except Exception as e:
             logger.error(f"Database initialization failed: {e}")
-            messagebox.showerror("Database Error", f"Failed to initialize database: {e}")
+            QMessageBox.critical(None, "Database Error", f"Failed to initialize database: {e}")
             return 1
         
         # Create and run the main application window
@@ -48,11 +50,9 @@ def main():
         logger.info("Application started successfully")
         return app.run()
         
-        return 0
-        
     except Exception as e:
         logger.error(f"Application failed to start: {e}")
-        messagebox.showerror("Application Error", f"Failed to start application: {e}")
+        QMessageBox.critical(None, "Application Error", f"Failed to start application: {e}")
         return 1
     
     finally:
