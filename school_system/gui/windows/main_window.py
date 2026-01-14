@@ -228,6 +228,12 @@ class MainWindow(BaseApplicationWindow):
         users_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         users_btn.clicked.connect(self._show_user_management)
         sidebar_layout.addWidget(users_btn)
+
+        view_users_btn = QToolButton()
+        view_users_btn.setText("  👁️ View Users")
+        view_users_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        view_users_btn.clicked.connect(self._show_view_users)
+        sidebar_layout.addWidget(view_users_btn)
         
         sidebar_layout.addSpacing(12)
         
@@ -976,6 +982,15 @@ class MainWindow(BaseApplicationWindow):
             user_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open user management: {str(e)}")
+
+    def _show_view_users(self):
+        """Show view users window."""
+        try:
+            from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
+            view_users_window = ViewUsersWindow(self, self.username, self.role)
+            view_users_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open view users window: {str(e)}")
     
     def _show_books(self):
         """Show books management window."""
