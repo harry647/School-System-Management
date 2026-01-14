@@ -46,7 +46,7 @@ class TeacherWindow(BaseWindow):
         self.current_role = current_role
         self.teacher_service = TeacherService()
         self.validator = TeacherValidator()
-        
+         
         # Initialize workflow manager
         self.workflow_manager = TeacherWorkflowManager(self)
 
@@ -61,17 +61,20 @@ class TeacherWindow(BaseWindow):
 
         # Initialize UI
         self._setup_widgets()
-        
+         
         # Setup undo functionality
         self._setup_undo_system()
-        
+         
         # Track last operations for undo
         self.last_operation = None
         self.undo_timer = None
         self.undo_stack = []
-        
+         
         # Add undo action to menu
         self._add_undo_action()
+        
+        # Refresh the teachers table when the window opens
+        self._refresh_teachers_table()
 
     def _setup_widgets(self):
         """Setup the teacher management widgets."""
@@ -287,7 +290,7 @@ class TeacherWindow(BaseWindow):
         if success:
             # Refresh the teachers table to show latest data
             self._refresh_teachers_table()
-            
+             
             # Show appropriate success message based on operation type
             if "created" in message.lower():
                 show_success_message("Success", message, self)
@@ -302,6 +305,9 @@ class TeacherWindow(BaseWindow):
         else:
             # Show error message for failed operations
             show_error_message("Error", message, self)
+        
+        # Ensure the teachers table is refreshed after any operation
+        self._refresh_teachers_table()
 
     def _refresh_teachers_table(self):
         """Refresh the teachers table."""
@@ -415,8 +421,19 @@ class TeacherWindow(BaseWindow):
     def _on_search_teachers(self, query: str):
         """Handle teacher search."""
         try:
-            # For now, just refresh the table (search functionality would need to be implemented in service)
-            self._refresh_teachers_table()
+            # Implement search functionality
+            if isinstance(query, str) and query.strip():
+                # Search by teacher name or ID
+                teachers = self.teacher_service.get_all_teachers()
+                filtered_teachers = [
+                    teacher for teacher in teachers
+                    if query.lower() in teacher.teacher_name.lower()
+                    or query.lower() in str(teacher.teacher_id).lower()
+                ]
+                self._populate_teachers_table(filtered_teachers)
+            else:
+                # If query is empty, refresh the table to show all teachers
+                self._refresh_teachers_table()
         except Exception as e:
             show_error_message("Error", f"Search failed: {str(e)}", self)
 
