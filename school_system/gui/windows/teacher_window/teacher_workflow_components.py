@@ -11,9 +11,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor
 from typing import Optional, Dict, Any, Callable
 
-from school_system.gui.base.base_window import BaseWindow
 from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
-from school_system.gui.base.widgets import ModernButton, ModernInput
 from school_system.gui.windows.teacher_window.teacher_validation import TeacherValidator, ValidationResult
 from school_system.services.teacher_service import TeacherService
 from school_system.config.logging import logger
@@ -60,12 +58,42 @@ class TeacherOperationPreviewDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.setSpacing(10)
         
-        confirm_button = ModernButton("Confirm", self)
-        confirm_button.set_custom_style("#4CAF50", "#45a049", "#3d8b40")
+        confirm_button = QPushButton("Confirm", self)
+        confirm_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3d8b40;
+            }
+        """)
         confirm_button.clicked.connect(self.accept)
-        
-        cancel_button = ModernButton("Cancel", self)
-        cancel_button.set_custom_style("#F44336", "#e53935", "#d32f2f")
+
+        cancel_button = QPushButton("Cancel", self)
+        cancel_button.setStyleSheet("""
+            QPushButton {
+                background-color: #F44336;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #e53935;
+            }
+            QPushButton:pressed {
+                background-color: #d32f2f;
+            }
+        """)
         cancel_button.clicked.connect(self.reject)
         
         button_layout.addStretch()
@@ -151,7 +179,8 @@ class TeacherOperationWorkflow(QWidget):
         
         # Input field
         if field_type == "text":
-            input_field = ModernInput(placeholder, self)
+            input_field = QLineEdit(self)
+            input_field.setPlaceholderText(placeholder)
         elif field_type == "dropdown":
             input_field = QComboBox(self)
             input_field.setPlaceholderText(placeholder)
@@ -160,7 +189,8 @@ class TeacherOperationWorkflow(QWidget):
             input_field.setPlaceholderText(placeholder)
             input_field.setMaximumHeight(100)
         else:
-            input_field = ModernInput(placeholder, self)
+            input_field = QLineEdit(self)
+            input_field.setPlaceholderText(placeholder)
         
         field_layout.addWidget(input_field)
         self.form_layout.addWidget(field_widget)
@@ -171,21 +201,66 @@ class TeacherOperationWorkflow(QWidget):
         
         return field_widget
     
-    def add_action_button(self, text: str, button_type: str = "primary", 
-                        callback: Callable = None) -> ModernButton:
+    def add_action_button(self, text: str, button_type: str = "primary",
+                        callback: Callable = None) -> QPushButton:
         """Add an action button to the workflow."""
-        button = ModernButton(text, self)
-        
+        button = QPushButton(text, self)
+
         if button_type == "primary":
-            button.set_custom_style("#4CAF50", "#45a049", "#3d8b40")
+            button.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+                QPushButton:pressed {
+                    background-color: #3d8b40;
+                }
+            """)
         elif button_type == "secondary":
-            button.set_custom_style("#2196F3", "#1e88e5", "#1976d2")
+            button.setStyleSheet("""
+                QPushButton {
+                    background-color: #2196F3;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    background-color: #1e88e5;
+                }
+                QPushButton:pressed {
+                    background-color: #1976d2;
+                }
+            """)
         elif button_type == "danger":
-            button.set_custom_style("#F44336", "#e53935", "#d32f2f")
-        
+            button.setStyleSheet("""
+                QPushButton {
+                    background-color: #F44336;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    background-color: #e53935;
+                }
+                QPushButton:pressed {
+                    background-color: #d32f2f;
+                }
+            """)
+
         if callback:
             button.clicked.connect(callback)
-        
+
         self.button_layout.addWidget(button)
         return button
     

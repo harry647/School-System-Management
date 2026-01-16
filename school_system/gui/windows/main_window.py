@@ -2068,15 +2068,18 @@ class MainWindow(BaseApplicationWindow):
     def _create_edit_teacher_view(self) -> QWidget:
         """Create the edit teacher content view."""
         try:
-            # For edit teacher, we need to select a teacher first
-            # This is a placeholder - actual implementation would require teacher selection
-            window = EditTeacherWindow("TEACHER_ID", self, self.username, self.role)
-            window.show()
+            # Open the view teachers window first to allow teacher selection
+            view_window = ViewTeachersWindow(self, self.username, self.role)
+            view_window.setWindowTitle("Select Teacher to Edit")
+            view_window.show()
+
+            # Note: The actual edit functionality is handled within ViewTeachersWindow
+            # when the user clicks the Edit button on a selected teacher
             return QWidget()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open edit teacher window: {str(e)}")
-            logger.error(f"Error opening edit teacher window: {str(e)}")
-            return self._create_default_view("edit_teacher", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to open teacher selection window: {str(e)}")
+            logger.error(f"Error opening teacher selection window: {str(e)}")
+            return self._create_default_view("edit_teacher", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_teacher_import_export_view(self) -> QWidget:
         """Create the teacher import/export content view."""
