@@ -498,9 +498,36 @@ class AuthService:
         
         audit_log = AuditLog(user_id=username, action=action, details=details)
         created_log = self.audit_log_repository.create(audit_log)
-        
+
         logger.info(f"Action logged successfully for user: {username}")
         return created_log
+
+    def get_all_users(self) -> list:
+        """
+        Get all users from the database.
+
+        Returns:
+            List of user dictionaries with user information
+        """
+        try:
+            users = self.user_repository.get_all()
+            # Convert User objects to dictionaries for easier handling
+            user_list = []
+            for user in users:
+                user_dict = {
+                    'username': user.username,
+                    'role': user.role,
+                    'created_at': getattr(user, 'created_at', None),
+                    'last_login': getattr(user, 'last_login', None)
+                }
+                user_list.append(user_dict)
+
+            logger.info(f"Retrieved {len(user_list)} users from database")
+            return user_list
+
+        except Exception as e:
+            logger.error(f"Error retrieving all users: {e}")
+            raise Exception(f"Failed to retrieve users: {e}")
     
     def track_user_activity(self, username: str, activity_type: str, details: str) -> UserActivity:
         """

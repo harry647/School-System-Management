@@ -38,14 +38,18 @@ class ModernLayout(QWidget):
         self._layout.setSpacing(8)
         self._layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
     
-    def add_widget(self, widget, row=None, col=None, rowspan=1, colspan=1):
+    def add_widget(self, widget, stretch=0, alignment=None):
         """Add a widget to the layout."""
         if isinstance(self._layout, QGridLayout):
-            if row is None or col is None:
-                raise ValueError("Row and column must be specified for grid layout")
-            self._layout.addWidget(widget, row, col, rowspan, colspan)
-        else:
+            # For grid layout, we don't support stretch directly
+            # Just add the widget normally
             self._layout.addWidget(widget)
+        else:
+            # For box layouts, stretch is supported
+            if alignment is not None:
+                self._layout.addWidget(widget, stretch, alignment)
+            else:
+                self._layout.addWidget(widget, stretch)
     
     def set_spacing(self, spacing):
         """Set the spacing between widgets."""
@@ -113,10 +117,13 @@ class FlexLayout(ModernLayout):
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._layout.setSpacing(8)
      
-    def add_widget(self, widget, row=None, col=None, rowspan=1, colspan=1):
+    def add_widget(self, widget, stretch=0, alignment=None):
         """Add a widget to the layout."""
-        # FlexLayout doesn't support grid layout, so ignore row/col parameters
-        self._layout.addWidget(widget)
+        # FlexLayout supports stretch for box layouts
+        if alignment is not None:
+            self._layout.addWidget(widget, stretch, alignment)
+        else:
+            self._layout.addWidget(widget, stretch)
      
     def add_layout(self, layout):
         """Add a layout to this layout."""
