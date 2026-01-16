@@ -37,6 +37,46 @@ class BookService:
         """
         return self.book_repository.get_all()
 
+    def get_borrowed_books(self) -> List[Dict]:
+        """
+        Get all currently borrowed books from both students and teachers.
+
+        Returns:
+            List of dictionaries with user_id, book_id, user_type, and borrowed_date
+        """
+        try:
+            # Get all borrowed books from both students and teachers
+            student_borrowings = self.get_all_borrowed_books_student()
+            teacher_borrowings = self.get_all_borrowed_books_teacher()
+
+            borrowed_books = []
+
+            # Process student borrowings (only those not returned)
+            for borrowing in student_borrowings:
+                if not borrowing.returned_on:  # Only currently borrowed
+                    borrowed_books.append({
+                        'user_id': borrowing.student_id,
+                        'book_id': borrowing.book_id,
+                        'user_type': 'student',
+                        'borrowed_date': borrowing.borrowed_on
+                    })
+
+            # Process teacher borrowings (only those not returned)
+            for borrowing in teacher_borrowings:
+                if not borrowing.returned_on:  # Only currently borrowed
+                    borrowed_books.append({
+                        'user_id': borrowing.teacher_id,
+                        'book_id': borrowing.book_id,
+                        'user_type': 'teacher',
+                        'borrowed_date': borrowing.borrowed_on
+                    })
+
+            return borrowed_books
+
+        except Exception as e:
+            logger.error(f"Error getting borrowed books: {e}")
+            return []
+
     def get_book_by_id(self, book_id: int) -> Optional[Book]:
         """
         Retrieve a book by its ID.

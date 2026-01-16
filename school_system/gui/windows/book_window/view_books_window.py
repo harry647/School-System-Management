@@ -198,7 +198,7 @@ class ViewBooksWindow(BaseFunctionWindow):
                 self.books_table.setItem(row, 3, QTableWidgetItem(book.isbn or ""))
                 self.books_table.setItem(row, 4, QTableWidgetItem(book.category or ""))
                 self.books_table.setItem(row, 5, QTableWidgetItem(""))
-                self.books_table.setItem(row, 6, QTableWidgetItem(book.condition or "Good"))
+                self.books_table.setItem(row, 6, QTableWidgetItem(book.book_condition or "Good"))
                 self.books_table.setItem(row, 7, QTableWidgetItem(status))
             
             logger.info(f"Refreshed books table with {len(books)} books")

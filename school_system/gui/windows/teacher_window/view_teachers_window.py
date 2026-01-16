@@ -124,9 +124,9 @@ class ViewTeachersWindow(BaseFunctionWindow):
         table_layout.addWidget(title_label)
         
         # Teachers table
-        self.teachers_table = self.create_table(0, 5)
-        self.teachers_table.setColumnCount(5)  # Ensure columns are set
-        self.teachers_table.setHorizontalHeaderLabels(["Teacher ID", "Name", "Department", "Email", "Phone"])
+        self.teachers_table = self.create_table(0, 3)
+        self.teachers_table.setColumnCount(3)  # Ensure columns are set
+        self.teachers_table.setHorizontalHeaderLabels(["Teacher ID", "Name", "Department"])
         self.teachers_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.teachers_table.setAlternatingRowColors(True)
         table_layout.addWidget(self.teachers_table)
@@ -149,8 +149,6 @@ class ViewTeachersWindow(BaseFunctionWindow):
                 self.teachers_table.setItem(row, 0, QTableWidgetItem(teacher.teacher_id))
                 self.teachers_table.setItem(row, 1, QTableWidgetItem(teacher.teacher_name))
                 self.teachers_table.setItem(row, 2, QTableWidgetItem(teacher.department or ""))
-                self.teachers_table.setItem(row, 3, QTableWidgetItem(teacher.email or ""))
-                self.teachers_table.setItem(row, 4, QTableWidgetItem(teacher.phone or ""))
             
             logger.info(f"Refreshed teachers table with {len(teachers)} teachers")
         except Exception as e:
