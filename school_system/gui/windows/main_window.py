@@ -807,6 +807,9 @@ class MainWindow(BaseApplicationWindow):
             "student_reports": lambda: self._create_student_reports_view(),
             "custom_reports": lambda: self._create_custom_reports_view(),
             "ream_management": lambda: self._create_ream_management_view(),
+            "class_management": lambda: self._create_class_management_view(),
+            "library_activity": lambda: self._create_library_activity_view(),
+            "student_import_export": lambda: self._create_student_import_export_view(),
         }
         
         # Add error handling for missing or corrupted files
@@ -850,6 +853,9 @@ class MainWindow(BaseApplicationWindow):
             from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
             from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
             from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
+            from school_system.gui.windows.student_window.student_import_export_window import StudentImportExportWindow
+            from school_system.gui.windows.student_window.class_management_window import ClassManagementWindow
+            from school_system.gui.windows.student_window.library_activity_window import LibraryActivityWindow
             logger.info("All student windows imported successfully")
         except ImportError as e:
             logger.error(f"Failed to import student windows: {str(e)}")
@@ -1207,6 +1213,359 @@ class MainWindow(BaseApplicationWindow):
         """)
         placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_ream_management_view(self) -> QWidget:
+        """Create the ream management content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📄 Ream Management")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Description
+        desc_label = QLabel("Manage student ream allocations and track usage.")
+        desc_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            margin-bottom: 16px;
+        """)
+        card_layout.addWidget(desc_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        open_ream_btn = QPushButton("📄 Open Ream Management")
+        open_ream_btn.clicked.connect(self._show_ream_management_window)
+        open_ream_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {role_color};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+            }}
+        """)
+        actions_layout.addWidget(open_ream_btn)
+
+        actions_layout.addStretch()
+        card_layout.addLayout(actions_layout)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_class_management_view(self) -> QWidget:
+        """Create the class management content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📝 Class Management")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Description
+        desc_label = QLabel("Create and manage student classes, assign students to classes, and track class statistics.")
+        desc_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            margin-bottom: 16px;
+        """)
+        desc_label.setWordWrap(True)
+        card_layout.addWidget(desc_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        open_class_btn = QPushButton("📝 Open Class Management")
+        open_class_btn.clicked.connect(lambda: self._show_class_management_window())
+        open_class_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {role_color};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+            }}
+        """)
+        actions_layout.addWidget(open_class_btn)
+
+        actions_layout.addStretch()
+        card_layout.addLayout(actions_layout)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_library_activity_view(self) -> QWidget:
+        """Create the library activity content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📚 Library Activity")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Description
+        desc_label = QLabel("Manage student library activities including book borrowing, returns, and track overdue books.")
+        desc_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            margin-bottom: 16px;
+        """)
+        desc_label.setWordWrap(True)
+        card_layout.addWidget(desc_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        borrow_btn = QPushButton("📖 Borrow Book")
+        borrow_btn.clicked.connect(lambda: self._load_content("borrow_book"))
+        borrow_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {role_color};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+            }}
+        """)
+        actions_layout.addWidget(borrow_btn)
+
+        return_btn = QPushButton("↩️ Return Book")
+        return_btn.clicked.connect(lambda: self._load_content("return_book"))
+        return_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["success"]};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: #28a745;
+            }}
+        """)
+        actions_layout.addWidget(return_btn)
+
+        full_activity_btn = QPushButton("📚 Full Activity Management")
+        full_activity_btn.clicked.connect(lambda: self._show_library_activity_window())
+        full_activity_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["secondary"]};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+            }}
+        """)
+        actions_layout.addWidget(full_activity_btn)
+
+        actions_layout.addStretch()
+        card_layout.addLayout(actions_layout)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_student_import_export_view(self) -> QWidget:
+        """Create the student import/export content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        role_color = self._get_role_color()
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📤 Student Import/Export")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content area
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 24px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        # Description
+        desc_label = QLabel("Import student data from CSV, Excel, or JSON files, or export student data for backup or analysis.")
+        desc_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            margin-bottom: 16px;
+        """)
+        desc_label.setWordWrap(True)
+        card_layout.addWidget(desc_label)
+
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+
+        import_btn = QPushButton("📥 Import Students")
+        import_btn.clicked.connect(self._show_student_import_export)
+        import_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {role_color};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+            }}
+        """)
+        actions_layout.addWidget(import_btn)
+
+        export_btn = QPushButton("📤 Export Students")
+        export_btn.clicked.connect(self._show_student_import_export)
+        export_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["success"]};
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: #28a745;
+            }}
+        """)
+        actions_layout.addWidget(export_btn)
+
+        actions_layout.addStretch()
+        card_layout.addLayout(actions_layout)
 
         layout.addWidget(content_card)
         layout.addStretch()
@@ -4036,7 +4395,29 @@ Developed for efficient school administration."""
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open ream management: {str(e)}")
             logger.error(f"Error opening ream management window: {str(e)}")
-    
+
+    def _show_class_management_window(self):
+        """Show the class management window."""
+        try:
+            from school_system.gui.windows.student_window.class_management_window import ClassManagementWindow
+            window = ClassManagementWindow(self, self.username, self.role)
+            window.show()
+            logger.info(f"Class management window opened by user {self.username}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open class management: {str(e)}")
+            logger.error(f"Error opening class management window: {str(e)}")
+
+    def _show_library_activity_window(self):
+        """Show the library activity window."""
+        try:
+            from school_system.gui.windows.student_window.library_activity_window import LibraryActivityWindow
+            window = LibraryActivityWindow(self, self.username, self.role)
+            window.show()
+            logger.info(f"Library activity window opened by user {self.username}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open library activity: {str(e)}")
+            logger.error(f"Error opening library activity window: {str(e)}")
+
     def closeEvent(self, event):
         """Handle window closing."""
         super().closeEvent(event)
