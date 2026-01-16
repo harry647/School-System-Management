@@ -40,7 +40,7 @@ class EditBookWindow(BaseFunctionWindow):
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
         main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(24)
+        main_layout.set_spacing(24)
         
         # Form card
         form_card = self._create_form_card()

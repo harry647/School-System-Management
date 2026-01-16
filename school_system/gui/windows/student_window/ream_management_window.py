@@ -36,7 +36,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
         main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(16)
+        main_layout.set_spacing(16)
         
         # Add ream section
         add_card = self._create_add_ream_card()

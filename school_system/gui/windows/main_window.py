@@ -2063,7 +2063,7 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open add teacher window: {str(e)}")
             logger.error(f"Error opening add teacher window: {str(e)}")
-            return self._create_default_view("add_teacher", theme, role_color)
+            return self._create_default_view("add_teacher", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_edit_teacher_view(self) -> QWidget:
         """Create the edit teacher content view."""
@@ -4080,7 +4080,6 @@ For additional support, contact your system administrator.
                 border-left: 4px solid {role_color};
                 border: 1px solid {theme["border"]};
                 padding: 20px;
-                transition: all 0.3s ease;
             }}
             QFrame[statCard="true"]:hover {{
                 border-color: {role_color};
@@ -4173,9 +4172,7 @@ For additional support, contact your system administrator.
             }}
 
             /* Animations */
-            * {{
-                transition: all 0.2s ease;
-            }}
+            /* Note: Qt QSS does not support CSS transitions */
         """)
     
     def _setup_role_based_menus(self):

@@ -166,7 +166,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
         main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(20)
+        main_layout.set_spacing(20)
 
         # Import section
         import_card = self._create_import_card()

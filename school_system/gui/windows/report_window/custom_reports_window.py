@@ -31,7 +31,7 @@ class CustomReportsWindow(BaseFunctionWindow):
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
         main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(16)
+        main_layout.set_spacing(16)
         
         # Report builder card
         builder_card = self._create_report_builder_card()

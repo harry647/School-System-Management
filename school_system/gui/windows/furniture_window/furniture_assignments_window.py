@@ -34,7 +34,7 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
         main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(16)
+        main_layout.set_spacing(16)
         
         # Assignment form
         form_card = self._create_assignment_form_card()
