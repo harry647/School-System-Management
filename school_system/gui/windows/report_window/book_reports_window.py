@@ -141,22 +141,66 @@ class BookReportsWindow(BaseFunctionWindow):
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)
         layout.addWidget(self.results_table)
-        
+
         return card
+
+    def _populate_books_table(self, report_data: list):
+        """Populate the results table with book report data."""
+        try:
+            self.results_table.setRowCount(0)  # Clear existing data
+
+            for row_idx, book_data in enumerate(report_data):
+                self.results_table.insertRow(row_idx)
+
+                book = book_data.get('book', {})
+
+                # Extract book information
+                book_id = book.get('id', '')
+                title = book.get('title', '')
+                status = book.get('status', 'Unknown')
+                details = book.get('author', '') or book.get('genre', '') or 'N/A'
+
+                # Set table items
+                self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(book_id)))
+                self.results_table.setItem(row_idx, 1, QTableWidgetItem(title))
+                self.results_table.setItem(row_idx, 2, QTableWidgetItem(status))
+                self.results_table.setItem(row_idx, 3, QTableWidgetItem(details))
+
+        except Exception as e:
+            logger.error(f"Error populating books table: {e}")
+            show_error_message("Error", f"Failed to display report data: {str(e)}", self)
     
     def _on_generate_report(self):
         """Handle generate report."""
         report_type = self.report_type_combo.currentText()
-        
+
         try:
-            # Generate report
-            # Note: This would need to be implemented in ReportService
-            show_success_message("Success", f"Report '{report_type}' generated successfully.", self)
-            
-            # Clear and populate table
+            # Clear table first
             self.results_table.setRowCount(0)
-            # Add report data here
-            
+
+            # Generate report based on type
+            if report_type == "All Books":
+                report_data = self.report_service.get_all_books_report()
+                self._populate_books_table(report_data)
+            elif report_type == "Borrowed Books":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_borrowed_books_report()
+                self._populate_books_table(report_data)
+            elif report_type == "Available Books":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_available_books_report()
+                self._populate_books_table(report_data)
+            elif report_type == "Overdue Books":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_overdue_books_report()
+                self._populate_books_table(report_data)
+            elif report_type == "Book Inventory":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_book_inventory_report()
+                self._populate_books_table(report_data)
+
+            show_success_message("Success", f"Report '{report_type}' generated successfully.", self)
+
         except Exception as e:
             logger.error(f"Error generating report: {e}")
             show_error_message("Error", f"Failed to generate report: {str(e)}", self)

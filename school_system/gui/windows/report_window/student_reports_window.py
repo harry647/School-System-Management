@@ -141,20 +141,66 @@ class StudentReportsWindow(BaseFunctionWindow):
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)
         layout.addWidget(self.results_table)
-        
+
         return card
+
+    def _populate_students_table(self, report_data: list):
+        """Populate the results table with student report data."""
+        try:
+            self.results_table.setRowCount(0)  # Clear existing data
+
+            for row_idx, student_data in enumerate(report_data):
+                self.results_table.insertRow(row_idx)
+
+                student = student_data.get('student', {})
+
+                # Extract student information
+                student_id = student.get('id', '')
+                name = student.get('name', '')
+                stream = student.get('stream', 'Unknown')
+                details = student.get('class', '') or student.get('grade', '') or 'N/A'
+
+                # Set table items
+                self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(student_id)))
+                self.results_table.setItem(row_idx, 1, QTableWidgetItem(name))
+                self.results_table.setItem(row_idx, 2, QTableWidgetItem(stream))
+                self.results_table.setItem(row_idx, 3, QTableWidgetItem(details))
+
+        except Exception as e:
+            logger.error(f"Error populating students table: {e}")
+            show_error_message("Error", f"Failed to display report data: {str(e)}", self)
     
     def _on_generate_report(self):
         """Handle generate report."""
         report_type = self.report_type_combo.currentText()
-        
+
         try:
-            # Generate report
-            show_success_message("Success", f"Report '{report_type}' generated successfully.", self)
-            
-            # Clear and populate table
+            # Clear table first
             self.results_table.setRowCount(0)
-            
+
+            # Generate report based on type
+            if report_type == "All Students":
+                report_data = self.report_service.get_all_students_report()
+                self._populate_students_table(report_data)
+            elif report_type == "Students by Stream":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_students_by_stream_report()
+                self._populate_students_table(report_data)
+            elif report_type == "Students by Class":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_students_by_class_report()
+                self._populate_students_table(report_data)
+            elif report_type == "Library Activity":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_student_library_activity_report()
+                self._populate_students_table(report_data)
+            elif report_type == "Borrowing History":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_student_borrowing_history_report()
+                self._populate_students_table(report_data)
+
+            show_success_message("Success", f"Report '{report_type}' generated successfully.", self)
+
         except Exception as e:
             logger.error(f"Error generating report: {e}")
             show_error_message("Error", f"Failed to generate report: {str(e)}", self)

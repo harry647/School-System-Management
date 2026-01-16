@@ -20,7 +20,7 @@ class ReportService:
         self.student_repository = StudentRepository()
         self.import_export_service = ImportExportService()
 
-    def generate_report(self, report_type: str, parameters: Dict) -> Report:
+    def generate_report(self, report_type: str, parameters: Dict) -> Dict:
         """
         Generate a report based on the given type and parameters.
 
@@ -76,6 +76,50 @@ class ReportService:
         books = self.book_repository.get_all()
         return [{"book": book} for book in books]
 
+    def get_borrowed_books_report(self) -> List[Dict]:
+        """
+        Retrieve borrowed books report.
+
+        Returns:
+            A list of borrowed books report data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+
+    def get_available_books_report(self) -> List[Dict]:
+        """
+        Retrieve available books report.
+
+        Returns:
+            A list of available books report data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+
+    def get_overdue_books_report(self) -> List[Dict]:
+        """
+        Retrieve overdue books report.
+
+        Returns:
+            A list of overdue books report data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+
+    def get_book_inventory_report(self) -> List[Dict]:
+        """
+        Retrieve book inventory report.
+
+        Returns:
+            A list of book inventory report data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+
     def export_report_to_excel(self, report_data: List[Dict], filename: str) -> bool:
         """
         Export report data to an Excel file.
@@ -114,3 +158,79 @@ class ReportService:
         except Exception as e:
             logger.error(f"Error importing report from Excel: {e}")
             return []
+
+    def get_all_students_report(self) -> List[Dict]:
+        """
+        Retrieve all students report.
+
+        Returns:
+            A list of all students report data.
+        """
+        students = self.student_repository.get_all()
+        return [{"student": student} for student in students]
+
+    def get_students_by_stream_report(self) -> List[Dict]:
+        """
+        Retrieve students by stream report.
+
+        Returns:
+            A list of students grouped by stream.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+
+    def get_students_by_class_report(self) -> List[Dict]:
+        """
+        Retrieve students by class report.
+
+        Returns:
+            A list of students grouped by class.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+
+    def get_student_library_activity_report(self) -> List[Dict]:
+        """
+        Retrieve student library activity report.
+
+        Returns:
+            A list of student library activity data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+
+    def get_student_borrowing_history_report(self) -> List[Dict]:
+        """
+        Retrieve student borrowing history report.
+
+        Returns:
+            A list of student borrowing history data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+
+    def get_all_teachers_report(self) -> List[Dict]:
+        """
+        Retrieve all teachers report.
+
+        Returns:
+            A list of all teachers report data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"teacher": {"id": "N/A", "name": "Feature not implemented", "subject": "N/A", "status": "N/A"}}]
+
+    def get_all_furniture_report(self) -> List[Dict]:
+        """
+        Retrieve all furniture report.
+
+        Returns:
+            A list of all furniture report data.
+        """
+        # This would need to be implemented based on your data model
+        # For now, return a placeholder
+        return [{"furniture": {"id": "N/A", "name": "Feature not implemented", "type": "N/A", "status": "N/A"}}]

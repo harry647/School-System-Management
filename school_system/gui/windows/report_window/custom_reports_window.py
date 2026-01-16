@@ -135,20 +135,86 @@ class CustomReportsWindow(BaseFunctionWindow):
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)
         layout.addWidget(self.results_table)
-        
+
         return card
+
+    def _populate_custom_table(self, report_data: list, data_source: str):
+        """Populate the results table with custom report data."""
+        try:
+            self.results_table.setRowCount(0)  # Clear existing data
+
+            for row_idx, item_data in enumerate(report_data):
+                self.results_table.insertRow(row_idx)
+
+                # Handle different data types based on the data source
+                if data_source == "Books" or "book" in item_data:
+                    item = item_data.get('book', {})
+                    item_id = item.get('id', '')
+                    name = item.get('title', '')
+                    item_type = "Book"
+                    status = item.get('status', 'Unknown')
+                    details = item.get('author', '') or item.get('genre', '') or 'N/A'
+
+                elif data_source == "Students" or "student" in item_data:
+                    item = item_data.get('student', {})
+                    item_id = item.get('id', '')
+                    name = item.get('name', '')
+                    item_type = "Student"
+                    status = "Active"
+                    details = item.get('stream', '') or item.get('class', '') or 'N/A'
+
+                else:
+                    # Generic handling for other data types
+                    item = list(item_data.values())[0] if item_data else {}
+                    item_id = item.get('id', '')
+                    name = item.get('name', '') or item.get('title', '')
+                    item_type = data_source
+                    status = item.get('status', 'Unknown')
+                    details = 'N/A'
+
+                # Set table items
+                self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(item_id)))
+                self.results_table.setItem(row_idx, 1, QTableWidgetItem(name))
+                self.results_table.setItem(row_idx, 2, QTableWidgetItem(item_type))
+                self.results_table.setItem(row_idx, 3, QTableWidgetItem(status))
+                self.results_table.setItem(row_idx, 4, QTableWidgetItem(details))
+
+        except Exception as e:
+            logger.error(f"Error populating custom table: {e}")
+            show_error_message("Error", f"Failed to display report data: {str(e)}", self)
     
     def _on_generate_report(self):
         """Handle generate report."""
         data_source = self.data_source_combo.currentText()
-        
+
         try:
-            # Generate custom report
-            show_success_message("Success", f"Custom report for '{data_source}' generated successfully.", self)
-            
-            # Clear and populate table
+            # Clear table first
             self.results_table.setRowCount(0)
-            
+
+            # Generate report based on data source
+            if data_source == "Books":
+                report_data = self.report_service.get_all_books_report()
+                self._populate_custom_table(report_data, "Books")
+            elif data_source == "Students":
+                report_data = self.report_service.get_all_students_report()
+                self._populate_custom_table(report_data, "Students")
+            elif data_source == "Teachers":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_all_teachers_report()
+                self._populate_custom_table(report_data, "Teachers")
+            elif data_source == "Furniture":
+                # This would need to be implemented in ReportService
+                report_data = self.report_service.get_all_furniture_report()
+                self._populate_custom_table(report_data, "Furniture")
+            elif data_source == "All":
+                # Combine all data sources
+                books_data = self.report_service.get_all_books_report()
+                students_data = self.report_service.get_all_students_report()
+                combined_data = books_data + students_data
+                self._populate_custom_table(combined_data, "All")
+
+            show_success_message("Success", f"Custom report for '{data_source}' generated successfully.", self)
+
         except Exception as e:
             logger.error(f"Error generating custom report: {e}")
             show_error_message("Error", f"Failed to generate report: {str(e)}", self)

@@ -2566,10 +2566,10 @@ For additional support, contact your system administrator.
             {
                 "title": "Book Management",
                 "actions": [
-                    ("➕ Add Book", self._add_book),
-                    ("👁️ View Books", self._show_books),
-                    ("📖 Borrow Book", self._show_borrow_book),
-                    ("↩️ Return Book", self._show_return_book),
+                    ("➕ Add Book", self._show_add_book_window),
+                    ("👁️ View Books", self._show_view_books_window),
+                    ("📖 Borrow Book", self._show_borrow_book_window),
+                    ("↩️ Return Book", self._show_return_book_window),
                 ]
             },
             {
@@ -3788,6 +3788,109 @@ For additional support, contact your system administrator.
             return_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
+
+    def _show_add_book_window(self):
+        """Show add book window."""
+        try:
+            # Validate that the required module exists
+            import os
+            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'add_book_window.py')
+            if not os.path.exists(module_path):
+                raise FileNotFoundError(f"Book window module not found: {module_path}")
+
+            from school_system.gui.windows.book_window.add_book_window import AddBookWindow
+            add_window = AddBookWindow(self, self.username, self.role)
+            add_window.book_added.connect(self._on_book_data_changed)
+            add_window.show()
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
+            logger.error(f"Missing book window file: {str(e)}")
+        except ImportError as e:
+            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
+            logger.error(f"Import error for add book window: {str(e)}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open add book window: {str(e)}")
+            logger.error(f"Error opening add book window: {str(e)}")
+
+    def _show_view_books_window(self):
+        """Show view books window."""
+        try:
+            import os
+            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'view_books_window.py')
+            if not os.path.exists(module_path):
+                raise FileNotFoundError(f"Book window module not found: {module_path}")
+
+            from school_system.gui.windows.book_window.view_books_window import ViewBooksWindow
+            view_window = ViewBooksWindow(self, self.username, self.role)
+            view_window.book_updated.connect(self._on_book_data_changed)
+            view_window.show()
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
+            logger.error(f"Missing book window file: {str(e)}")
+        except ImportError as e:
+            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
+            logger.error(f"Import error for view books window: {str(e)}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open view books window: {str(e)}")
+            logger.error(f"Error opening view books window: {str(e)}")
+
+    def _show_borrow_book_window(self):
+        """Show borrow book window."""
+        try:
+            import os
+            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'borrow_book_window.py')
+            if not os.path.exists(module_path):
+                raise FileNotFoundError(f"Book window module not found: {module_path}")
+
+            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
+            borrow_window = BorrowBookWindow(self, self.username, self.role)
+            borrow_window.book_borrowed.connect(self._on_book_data_changed)
+            borrow_window.show()
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
+            logger.error(f"Missing book window file: {str(e)}")
+        except ImportError as e:
+            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
+            logger.error(f"Import error for borrow book window: {str(e)}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open borrow book window: {str(e)}")
+            logger.error(f"Error opening borrow book window: {str(e)}")
+
+    def _show_return_book_window(self):
+        """Show return book window."""
+        try:
+            import os
+            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'return_book_window.py')
+            if not os.path.exists(module_path):
+                raise FileNotFoundError(f"Book window module not found: {module_path}")
+
+            from school_system.gui.windows.book_window.return_book_window import ReturnBookWindow
+            return_window = ReturnBookWindow(self, self.username, self.role)
+            return_window.book_returned.connect(self._on_book_data_changed)
+            return_window.show()
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
+            logger.error(f"Missing book window file: {str(e)}")
+        except ImportError as e:
+            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
+            logger.error(f"Import error for return book window: {str(e)}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
+            logger.error(f"Error opening return book window: {str(e)}")
+
+    def _on_book_data_changed(self):
+        """Handle book data changes from child windows."""
+        try:
+            # Refresh dashboard if it's currently visible
+            if self.current_view == "dashboard":
+                self._load_content("dashboard")
+            # Refresh book-related views if they're currently loaded
+            elif self.current_view in ["view_books", "add_book", "borrow_book", "return_book", "book_import_export"]:
+                self._load_content(self.current_view)
+
+            logger.info("Book data changed, refreshed relevant views")
+        except Exception as e:
+            logger.error(f"Error handling book data change: {str(e)}")
 
     def _show_distribution(self):
         """Show distribution window."""
