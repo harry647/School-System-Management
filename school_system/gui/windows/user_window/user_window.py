@@ -285,8 +285,8 @@ class UserWindow(BaseWindow):
 
         container = QWidget()
         grid_layout = QGridLayout(container)
-        grid_layout.set_margins(0, 0, 0, 0)
-        grid_layout.set_spacing(16)
+        grid_layout.setContentsMargins(0, 0, 0, 0)
+        grid_layout.setSpacing(16)
 
         # Row 1: User Management functions
         grid_layout.addWidget(self._create_function_card(

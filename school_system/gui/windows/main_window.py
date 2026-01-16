@@ -4058,15 +4058,15 @@ class MainWindow(BaseApplicationWindow):
             QMessageBox.critical(self, "Error", f"Failed to open add user window: {str(e)}")
 
     def _open_edit_user_window(self):
-        """Open the edit user window."""
+        """Open the user selection window for editing."""
         try:
-            from school_system.gui.windows.user_window.edit_user_window import EditUserWindow
-            window = EditUserWindow(self, self.username, self.role)
-            window.user_updated.connect(self._on_user_data_changed)
+            from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
+            window = ViewUsersWindow(self, self.username, self.role)
+            # The view users window has its own edit functionality
             window.show()
         except Exception as e:
-            logger.error(f"Error opening edit user window: {str(e)}")
-            QMessageBox.critical(self, "Error", f"Failed to open edit user window: {str(e)}")
+            logger.error(f"Error opening user selection for edit: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open user selection: {str(e)}")
 
     def _open_delete_user_window(self):
         """Open the delete user window."""

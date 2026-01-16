@@ -94,7 +94,15 @@ class ViewUsersWindow(BaseFunctionWindow):
         add_btn = self.create_button("➕ Add User", "primary")
         add_btn.clicked.connect(self._on_add_user)
         action_layout.addWidget(add_btn)
-        
+
+        edit_btn = self.create_button("✏️ Edit", "secondary")
+        edit_btn.clicked.connect(self._on_edit_user)
+        action_layout.addWidget(edit_btn)
+
+        delete_btn = self.create_button("🗑️ Delete", "danger")
+        delete_btn.clicked.connect(self._on_delete_user)
+        action_layout.addWidget(delete_btn)
+
         refresh_btn = self.create_button("🔄 Refresh", "outline")
         refresh_btn.clicked.connect(self._refresh_users_table)
         action_layout.addWidget(refresh_btn)
@@ -217,4 +225,50 @@ class ViewUsersWindow(BaseFunctionWindow):
     
     def _on_add_user(self):
         """Handle add user."""
-        show_error_message("Info", "Add user functionality will be implemented here.", self)
+        from school_system.gui.windows.user_window.add_user_window import AddUserWindow
+        add_window = AddUserWindow(self, self.current_user, self.current_role)
+        add_window.user_added.connect(self._refresh_users_table)
+        add_window.show()
+
+    def _on_edit_user(self):
+        """Handle edit user."""
+        selected_rows = self.users_table.selectionModel().selectedRows()
+        if not selected_rows:
+            show_error_message("No Selection", "Please select a user to edit.", self)
+            return
+
+        username = self.users_table.item(selected_rows[0].row(), 0).text()
+        from school_system.gui.windows.user_window.edit_user_window import EditUserWindow
+        edit_window = EditUserWindow(self, self.current_user, self.current_role, username)
+        edit_window.user_updated.connect(self._refresh_users_table)
+        edit_window.show()
+
+    def _on_delete_user(self):
+        """Handle delete user."""
+        selected_rows = self.users_table.selectionModel().selectedRows()
+        if not selected_rows:
+            show_error_message("No Selection", "Please select a user to delete.", self)
+            return
+
+        username = self.users_table.item(selected_rows[0].row(), 0).text()
+        from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
+        dialog = ConfirmationDialog(
+            title="Delete User",
+            message=f"Are you sure you want to delete user '{username}'?\n\nThis action cannot be undone.",
+            parent=self,
+            confirm_text="Delete",
+            cancel_text="Cancel"
+        )
+
+        if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:
+            try:
+                from school_system.services.auth_service import AuthService
+                auth_service = AuthService()
+                success = auth_service.delete_user(username)
+                if success:
+                    show_success_message("Success", f"User '{username}' deleted successfully.", self)
+                    self._refresh_users_table()
+                else:
+                    show_error_message("Error", f"Failed to delete user '{username}'.", self)
+            except Exception as e:
+                show_error_message("Error", f"Failed to delete user: {str(e)}", self)
