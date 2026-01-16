@@ -157,7 +157,7 @@ class BookRemoveWorkflow(BookWorkflowBase):
                     'title': book.title,
                     'author': book.author,
                     'category': book.category,
-                    'subject': getattr(book, 'subject', ''),
+                    'category': getattr(book, 'category', ''),
                     'class': getattr(book, 'class', ''),
                     'isbn': book.isbn,
                     'publication_date': book.publication_date,

@@ -13,7 +13,7 @@ from school_system.gui.dialogs.message_dialog import show_error_message, show_su
 from school_system.config.logging import logger
 from school_system.services.book_service import BookService
 from school_system.gui.windows.book_window.utils import (
-    BOOK_CONDITIONS, STANDARD_SUBJECTS, STANDARD_CLASSES, STANDARD_STREAMS
+    BOOK_CONDITIONS, STANDARD_SUBJECTS
 )
 
 
@@ -130,20 +130,6 @@ class AddBookWindow(BaseFunctionWindow):
         subject_layout.addWidget(self.subject_input)
         form_layout.addLayout(subject_layout)
         
-        # Class field
-        class_layout = QVBoxLayout()
-        class_label = QLabel("Class")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
-        class_layout.addWidget(class_label)
-        
-        self.class_input = QComboBox()
-        self.class_input.setFixedHeight(44)
-        self.class_input.addItem("")
-        self.class_input.addItems(STANDARD_CLASSES)
-        self.class_input.setEditable(True)
-        class_layout.addWidget(self.class_input)
-        form_layout.addLayout(class_layout)
-        
         # Condition field
         condition_layout = QVBoxLayout()
         condition_label = QLabel("Condition *")
@@ -184,7 +170,6 @@ class AddBookWindow(BaseFunctionWindow):
         author = self.author_input.text().strip()
         isbn = self.isbn_input.text().strip()
         subject = self.subject_input.currentText().strip()
-        class_name = self.class_input.currentText().strip()
         condition = self.condition_input.currentText().strip()
         
         # Validate
@@ -200,7 +185,6 @@ class AddBookWindow(BaseFunctionWindow):
                 "author": author if author else None,
                 "isbn": isbn if isbn else None,
                 "subject": subject if subject else None,
-                "class_name": class_name if class_name else None,
                 "condition": condition
             }
             

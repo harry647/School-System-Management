@@ -135,20 +135,6 @@ class EditBookWindow(BaseFunctionWindow):
         subject_layout.addWidget(self.subject_input)
         form_layout.addLayout(subject_layout)
         
-        # Class field
-        class_layout = QVBoxLayout()
-        class_label = QLabel("Class")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
-        class_layout.addWidget(class_label)
-        
-        self.class_input = QComboBox()
-        self.class_input.setFixedHeight(44)
-        self.class_input.addItem("")
-        self.class_input.addItems(STANDARD_CLASSES)
-        self.class_input.setEditable(True)
-        class_layout.addWidget(self.class_input)
-        form_layout.addLayout(class_layout)
-        
         # Condition field
         condition_layout = QVBoxLayout()
         condition_label = QLabel("Condition *")
@@ -186,30 +172,24 @@ class EditBookWindow(BaseFunctionWindow):
         try:
             book = self.book_service.get_book_by_id(self.book_id)
             if book:
-                self.book_id_input.setText(book.book_id)
+                self.book_id_input.setText(book.book_number)
                 self.title_input.setText(book.title)
                 self.author_input.setText(book.author or "")
                 self.isbn_input.setText(book.isbn or "")
                 
-                # Set subject
-                if book.subject:
-                    index = self.subject_input.findText(book.subject)
+                # Set category
+                if book.category:
+                    index = self.subject_input.findText(book.category)
                     if index >= 0:
                         self.subject_input.setCurrentIndex(index)
                     else:
-                        self.subject_input.setEditText(book.subject)
+                        self.subject_input.setEditText(book.category)
                 
-                # Set class
-                if book.class_name:
-                    index = self.class_input.findText(book.class_name)
-                    if index >= 0:
-                        self.class_input.setCurrentIndex(index)
-                    else:
-                        self.class_input.setEditText(book.class_name)
+                # Note: class_name is not stored on individual books - class assignment happens during distribution sessions
                 
                 # Set condition
-                if book.condition:
-                    index = self.condition_input.findText(book.condition)
+                if book.book_condition:
+                    index = self.condition_input.findText(book.book_condition)
                     if index >= 0:
                         self.condition_input.setCurrentIndex(index)
         except Exception as e:
@@ -223,7 +203,6 @@ class EditBookWindow(BaseFunctionWindow):
         author = self.author_input.text().strip()
         isbn = self.isbn_input.text().strip()
         subject = self.subject_input.currentText().strip()
-        class_name = self.class_input.currentText().strip()
         condition = self.condition_input.currentText().strip()
         
         # Validate
@@ -239,7 +218,6 @@ class EditBookWindow(BaseFunctionWindow):
                 "author": author if author else None,
                 "isbn": isbn if isbn else None,
                 "subject": subject if subject else None,
-                "class_name": class_name if class_name else None,
                 "condition": condition
             }
             

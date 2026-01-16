@@ -315,4 +315,4 @@ class BookManagementTab(QWidget):
             self.books_table.setItem(row_position, 4, QTableWidgetItem(book.category or ""))
             self.books_table.setItem(row_position, 5, QTableWidgetItem("Yes" if book.available else "No"))
             self.books_table.setItem(row_position, 6, QTableWidgetItem(book.book_condition or ""))
-            self.books_table.setItem(row_position, 7, QTableWidgetItem(getattr(book, 'subject', '') or ""))
+            self.books_table.setItem(row_position, 7, QTableWidgetItem(getattr(book, 'category', '') or ""))
