@@ -22,14 +22,31 @@ class StudentService:
         self.student_repository = StudentRepository()
         self.import_export_service = ImportExportService()
 
-    def get_all_students(self) -> List[Student]:
+    def get_all_students(self, stream: Optional[str] = None) -> List[Student]:
         """
-        Retrieve all students.
+        Retrieve all students, optionally filtered by stream.
+
+        Args:
+            stream: Optional stream filter. If provided, only return students from this stream.
 
         Returns:
-            A list of all Student objects.
+            A list of Student objects, optionally filtered by stream.
         """
-        return self.student_repository.get_all()
+        students = self.student_repository.get_all()
+        if stream:
+            students = [s for s in students if s.stream == stream]
+        return students
+
+    def get_all_streams(self) -> List[str]:
+        """
+        Get all unique streams from existing students.
+
+        Returns:
+            A list of unique stream names.
+        """
+        students = self.student_repository.get_all()
+        streams = list(set(s.stream for s in students if s.stream))
+        return sorted(streams)
 
     def get_student_by_id(self, student_id: str) -> Optional[Student]:
         """

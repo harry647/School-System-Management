@@ -382,7 +382,7 @@ class MainWindow(BaseApplicationWindow):
                     elif action_id == "add_student":
                         action.triggered.connect(lambda checked: self._open_add_student_window())
                     elif action_id == "edit_student":
-                        action.triggered.connect(lambda checked: self._open_edit_student_window())
+                        action.triggered.connect(lambda checked: self._show_edit_student_selection())
                     elif action_id == "class_management":
                         action.triggered.connect(lambda checked: self._open_class_management_window())
                     elif action_id == "library_activity":
@@ -396,7 +396,7 @@ class MainWindow(BaseApplicationWindow):
                     elif action_id == "add_teacher":
                         action.triggered.connect(lambda checked: self._open_add_teacher_window())
                     elif action_id == "edit_teacher":
-                        action.triggered.connect(lambda checked: self._open_edit_teacher_window())
+                        action.triggered.connect(lambda checked: self._show_edit_teacher_selection())
                     elif action_id == "teacher_import_export":
                         action.triggered.connect(lambda checked: self._open_teacher_import_export_window())
                     elif action_id == "view_books":
@@ -4150,11 +4150,22 @@ class MainWindow(BaseApplicationWindow):
             logger.error(f"Error opening add student window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open add student window: {str(e)}")
 
-    def _open_edit_student_window(self):
-        """Open the edit student window."""
+    def _show_edit_student_selection(self):
+        """Show student selection for editing."""
+        try:
+            from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
+            window = ViewStudentsWindow(self, self.username, self.role)
+            # The view students window has its own edit functionality
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening student selection for edit: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open student selection: {str(e)}")
+
+    def _open_edit_student_window(self, student_id: str):
+        """Open the edit student window for a specific student."""
         try:
             from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
-            window = EditStudentWindow(self, self.username, self.role)
+            window = EditStudentWindow(student_id, self, self.username, self.role)
             window.student_updated.connect(self._on_student_data_changed)
             window.show()
         except Exception as e:
@@ -4222,11 +4233,22 @@ class MainWindow(BaseApplicationWindow):
             logger.error(f"Error opening add teacher window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open add teacher window: {str(e)}")
 
-    def _open_edit_teacher_window(self):
-        """Open the edit teacher window."""
+    def _show_edit_teacher_selection(self):
+        """Show teacher selection for editing."""
+        try:
+            from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
+            window = ViewTeachersWindow(self, self.username, self.role)
+            # The view teachers window has its own edit functionality
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening teacher selection for edit: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open teacher selection: {str(e)}")
+
+    def _open_edit_teacher_window(self, teacher_id: str):
+        """Open the edit teacher window for a specific teacher."""
         try:
             from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
-            window = EditTeacherWindow(self, self.username, self.role)
+            window = EditTeacherWindow(teacher_id, self, self.username, self.role)
             window.teacher_updated.connect(self._on_teacher_data_changed)
             window.show()
         except Exception as e:

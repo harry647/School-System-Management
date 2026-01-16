@@ -371,7 +371,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
             for book in books:
                 # Check if book is available
                 if book.available:
-                    display_text = f"{book.title} (ID: {book.book_id})"
+                    display_text = f"{book.title} (ID: {book.book_number})"
                     self.borrow_book_combo.addItem(display_text, book.id)
 
             if self.borrow_book_combo.count() == 0:

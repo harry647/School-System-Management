@@ -141,6 +141,7 @@ class ViewStudentsWindow(BaseFunctionWindow):
         
         # Students table
         self.students_table = self.create_table(0, 4)
+        self.students_table.setColumnCount(4)  # Ensure columns are set
         self.students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream", "Actions"])
         self.students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.students_table.setAlternatingRowColors(True)
