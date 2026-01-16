@@ -34,7 +34,7 @@ class AddUserWindow(BaseFunctionWindow):
         """Setup the add user form."""
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.set_margins(24, 24, 24, 24)
         main_layout.set_spacing(24)
 
         # Form card
@@ -99,8 +99,8 @@ class AddUserWindow(BaseFunctionWindow):
         password_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
         form_layout.addWidget(password_label)
 
-        self.password_input = self.create_input("Enter password", is_password=True)
-        self.password_input.setPlaceholderText("Enter a secure password")
+        self.password_input = self.create_input("Enter a secure password")
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         form_layout.addWidget(self.password_input)
 
         # Confirm Password field
@@ -108,8 +108,8 @@ class AddUserWindow(BaseFunctionWindow):
         confirm_password_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
         form_layout.addWidget(confirm_password_label)
 
-        self.confirm_password_input = self.create_input("Confirm password", is_password=True)
-        self.confirm_password_input.setPlaceholderText("Re-enter the password")
+        self.confirm_password_input = self.create_input("Re-enter the password")
+        self.confirm_password_input.setEchoMode(QLineEdit.EchoMode.Password)
         form_layout.addWidget(self.confirm_password_input)
 
         # Role field

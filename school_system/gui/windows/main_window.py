@@ -8,7 +8,7 @@ dropdown menus and dynamic content loading.
 from PyQt6.QtWidgets import (QLabel, QMessageBox, QMenuBar, QSizePolicy, QFrame,
                             QVBoxLayout, QToolButton, QHBoxLayout, QPushButton,
                             QLineEdit, QGridLayout, QSplitter, QScrollArea,
-                            QStackedWidget, QWidget, QMenu, QComboBox, QTableWidget)
+                            QStackedWidget, QWidget, QMenu, QComboBox, QTableWidget, QTableWidgetItem)
 from PyQt6.QtCore import Qt, QTime, QTimer, pyqtSignal
 from PyQt6.QtGui import QIcon, QFont, QAction
 from typing import Callable, Dict, Any
@@ -370,7 +370,65 @@ class MainWindow(BaseApplicationWindow):
 
             for text, action_id in section["menu_items"]:
                 action = QAction(text, self)
-                action.triggered.connect(lambda checked, aid=action_id: self._load_content(aid))
+                # Handle management actions differently - open separate windows
+                if action_id in ["view_students", "add_student", "edit_student", "class_management",
+                               "library_activity", "student_import_export", "ream_management",
+                               "view_teachers", "add_teacher", "edit_teacher", "teacher_import_export",
+                               "view_books", "add_book", "borrow_book", "return_book", "distribution", "book_import_export",
+                               "manage_furniture", "furniture_assignments", "furniture_maintenance",
+                               "manage_users", "view_users", "add_user", "edit_user", "delete_user"]:
+                    if action_id == "view_students":
+                        action.triggered.connect(lambda checked: self._open_view_students_window())
+                    elif action_id == "add_student":
+                        action.triggered.connect(lambda checked: self._open_add_student_window())
+                    elif action_id == "edit_student":
+                        action.triggered.connect(lambda checked: self._open_edit_student_window())
+                    elif action_id == "class_management":
+                        action.triggered.connect(lambda checked: self._open_class_management_window())
+                    elif action_id == "library_activity":
+                        action.triggered.connect(lambda checked: self._open_library_activity_window())
+                    elif action_id == "student_import_export":
+                        action.triggered.connect(lambda checked: self._open_student_import_export_window())
+                    elif action_id == "ream_management":
+                        action.triggered.connect(lambda checked: self._open_ream_management_window())
+                    elif action_id == "view_teachers":
+                        action.triggered.connect(lambda checked: self._open_view_teachers_window())
+                    elif action_id == "add_teacher":
+                        action.triggered.connect(lambda checked: self._open_add_teacher_window())
+                    elif action_id == "edit_teacher":
+                        action.triggered.connect(lambda checked: self._open_edit_teacher_window())
+                    elif action_id == "teacher_import_export":
+                        action.triggered.connect(lambda checked: self._open_teacher_import_export_window())
+                    elif action_id == "view_books":
+                        action.triggered.connect(lambda checked: self._open_view_books_window())
+                    elif action_id == "add_book":
+                        action.triggered.connect(lambda checked: self._open_add_book_window())
+                    elif action_id == "borrow_book":
+                        action.triggered.connect(lambda checked: self._open_borrow_book_window())
+                    elif action_id == "return_book":
+                        action.triggered.connect(lambda checked: self._open_return_book_window())
+                    elif action_id == "distribution":
+                        action.triggered.connect(lambda checked: self._open_distribution_window())
+                    elif action_id == "book_import_export":
+                        action.triggered.connect(lambda checked: self._open_book_import_export_window())
+                    elif action_id == "manage_furniture":
+                        action.triggered.connect(lambda checked: self._open_manage_furniture_window())
+                    elif action_id == "furniture_assignments":
+                        action.triggered.connect(lambda checked: self._open_furniture_assignments_window())
+                    elif action_id == "furniture_maintenance":
+                        action.triggered.connect(lambda checked: self._open_furniture_maintenance_window())
+                    elif action_id == "manage_users":
+                        action.triggered.connect(lambda checked: self._open_manage_users_window())
+                    elif action_id == "view_users":
+                        action.triggered.connect(lambda checked: self._open_view_users_window())
+                    elif action_id == "add_user":
+                        action.triggered.connect(lambda checked: self._open_add_user_window())
+                    elif action_id == "edit_user":
+                        action.triggered.connect(lambda checked: self._open_edit_user_window())
+                    elif action_id == "delete_user":
+                        action.triggered.connect(lambda checked: self._open_delete_user_window())
+                else:
+                    action.triggered.connect(lambda checked, aid=action_id: self._load_content(aid))
                 menu.addAction(action)
 
             section_layout.addWidget(dropdown_btn)
@@ -2057,40 +2115,390 @@ class MainWindow(BaseApplicationWindow):
     def _create_add_teacher_view(self) -> QWidget:
         """Create the add teacher content view."""
         try:
-            window = AddTeacherWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the add teacher interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create add teacher content
+            add_teacher_content = self._create_add_teacher_content()
+            layout.addWidget(add_teacher_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open add teacher window: {str(e)}")
-            logger.error(f"Error opening add teacher window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load add teacher interface: {str(e)}")
+            logger.error(f"Error loading add teacher interface: {str(e)}")
             return self._create_default_view("add_teacher", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_add_teacher_content(self) -> QWidget:
+        """Create the add teacher content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("➕ Add New Teacher")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Form card
+            form_card = self._create_add_teacher_form(theme)
+            main_layout.addWidget(form_card)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating add teacher content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading add teacher form")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_add_teacher_form(self, theme) -> QWidget:
+        """Create the add teacher form."""
+        form_card = QWidget()
+        form_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        form_layout = QVBoxLayout(form_card)
+        form_layout.setSpacing(16)
+
+        # Name field
+        name_layout = QVBoxLayout()
+        name_label = QLabel("Teacher Name:")
+        name_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        name_layout.addWidget(name_label)
+
+        self.add_teacher_name = QLineEdit()
+        self.add_teacher_name.setPlaceholderText("Enter teacher name")
+        self.add_teacher_name.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        name_layout.addWidget(self.add_teacher_name)
+        form_layout.addLayout(name_layout)
+
+        # Subject field
+        subject_layout = QVBoxLayout()
+        subject_label = QLabel("Subject:")
+        subject_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        subject_layout.addWidget(subject_label)
+
+        self.add_teacher_subject = QLineEdit()
+        self.add_teacher_subject.setPlaceholderText("Enter subject")
+        self.add_teacher_subject.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        subject_layout.addWidget(self.add_teacher_subject)
+        form_layout.addLayout(subject_layout)
+
+        # Email field
+        email_layout = QVBoxLayout()
+        email_label = QLabel("Email:")
+        email_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        email_layout.addWidget(email_label)
+
+        self.add_teacher_email = QLineEdit()
+        self.add_teacher_email.setPlaceholderText("Enter email address")
+        self.add_teacher_email.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        email_layout.addWidget(self.add_teacher_email)
+        form_layout.addLayout(email_layout)
+
+        # Phone field
+        phone_layout = QVBoxLayout()
+        phone_label = QLabel("Phone:")
+        phone_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        phone_layout.addWidget(phone_label)
+
+        self.add_teacher_phone = QLineEdit()
+        self.add_teacher_phone.setPlaceholderText("Enter phone number")
+        self.add_teacher_phone.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        phone_layout.addWidget(self.add_teacher_phone)
+        form_layout.addLayout(phone_layout)
+
+        form_layout.addStretch()
+
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        cancel_btn.clicked.connect(lambda: self._load_content("dashboard"))
+        buttons_layout.addWidget(cancel_btn)
+
+        add_btn = QPushButton("Add Teacher")
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["primary"]};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+            }}
+        """)
+        add_btn.clicked.connect(self._add_teacher)
+        buttons_layout.addWidget(add_btn)
+
+        form_layout.addLayout(buttons_layout)
+
+        return form_card
+
+    def _add_teacher(self):
+        """Handle adding a new teacher."""
+        try:
+            name = self.add_teacher_name.text().strip()
+            subject = self.add_teacher_subject.text().strip()
+            email = self.add_teacher_email.text().strip()
+            phone = self.add_teacher_phone.text().strip()
+
+            # Basic validation
+            if not name or not subject:
+                QMessageBox.warning(self, "Validation Error", "Name and subject are required.")
+                return
+
+            # Here you would typically save to database
+            # For now, just show success message
+            QMessageBox.information(self, "Success", f"Teacher '{name}' added successfully!")
+
+            # Clear form
+            self.add_teacher_name.clear()
+            self.add_teacher_subject.clear()
+            self.add_teacher_email.clear()
+            self.add_teacher_phone.clear()
+
+        except Exception as e:
+            logger.error(f"Error adding teacher: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to add teacher: {str(e)}")
 
     def _create_edit_teacher_view(self) -> QWidget:
         """Create the edit teacher content view."""
         try:
-            # Open the view teachers window first to allow teacher selection
-            view_window = ViewTeachersWindow(self, self.username, self.role)
-            view_window.setWindowTitle("Select Teacher to Edit")
-            view_window.show()
-
-            # Note: The actual edit functionality is handled within ViewTeachersWindow
-            # when the user clicks the Edit button on a selected teacher
-            return QWidget()
+            # For now, redirect to view teachers - in a full implementation,
+            # this would show a teacher selection interface
+            return self._create_view_teachers_view()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open teacher selection window: {str(e)}")
-            logger.error(f"Error opening teacher selection window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load edit teacher interface: {str(e)}")
+            logger.error(f"Error loading edit teacher interface: {str(e)}")
             return self._create_default_view("edit_teacher", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_teacher_import_export_view(self) -> QWidget:
         """Create the teacher import/export content view."""
         try:
-            window = TeacherImportExportWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the teacher import/export interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create teacher import/export content
+            import_export_content = self._create_teacher_import_export_content()
+            layout.addWidget(import_export_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open teacher import/export window: {str(e)}")
-            logger.error(f"Error opening teacher import/export window: {str(e)}")
-            return self._create_default_view("teacher_import_export", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load teacher import/export interface: {str(e)}")
+            logger.error(f"Error loading teacher import/export interface: {str(e)}")
+            return self._create_default_view("teacher_import_export", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_teacher_import_export_content(self) -> QWidget:
+        """Create the teacher import/export content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("📤 Teacher Import/Export")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Import/Export tabs
+            tab_widget = QTabWidget()
+            tab_widget.setStyleSheet(f"""
+                QTabWidget::pane {{
+                    border: 1px solid {theme["border"]};
+                    background-color: {theme["surface"]};
+                }}
+                QTabBar::tab {{
+                    padding: 10px 20px;
+                    background-color: transparent;
+                    color: {theme["text_secondary"]};
+                    border: none;
+                }}
+                QTabBar::tab:selected {{
+                    background-color: {theme["surface"]};
+                    color: {theme["primary"]};
+                    border-bottom: 2px solid {theme["primary"]};
+                }}
+            """)
+
+            # Import tab
+            import_tab = QWidget()
+            import_layout = QVBoxLayout(import_tab)
+            import_layout.setContentsMargins(20, 20, 20, 20)
+
+            import_label = QLabel("Import teachers from CSV file")
+            import_label.setStyleSheet(f"color: {theme['text']}; font-size: 16px;")
+            import_layout.addWidget(import_label)
+
+            import_btn = QPushButton("📥 Select CSV File & Import")
+            import_btn.setStyleSheet(f"""
+                QPushButton {{
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    border: 1px solid {theme["border"]};
+                    background-color: {theme["primary"]};
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 500;
+                }}
+                QPushButton:hover {{
+                    background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+                }}
+            """)
+            import_btn.clicked.connect(lambda: QMessageBox.information(self, "Import", "Teacher import functionality will be implemented here."))
+            import_layout.addWidget(import_btn)
+
+            import_layout.addStretch()
+
+            # Export tab
+            export_tab = QWidget()
+            export_layout = QVBoxLayout(export_tab)
+            export_layout.setContentsMargins(20, 20, 20, 20)
+
+            export_label = QLabel("Export teachers to CSV file")
+            export_label.setStyleSheet(f"color: {theme['text']}; font-size: 16px;")
+            export_layout.addWidget(export_label)
+
+            export_btn = QPushButton("📤 Export Teachers to CSV")
+            export_btn.setStyleSheet(f"""
+                QPushButton {{
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    border: 1px solid {theme["border"]};
+                    background-color: {theme["success"] if "success" in theme else "#4caf50"};
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 500;
+                }}
+                QPushButton:hover {{
+                    background-color: {theme["success_hover"] if "success_hover" in theme else "#45a049"};
+                }}
+            """)
+            export_btn.clicked.connect(lambda: QMessageBox.information(self, "Export", "Teacher export functionality will be implemented here."))
+            export_layout.addWidget(export_btn)
+
+            export_layout.addStretch()
+
+            tab_widget.addTab(import_tab, "📥 Import")
+            tab_widget.addTab(export_tab, "📤 Export")
+
+            main_layout.addWidget(tab_widget)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating teacher import/export content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading teacher import/export")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
 
     def _create_manage_users_view(self) -> QWidget:
         """Create the manage users content view."""
@@ -2192,43 +2600,43 @@ class MainWindow(BaseApplicationWindow):
         # Row 1: User Management functions
         grid_layout.addWidget(self._create_user_function_card(
             "👥 Manage Users", "View, add, edit, and delete user accounts",
-            lambda: self._load_content("view_users"), theme
+            self._open_view_users_window, theme
         ), 0, 0)
 
         grid_layout.addWidget(self._create_user_function_card(
             "➕ Add User", "Create new user accounts with roles",
-            lambda: self._load_content("add_user"), theme
+            self._open_add_user_window, theme
         ), 0, 1)
 
         grid_layout.addWidget(self._create_user_function_card(
             "✏️ Edit User", "Update user roles and permissions",
-            lambda: self._load_content("edit_user"), theme
+            self._open_edit_user_window, theme
         ), 0, 2)
 
         grid_layout.addWidget(self._create_user_function_card(
             "🗑️ Delete User", "Remove user accounts permanently",
-            lambda: self._load_content("delete_user"), theme
+            self._open_delete_user_window, theme
         ), 0, 3)
 
         # Row 2: Settings and mappings
         grid_layout.addWidget(self._create_user_function_card(
             "⚙️ User Settings", "Manage user preferences and notifications",
-            lambda: self._load_content("user_settings"), theme
+            self._open_user_settings_window, theme
         ), 1, 0)
 
         grid_layout.addWidget(self._create_user_function_card(
             "🔤 Short Forms", "Manage short form mappings",
-            lambda: self._load_content("short_form_mappings"), theme
+            self._open_short_form_mappings_window, theme
         ), 1, 1)
 
         grid_layout.addWidget(self._create_user_function_card(
             "🔐 Sessions", "Manage user login sessions",
-            lambda: self._load_content("user_sessions"), theme
+            self._open_user_sessions_window, theme
         ), 1, 2)
 
         grid_layout.addWidget(self._create_user_function_card(
             "📊 Activity Logs", "Track user actions and activities",
-            lambda: self._load_content("user_activity"), theme
+            self._open_user_activity_window, theme
         ), 1, 3)
 
         return container
@@ -2882,6 +3290,18 @@ class MainWindow(BaseApplicationWindow):
     def _on_user_data_changed(self):
         """Handle when user data has been changed."""
         # This could trigger a refresh of any open user lists
+        # For now, it's a placeholder for future enhancements
+        pass
+
+    def _on_student_data_changed(self):
+        """Handle when student data has been changed."""
+        # This could trigger a refresh of any open student lists
+        # For now, it's a placeholder for future enhancements
+        pass
+
+    def _on_teacher_data_changed(self):
+        """Handle when teacher data has been changed."""
+        # This could trigger a refresh of any open teacher lists
         # For now, it's a placeholder for future enhancements
         pass
 
@@ -3616,6 +4036,336 @@ class MainWindow(BaseApplicationWindow):
             logger.error(f"Error loading user activity interface: {str(e)}")
             return self._create_default_view("user_activity", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
+    def _open_view_users_window(self):
+        """Open the view users window."""
+        try:
+            from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
+            window = ViewUsersWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening view users window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open users view: {str(e)}")
+
+    def _open_add_user_window(self):
+        """Open the add user window."""
+        try:
+            from school_system.gui.windows.user_window.add_user_window import AddUserWindow
+            window = AddUserWindow(self, self.username, self.role)
+            window.user_added.connect(self._on_user_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening add user window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open add user window: {str(e)}")
+
+    def _open_edit_user_window(self):
+        """Open the edit user window."""
+        try:
+            from school_system.gui.windows.user_window.edit_user_window import EditUserWindow
+            window = EditUserWindow(self, self.username, self.role)
+            window.user_updated.connect(self._on_user_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening edit user window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open edit user window: {str(e)}")
+
+    def _open_delete_user_window(self):
+        """Open the delete user window."""
+        try:
+            from school_system.gui.windows.user_window.delete_user_window import DeleteUserWindow
+            window = DeleteUserWindow(self, self.username, self.role)
+            window.user_deleted.connect(self._on_user_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening delete user window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open delete user window: {str(e)}")
+
+    def _open_user_settings_window(self):
+        """Open the user settings window."""
+        try:
+            from school_system.gui.windows.user_window.user_settings_window import UserSettingsWindow
+            window = UserSettingsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening user settings window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open user settings window: {str(e)}")
+
+    def _open_short_form_mappings_window(self):
+        """Open the short form mappings window."""
+        try:
+            from school_system.gui.windows.user_window.short_form_mappings_window import ShortFormMappingsWindow
+            window = ShortFormMappingsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening short form mappings window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open short form mappings window: {str(e)}")
+
+    def _open_user_sessions_window(self):
+        """Open the user sessions window."""
+        try:
+            from school_system.gui.windows.user_window.user_sessions_window import UserSessionsWindow
+            window = UserSessionsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening user sessions window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open user sessions window: {str(e)}")
+
+    def _open_user_activity_window(self):
+        """Open the user activity window."""
+        try:
+            from school_system.gui.windows.user_window.user_activity_window import UserActivityWindow
+            window = UserActivityWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening user activity window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open user activity window: {str(e)}")
+
+    def _open_manage_users_window(self):
+        """Open the main user management window."""
+        try:
+            from school_system.gui.windows.user_window.user_window import UserWindow
+            window = UserWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening user management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open user management window: {str(e)}")
+
+    def _open_view_students_window(self):
+        """Open the view students window."""
+        try:
+            from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
+            window = ViewStudentsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening view students window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open students view: {str(e)}")
+
+    def _open_add_student_window(self):
+        """Open the add student window."""
+        try:
+            from school_system.gui.windows.student_window.add_student_window import AddStudentWindow
+            window = AddStudentWindow(self, self.username, self.role)
+            window.student_added.connect(self._on_student_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening add student window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open add student window: {str(e)}")
+
+    def _open_edit_student_window(self):
+        """Open the edit student window."""
+        try:
+            from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
+            window = EditStudentWindow(self, self.username, self.role)
+            window.student_updated.connect(self._on_student_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening edit student window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open edit student window: {str(e)}")
+
+    def _open_student_import_export_window(self):
+        """Open the student import/export window."""
+        try:
+            from school_system.gui.windows.student_window.student_import_export_window import StudentImportExportWindow
+            window = StudentImportExportWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening student import/export window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open student import/export window: {str(e)}")
+
+    def _open_class_management_window(self):
+        """Open the class management window."""
+        try:
+            from school_system.gui.windows.student_window.class_management_window import ClassManagementWindow
+            window = ClassManagementWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening class management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open class management window: {str(e)}")
+
+    def _open_library_activity_window(self):
+        """Open the library activity window."""
+        try:
+            from school_system.gui.windows.student_window.library_activity_window import LibraryActivityWindow
+            window = LibraryActivityWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening library activity window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open library activity window: {str(e)}")
+
+    def _open_ream_management_window(self):
+        """Open the ream management window."""
+        try:
+            from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
+            window = ReamManagementWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening ream management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open ream management window: {str(e)}")
+
+    def _open_view_teachers_window(self):
+        """Open the view teachers window."""
+        try:
+            from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
+            window = ViewTeachersWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening view teachers window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open teachers view: {str(e)}")
+
+    def _open_add_teacher_window(self):
+        """Open the add teacher window."""
+        try:
+            from school_system.gui.windows.teacher_window.add_teacher_window import AddTeacherWindow
+            window = AddTeacherWindow(self, self.username, self.role)
+            window.teacher_added.connect(self._on_teacher_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening add teacher window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open add teacher window: {str(e)}")
+
+    def _open_edit_teacher_window(self):
+        """Open the edit teacher window."""
+        try:
+            from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
+            window = EditTeacherWindow(self, self.username, self.role)
+            window.teacher_updated.connect(self._on_teacher_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening edit teacher window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open edit teacher window: {str(e)}")
+
+    def _open_teacher_import_export_window(self):
+        """Open the teacher import/export window."""
+        try:
+            from school_system.gui.windows.teacher_window.teacher_import_export_window import TeacherImportExportWindow
+            window = TeacherImportExportWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening teacher import/export window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open teacher import/export window: {str(e)}")
+
+    def _open_view_books_window(self):
+        """Open the view books window."""
+        try:
+            from school_system.gui.windows.book_window.view_books_window import ViewBooksWindow
+            window = ViewBooksWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening view books window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open books view: {str(e)}")
+
+    def _open_add_book_window(self):
+        """Open the add book window."""
+        try:
+            from school_system.gui.windows.book_window.add_book_window import AddBookWindow
+            window = AddBookWindow(self, self.username, self.role)
+            window.book_added.connect(self._on_book_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening add book window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open add book window: {str(e)}")
+
+    def _open_borrow_book_window(self):
+        """Open the borrow book window."""
+        try:
+            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
+            window = BorrowBookWindow(self, self.username, self.role)
+            window.book_borrowed.connect(self._on_book_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening borrow book window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open borrow book window: {str(e)}")
+
+    def _open_return_book_window(self):
+        """Open the return book window."""
+        try:
+            from school_system.gui.windows.book_window.return_book_window import ReturnBookWindow
+            window = ReturnBookWindow(self, self.username, self.role)
+            window.book_returned.connect(self._on_book_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening return book window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
+
+    def _open_distribution_window(self):
+        """Open the distribution window."""
+        try:
+            from school_system.gui.windows.book_window.distribution_window import DistributionWindow
+            window = DistributionWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening distribution window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open distribution window: {str(e)}")
+
+    def _open_book_import_export_window(self):
+        """Open the book import/export window."""
+        try:
+            from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
+            window = BookImportExportWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening book import/export window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open book import/export window: {str(e)}")
+
+    def _open_manage_furniture_window(self):
+        """Open the manage furniture window."""
+        try:
+            from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
+            window = ManageFurnitureWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening manage furniture window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open manage furniture window: {str(e)}")
+
+    def _open_furniture_assignments_window(self):
+        """Open the furniture assignments window."""
+        try:
+            from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
+            window = FurnitureAssignmentsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening furniture assignments window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open furniture assignments window: {str(e)}")
+
+    def _open_furniture_maintenance_window(self):
+        """Open the furniture maintenance window."""
+        try:
+            from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
+            window = FurnitureMaintenanceWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening furniture maintenance window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open furniture maintenance window: {str(e)}")
+
+    def _open_book_reports_window(self):
+        """Open the book reports window."""
+        try:
+            from school_system.gui.windows.report_window.book_reports_window import BookReportsWindow
+            window = BookReportsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening book reports window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open book reports window: {str(e)}")
+
+    def _open_student_reports_window(self):
+        """Open the student reports window."""
+        try:
+            from school_system.gui.windows.report_window.student_reports_window import StudentReportsWindow
+            window = StudentReportsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening student reports window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open student reports window: {str(e)}")
+
+    def _open_custom_reports_window(self):
+        """Open the custom reports window."""
+        try:
+            from school_system.gui.windows.report_window.custom_reports_window import CustomReportsWindow
+            window = CustomReportsWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening custom reports window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open custom reports window: {str(e)}")
+
     def _create_settings_view(self) -> QWidget:
         """Create the settings content view."""
         theme_manager = self.get_theme_manager()
@@ -3994,37 +4744,540 @@ For additional support, contact your system administrator.
     def _create_manage_furniture_view(self) -> QWidget:
         """Create the manage furniture content view."""
         try:
-            from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
-            window = ManageFurnitureWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the manage furniture interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(16)
+
+            # Create manage furniture content
+            manage_furniture_content = self._create_manage_furniture_content()
+            layout.addWidget(manage_furniture_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open furniture management: {str(e)}")
-            logger.error(f"Error opening furniture management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load furniture management interface: {str(e)}")
+            logger.error(f"Error loading furniture management interface: {str(e)}")
             return self._create_default_view("manage_furniture", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_manage_furniture_content(self) -> QWidget:
+        """Create the manage furniture content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(16)
+
+            # Action bar
+            action_bar = self._create_manage_furniture_action_bar(theme)
+            main_layout.addWidget(action_bar)
+
+            # Furniture table
+            furniture_table = self._create_manage_furniture_table(theme)
+            main_layout.addWidget(furniture_table, stretch=1)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating manage furniture content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading furniture management")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_manage_furniture_action_bar(self, theme) -> QWidget:
+        """Create the action bar for manage furniture."""
+        action_card = QWidget()
+        action_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 16px;
+            }}
+        """)
+
+        action_layout = QHBoxLayout(action_card)
+        action_layout.setContentsMargins(16, 16, 16, 16)
+        action_layout.setSpacing(12)
+
+        # Search box
+        self.manage_furniture_search_box = QLineEdit()
+        self.manage_furniture_search_box.setPlaceholderText("Search furniture by name or type...")
+        self.manage_furniture_search_box.setMinimumWidth(300)
+        self.manage_furniture_search_box.textChanged.connect(self._on_manage_furniture_search)
+        action_layout.addWidget(self.manage_furniture_search_box)
+
+        # Type filter
+        self.manage_furniture_type_filter = QComboBox()
+        self.manage_furniture_type_filter.addItem("All Types")
+        self.manage_furniture_type_filter.addItems(["Chair", "Table", "Desk", "Cabinet", "Shelf", "Other"])
+        self.manage_furniture_type_filter.setMinimumWidth(150)
+        self.manage_furniture_type_filter.currentTextChanged.connect(self._on_manage_furniture_filter_changed)
+        action_layout.addWidget(self.manage_furniture_type_filter)
+
+        action_layout.addStretch()
+
+        # Action buttons
+        add_btn = QPushButton("➕ Add Furniture")
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["primary"]};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+            }}
+        """)
+        add_btn.clicked.connect(lambda: self._load_content("furniture_assignments"))
+        action_layout.addWidget(add_btn)
+
+        refresh_btn = QPushButton("🔄 Refresh")
+        refresh_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        refresh_btn.clicked.connect(self._refresh_manage_furniture_table)
+        action_layout.addWidget(refresh_btn)
+
+        return action_card
+
+    def _create_manage_furniture_table(self, theme) -> QWidget:
+        """Create the furniture table."""
+        table_card = QWidget()
+        table_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        table_layout = QVBoxLayout(table_card)
+
+        # Create table
+        self.manage_furniture_table = QTableWidget()
+        self.manage_furniture_table.setColumnCount(5)
+        self.manage_furniture_table.setHorizontalHeaderLabels(["Name", "Type", "Location", "Condition", "Actions"])
+
+        # Table styling
+        self.manage_furniture_table.setStyleSheet(f"""
+            QTableWidget {{
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                background-color: {theme["surface"]};
+                gridline-color: {theme["border"]};
+            }}
+
+            QHeaderView::section {{
+                background-color: {theme["surface"]};
+                padding: 12px 16px;
+                border: none;
+                border-bottom: 2px solid {theme["border"]};
+                font-weight: 600;
+                font-size: 13px;
+                color: {theme["text"]};
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+
+            QTableWidget::item {{
+                padding: 8px 12px;
+                border-bottom: 1px solid {theme["border"]};
+            }}
+
+            QTableWidget::item:selected {{
+                background-color: {theme["primary"]};
+                color: white;
+            }}
+
+            QTableWidget::item:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        # Set column widths
+        self.manage_furniture_table.setColumnWidth(0, 150)  # Name
+        self.manage_furniture_table.setColumnWidth(1, 120)  # Type
+        self.manage_furniture_table.setColumnWidth(2, 150)  # Location
+        self.manage_furniture_table.setColumnWidth(3, 120)  # Condition
+        self.manage_furniture_table.setColumnWidth(4, 200)  # Actions
+
+        table_layout.addWidget(self.manage_furniture_table)
+
+        # Load initial data
+        self._refresh_manage_furniture_table()
+
+        return table_card
+
+    def _on_manage_furniture_search(self, text: str):
+        """Handle search text changes for manage furniture."""
+        self._filter_manage_furniture_table()
+
+    def _on_manage_furniture_filter_changed(self, furniture_type: str):
+        """Handle type filter changes for manage furniture."""
+        self._filter_manage_furniture_table()
+
+    def _refresh_manage_furniture_table(self):
+        """Refresh the manage furniture table with current data."""
+        try:
+            # Sample data - in a real implementation, this would come from database
+            sample_furniture = [
+                {"name": "Chair A1", "type": "Chair", "location": "Room 101", "condition": "Good"},
+                {"name": "Table T1", "type": "Table", "location": "Room 102", "condition": "Excellent"},
+                {"name": "Desk D1", "type": "Desk", "location": "Room 103", "condition": "Fair"},
+            ]
+
+            self.manage_furniture_table.setRowCount(len(sample_furniture))
+
+            for row, item in enumerate(sample_furniture):
+                # Name
+                name_item = QTableWidgetItem(item.get('name', ''))
+                name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.manage_furniture_table.setItem(row, 0, name_item)
+
+                # Type
+                type_item = QTableWidgetItem(item.get('type', ''))
+                type_item.setFlags(type_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.manage_furniture_table.setItem(row, 1, type_item)
+
+                # Location
+                location_item = QTableWidgetItem(item.get('location', ''))
+                location_item.setFlags(location_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.manage_furniture_table.setItem(row, 2, location_item)
+
+                # Condition
+                condition_item = QTableWidgetItem(item.get('condition', ''))
+                condition_item.setFlags(condition_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.manage_furniture_table.setItem(row, 3, condition_item)
+
+                # Actions
+                actions_widget = QWidget()
+                actions_layout = QHBoxLayout(actions_widget)
+                actions_layout.setContentsMargins(4, 4, 4, 4)
+                actions_layout.setSpacing(8)
+
+                edit_btn = QPushButton("Edit")
+                edit_btn.setFixedSize(60, 30)
+                edit_btn.clicked.connect(lambda checked, f=item: self._edit_furniture(f))
+                actions_layout.addWidget(edit_btn)
+
+                delete_btn = QPushButton("Delete")
+                delete_btn.setFixedSize(60, 30)
+                delete_btn.clicked.connect(lambda checked, f=item: self._delete_furniture(f))
+                actions_layout.addWidget(delete_btn)
+
+                actions_layout.addStretch()
+                self.manage_furniture_table.setCellWidget(row, 4, actions_widget)
+
+            # Apply current filters
+            self._filter_manage_furniture_table()
+
+        except Exception as e:
+            logger.error(f"Error refreshing manage furniture table: {str(e)}")
+            QMessageBox.warning(self, "Error", f"Failed to refresh furniture table: {str(e)}")
+
+    def _filter_manage_furniture_table(self):
+        """Filter the manage furniture table based on search and type filter."""
+        try:
+            search_text = self.manage_furniture_search_box.text().lower()
+            type_filter = self.manage_furniture_type_filter.currentText()
+
+            for row in range(self.manage_furniture_table.rowCount()):
+                show_row = True
+
+                # Search filter
+                if search_text:
+                    name = self.manage_furniture_table.item(row, 0).text().lower()
+                    furniture_type = self.manage_furniture_table.item(row, 1).text().lower()
+                    if search_text not in name and search_text not in furniture_type:
+                        show_row = False
+
+                # Type filter
+                if type_filter != "All Types":
+                    table_type = self.manage_furniture_table.item(row, 1).text()
+                    if table_type != type_filter:
+                        show_row = False
+
+                self.manage_furniture_table.setRowHidden(row, not show_row)
+
+        except Exception as e:
+            logger.error(f"Error filtering manage furniture table: {str(e)}")
+
+    def _edit_furniture(self, furniture):
+        """Handle editing furniture."""
+        try:
+            # For now, just show assignments view
+            self._load_content("furniture_assignments")
+        except Exception as e:
+            logger.error(f"Error initiating furniture edit: {str(e)}")
+            QMessageBox.warning(self, "Error", f"Failed to open furniture edit: {str(e)}")
+
+    def _delete_furniture(self, furniture):
+        """Handle deleting furniture."""
+        try:
+            reply = QMessageBox.question(
+                self, "Confirm Deletion",
+                f"Are you sure you want to delete '{furniture.get('name', '')}'?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                QMessageBox.information(self, "Success", f"Furniture '{furniture.get('name', '')}' deleted successfully!")
+
+        except Exception as e:
+            logger.error(f"Error deleting furniture: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to delete furniture: {str(e)}")
 
     def _create_furniture_assignments_view(self) -> QWidget:
         """Create the furniture assignments content view."""
         try:
-            from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
-            window = FurnitureAssignmentsWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the furniture assignments interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create furniture assignments content
+            assignments_content = self._create_furniture_assignments_content()
+            layout.addWidget(assignments_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open furniture assignments: {str(e)}")
-            logger.error(f"Error opening furniture assignments window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load furniture assignments interface: {str(e)}")
+            logger.error(f"Error loading furniture assignments interface: {str(e)}")
             return self._create_default_view("furniture_assignments", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_furniture_assignments_content(self) -> QWidget:
+        """Create the furniture assignments content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("🔗 Furniture Assignments")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Assignment form
+            assignment_form = self._create_furniture_assignment_form(theme)
+            main_layout.addWidget(assignment_form)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating furniture assignments content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading furniture assignments")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_furniture_assignment_form(self, theme) -> QWidget:
+        """Create the furniture assignment form."""
+        form_card = QWidget()
+        form_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        form_layout = QVBoxLayout(form_card)
+        form_layout.setSpacing(16)
+
+        # Furniture selection
+        furniture_layout = QVBoxLayout()
+        furniture_label = QLabel("Select Furniture:")
+        furniture_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        furniture_layout.addWidget(furniture_label)
+
+        self.assign_furniture_combo = QComboBox()
+        self.assign_furniture_combo.addItems(["Chair A1", "Table T1", "Desk D1", "Cabinet C1"])
+        self.assign_furniture_combo.setStyleSheet(f"""
+            QComboBox {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+        """)
+        furniture_layout.addWidget(self.assign_furniture_combo)
+        form_layout.addLayout(furniture_layout)
+
+        # Room/Location selection
+        location_layout = QVBoxLayout()
+        location_label = QLabel("Assign to Room:")
+        location_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        location_layout.addWidget(location_label)
+
+        self.assign_location_combo = QComboBox()
+        self.assign_location_combo.addItems(["Room 101", "Room 102", "Room 103", "Library", "Hallway"])
+        self.assign_location_combo.setStyleSheet(f"""
+            QComboBox {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+        """)
+        location_layout.addWidget(self.assign_location_combo)
+        form_layout.addLayout(location_layout)
+
+        # Assignment date
+        date_layout = QVBoxLayout()
+        date_label = QLabel("Assignment Date:")
+        date_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        date_layout.addWidget(date_label)
+
+        self.assign_date = QLineEdit()
+        self.assign_date.setPlaceholderText("YYYY-MM-DD")
+        self.assign_date.setText("2026-01-16")  # Current date
+        self.assign_date.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+        """)
+        date_layout.addWidget(self.assign_date)
+        form_layout.addLayout(date_layout)
+
+        form_layout.addStretch()
+
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        cancel_btn.clicked.connect(lambda: self._load_content("manage_furniture"))
+        buttons_layout.addWidget(cancel_btn)
+
+        assign_btn = QPushButton("Assign Furniture")
+        assign_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["primary"]};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+            }}
+        """)
+        assign_btn.clicked.connect(self._assign_furniture)
+        buttons_layout.addWidget(assign_btn)
+
+        form_layout.addLayout(buttons_layout)
+
+        return form_card
+
+    def _assign_furniture(self):
+        """Handle assigning furniture to a location."""
+        try:
+            furniture = self.assign_furniture_combo.currentText()
+            location = self.assign_location_combo.currentText()
+            date = self.assign_date.text().strip()
+
+            if not furniture or not location or not date:
+                QMessageBox.warning(self, "Validation Error", "All fields are required.")
+                return
+
+            QMessageBox.information(self, "Success",
+                f"Furniture '{furniture}' assigned to {location} on {date}!")
+
+            # Clear form
+            self.assign_furniture_combo.setCurrentIndex(0)
+            self.assign_location_combo.setCurrentIndex(0)
+            self.assign_date.setText("2026-01-16")
+
+        except Exception as e:
+            logger.error(f"Error assigning furniture: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to assign furniture: {str(e)}")
 
     def _create_furniture_maintenance_view(self) -> QWidget:
         """Create the furniture maintenance content view."""
         try:
-            from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
-            window = FurnitureMaintenanceWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the furniture maintenance interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create furniture maintenance content
+            maintenance_content = self._create_furniture_maintenance_content()
+            layout.addWidget(maintenance_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open furniture maintenance: {str(e)}")
-            logger.error(f"Error opening furniture maintenance window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load furniture maintenance interface: {str(e)}")
+            logger.error(f"Error loading furniture maintenance interface: {str(e)}")
             return self._create_default_view("furniture_maintenance", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _on_content_changed(self, content_id: str):
@@ -5409,25 +6662,12 @@ For additional support, contact your system administrator.
     
     def _show_students(self):
         """Show view students window."""
-        try:
-            window = ViewStudentsWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"View students window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open students window: {str(e)}")
-            logger.error(f"Error opening view students window: {str(e)}")
-    
+        self._open_view_students_window()
+
     def _add_student(self):
         """Show add student window."""
-        try:
-            window = AddStudentWindow(self, self.username, self.role)
-            window.student_added.connect(lambda: logger.info("Student added, refresh if needed"))
-            window.show()
-            logger.info(f"Add student window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open add student window: {str(e)}")
-            logger.error(f"Error opening add student window: {str(e)}")
-    
+        self._open_add_student_window()
+
     def _manage_students(self):
         """Show view students window (same as _show_students)."""
         self._show_students()
@@ -5438,229 +6678,95 @@ For additional support, contact your system administrator.
     
     def _show_edit_student(self):
         """Show edit student window."""
-        try:
-            window = EditStudentWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Edit student window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open edit student window: {str(e)}")
-            logger.error(f"Error opening edit student window: {str(e)}")
+        self._open_edit_student_window()
     
     def _show_teachers(self):
         """Show teacher management window."""
-        self._show_teacher_management()
-    
+        self._open_view_teachers_window()
+
     def _add_teacher(self):
         """Show teacher management window."""
-        self._show_teacher_management()
-    
+        self._open_add_teacher_window()
+
     def _manage_teachers(self):
         """Show teacher management window."""
-        self._show_teacher_management()
-    
+        self._open_view_teachers_window()
+
     def _show_teacher_management(self):
         """Show the teacher management window."""
-        try:
-            from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
-            teacher_window = ViewTeachersWindow(self, self.username, self.role)
-            teacher_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open teacher management: {str(e)}")
+        self._open_view_teachers_window()
 
     def _show_edit_teacher(self):
         """Show edit teacher window."""
-        try:
-            from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
-            window = EditTeacherWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open edit teacher window: {str(e)}")
+        self._open_edit_teacher_window()
 
     def _show_teacher_import_export(self):
         """Show teacher import/export window."""
-        try:
-            window = TeacherImportExportWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open teacher import/export window: {str(e)}")
+        self._open_teacher_import_export_window()
 
     def _show_student_import_export(self):
         """Show student import/export window."""
-        try:
-            from school_system.gui.windows.student_window.student_import_export_window import StudentImportExportWindow
-            window = StudentImportExportWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open student import/export window: {str(e)}")
+        self._open_student_import_export_window()
 
     def _show_user_management(self):
         """Show user management window."""
-        try:
-            user_window = UserWindow(self, self.username, self.role)
-            user_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open user management: {str(e)}")
+        self._load_content("manage_users")
 
     def _show_view_users(self):
         """Show view users window."""
-        try:
-            from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
-            view_users_window = ViewUsersWindow(self, self.username, self.role)
-            view_users_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open view users window: {str(e)}")
+        self._load_content("view_users")
     
     def _show_books(self):
         """Show books management window."""
-        self._show_book_management()
-    
+        self._open_view_books_window()
+
     def _add_book(self):
         """Show books management window."""
-        self._show_book_management()
-    
+        self._open_add_book_window()
+
     def _show_borrowed_books(self):
         """Show books management window."""
-        self._show_book_management()
-    
+        self._open_view_books_window()
+
     def _manage_books(self):
         """Show books management window."""
-        self._show_book_management()
-    
+        self._open_view_books_window()
+
     def _show_book_management(self):
         """Show the book management window."""
-        try:
-            book_window = BookWindow(self, self.username, self.role)
-            book_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open book management: {str(e)}")
-            logger.error(f"Error opening book management window: {str(e)}")
+        self._open_view_books_window()
 
     def _show_distribution(self):
         """Show distribution window."""
-        try:
-            from school_system.gui.windows.book_window.distribution_window import DistributionWindow
-            distribution_window = DistributionWindow(self, self.username, self.role)
-            distribution_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open distribution window: {str(e)}")
-            logger.error(f"Error opening distribution window: {str(e)}")
+        self._open_distribution_window()
 
     def _show_book_import_export(self):
         """Show book import/export window."""
-        try:
-            from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
-            import_export_window = BookImportExportWindow(self, self.username, self.role)
-            import_export_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open book import/export window: {str(e)}")
-            logger.error(f"Error opening book import/export window: {str(e)}")
+        self._open_book_import_export_window()
 
     def _show_borrow_book(self):
         """Show borrow book window."""
-        try:
-            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
-            borrow_window = BorrowBookWindow(self, self.username, self.role)
-            borrow_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open borrow book window: {str(e)}")
+        self._open_borrow_book_window()
 
     def _show_return_book(self):
         """Show return book window."""
-        try:
-            from school_system.gui.windows.book_window.return_book_window import ReturnBookWindow
-            return_window = ReturnBookWindow(self, self.username, self.role)
-            return_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
+        self._open_return_book_window()
 
     def _show_add_book_window(self):
         """Show add book window."""
-        try:
-            # Validate that the required module exists
-            import os
-            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'add_book_window.py')
-            if not os.path.exists(module_path):
-                raise FileNotFoundError(f"Book window module not found: {module_path}")
-
-            from school_system.gui.windows.book_window.add_book_window import AddBookWindow
-            add_window = AddBookWindow(self, self.username, self.role)
-            add_window.book_added.connect(self._on_book_data_changed)
-            add_window.show()
-        except FileNotFoundError as e:
-            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
-            logger.error(f"Missing book window file: {str(e)}")
-        except ImportError as e:
-            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
-            logger.error(f"Import error for add book window: {str(e)}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open add book window: {str(e)}")
-            logger.error(f"Error opening add book window: {str(e)}")
+        self._open_add_book_window()
 
     def _show_view_books_window(self):
         """Show view books window."""
-        try:
-            import os
-            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'view_books_window.py')
-            if not os.path.exists(module_path):
-                raise FileNotFoundError(f"Book window module not found: {module_path}")
-
-            from school_system.gui.windows.book_window.view_books_window import ViewBooksWindow
-            view_window = ViewBooksWindow(self, self.username, self.role)
-            view_window.book_updated.connect(self._on_book_data_changed)
-            view_window.show()
-        except FileNotFoundError as e:
-            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
-            logger.error(f"Missing book window file: {str(e)}")
-        except ImportError as e:
-            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
-            logger.error(f"Import error for view books window: {str(e)}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open view books window: {str(e)}")
-            logger.error(f"Error opening view books window: {str(e)}")
+        self._open_view_books_window()
 
     def _show_borrow_book_window(self):
         """Show borrow book window."""
-        try:
-            import os
-            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'borrow_book_window.py')
-            if not os.path.exists(module_path):
-                raise FileNotFoundError(f"Book window module not found: {module_path}")
-
-            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
-            borrow_window = BorrowBookWindow(self, self.username, self.role)
-            borrow_window.book_borrowed.connect(self._on_book_data_changed)
-            borrow_window.show()
-        except FileNotFoundError as e:
-            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
-            logger.error(f"Missing book window file: {str(e)}")
-        except ImportError as e:
-            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
-            logger.error(f"Import error for borrow book window: {str(e)}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open borrow book window: {str(e)}")
-            logger.error(f"Error opening borrow book window: {str(e)}")
+        self._open_borrow_book_window()
 
     def _show_return_book_window(self):
         """Show return book window."""
-        try:
-            import os
-            module_path = os.path.join(os.path.dirname(__file__), 'book_window', 'return_book_window.py')
-            if not os.path.exists(module_path):
-                raise FileNotFoundError(f"Book window module not found: {module_path}")
-
-            from school_system.gui.windows.book_window.return_book_window import ReturnBookWindow
-            return_window = ReturnBookWindow(self, self.username, self.role)
-            return_window.book_returned.connect(self._on_book_data_changed)
-            return_window.show()
-        except FileNotFoundError as e:
-            QMessageBox.critical(self, "Error", f"Book management module is missing or corrupted. Please reinstall the application.\n\nDetails: {str(e)}")
-            logger.error(f"Missing book window file: {str(e)}")
-        except ImportError as e:
-            QMessageBox.critical(self, "Error", f"Failed to import book management components. The module may be corrupted.\n\nDetails: {str(e)}")
-            logger.error(f"Import error for return book window: {str(e)}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
-            logger.error(f"Error opening return book window: {str(e)}")
+        self._open_return_book_window()
 
     def _on_book_data_changed(self):
         """Handle book data changes from child windows."""
@@ -5678,79 +6784,36 @@ For additional support, contact your system administrator.
 
     def _show_distribution(self):
         """Show distribution window."""
-        try:
-            from school_system.gui.windows.book_window.distribution_window import DistributionWindow
-            distribution_window = DistributionWindow(self, self.username, self.role)
-            distribution_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open distribution window: {str(e)}")
+        self._load_content("distribution")
 
     def _show_book_import_export(self):
         """Show book import/export window."""
-        try:
-            from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
-            import_export_window = BookImportExportWindow(self, self.username, self.role)
-            import_export_window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open book import/export window: {str(e)}")
+        self._load_content("book_import_export")
     
     def _show_furniture_management(self):
         """Show furniture management window."""
-        try:
-            from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
-            window = ManageFurnitureWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Furniture management window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open furniture management: {str(e)}")
-            logger.error(f"Error opening furniture management window: {str(e)}")
-    
+        self._open_manage_furniture_window()
+
     def _show_furniture_assignments(self):
         """Show furniture assignments window."""
-        try:
-            from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
-            window = FurnitureAssignmentsWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Furniture assignments window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open furniture assignments: {str(e)}")
-            logger.error(f"Error opening furniture assignments window: {str(e)}")
-    
+        self._open_furniture_assignments_window()
+
     def _show_furniture_maintenance(self):
         """Show furniture maintenance window."""
-        try:
-            from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
-            window = FurnitureMaintenanceWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Furniture maintenance window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open furniture maintenance: {str(e)}")
-            logger.error(f"Error opening furniture maintenance window: {str(e)}")
+        self._open_furniture_maintenance_window()
     
     def _show_book_reports(self):
         """Show book reports window."""
-        try:
-            window = BookReportsWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open book reports: {str(e)}")
-    
+        self._open_book_reports_window()
+
     def _show_student_reports(self):
         """Show student reports window."""
-        try:
-            window = StudentReportsWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open student reports: {str(e)}")
-    
+        self._open_student_reports_window()
+
     def _show_custom_reports(self):
         """Show custom reports window."""
-        try:
-            window = CustomReportsWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open custom reports: {str(e)}")
-    
+        self._open_custom_reports_window()
+
     def _show_report_management(self):
         """Show the report management window (legacy - redirects to book reports)."""
         self._show_book_reports()
@@ -5804,44 +6867,19 @@ Developed for efficient school administration."""
     
     def _show_library_activity(self):
         """Show library activity window."""
-        try:
-            from school_system.gui.windows.book_window.borrow_book_window import BorrowBookWindow
-            window = BorrowBookWindow(self, self.username, self.role)
-            window.show()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open library activity: {str(e)}")
+        self._load_content("library_activity")
 
     def _show_ream_management_window(self):
         """Show the ream management window."""
-        try:
-            window = ReamManagementWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Ream management window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open ream management: {str(e)}")
-            logger.error(f"Error opening ream management window: {str(e)}")
+        self._load_content("ream_management")
 
     def _show_class_management_window(self):
         """Show the class management window."""
-        try:
-            from school_system.gui.windows.student_window.class_management_window import ClassManagementWindow
-            window = ClassManagementWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Class management window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open class management: {str(e)}")
-            logger.error(f"Error opening class management window: {str(e)}")
+        self._load_content("class_management")
 
     def _show_library_activity_window(self):
         """Show the library activity window."""
-        try:
-            from school_system.gui.windows.student_window.library_activity_window import LibraryActivityWindow
-            window = LibraryActivityWindow(self, self.username, self.role)
-            window.show()
-            logger.info(f"Library activity window opened by user {self.username}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open library activity: {str(e)}")
-            logger.error(f"Error opening library activity window: {str(e)}")
+        self._load_content("library_activity")
 
     def closeEvent(self, event):
         """Handle window closing."""

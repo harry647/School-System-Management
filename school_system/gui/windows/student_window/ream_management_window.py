@@ -35,7 +35,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         """Setup the main content area."""
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.set_margins(24, 24, 24, 24)
         main_layout.set_spacing(16)
         
         # Add ream section
@@ -181,7 +181,7 @@ class ReamManagementWindow(BaseFunctionWindow):
     def _refresh_ream_table(self):
         """Refresh the ream entries table."""
         try:
-            entries = self.ream_repo.get_all_ream_entries()
+            entries = self.ream_repo.get_all()
             
             # Clear table
             self.ream_table.setRowCount(0)

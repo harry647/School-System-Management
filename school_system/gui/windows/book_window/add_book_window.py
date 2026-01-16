@@ -35,7 +35,7 @@ class AddBookWindow(BaseFunctionWindow):
         """Setup the add book form."""
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.set_margins(24, 24, 24, 24)
         main_layout.set_spacing(24)
         
         # Form card

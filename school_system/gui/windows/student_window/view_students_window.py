@@ -4,7 +4,7 @@ View Students Window
 Dedicated window for viewing and managing students list.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QComboBox, QListWidget
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QComboBox, QListWidget, QSizePolicy
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from typing import Optional
@@ -38,7 +38,7 @@ class ViewStudentsWindow(BaseFunctionWindow):
         """Setup the main content area."""
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.set_margins(24, 24, 24, 24)
         main_layout.set_spacing(16)
         
         # Action bar with search and filters
@@ -117,6 +117,8 @@ class ViewStudentsWindow(BaseFunctionWindow):
         
         table_card = QWidget()
         table_card.setProperty("card", "true")
+        table_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        table_card.setMinimumHeight(250)
         table_card.setStyleSheet(f"""
             QWidget[card="true"] {{
                 background-color: {theme["surface"]};
@@ -142,6 +144,8 @@ class ViewStudentsWindow(BaseFunctionWindow):
         self.students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream", "Actions"])
         self.students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.students_table.setAlternatingRowColors(True)
+        self.students_table.setMinimumHeight(150)
+        self.students_table.setMinimumWidth(400)
         table_layout.addWidget(self.students_table)
         
         return table_card
@@ -180,8 +184,27 @@ class ViewStudentsWindow(BaseFunctionWindow):
                 
                 # Actions column (can add buttons here if needed)
                 self.students_table.setItem(row, 3, QTableWidgetItem(""))
-            
+
+            # Resize columns to fit content
+            self.students_table.resizeColumnsToContents()
+            self.students_table.resizeRowsToContents()
+
+            # Ensure minimum height for visibility
+            if self.students_table.rowCount() > 0:
+                self.students_table.setMinimumHeight(200)
+
+            # Force layout update
+            self.students_table.update()
+            self.students_table.repaint()
+            table_card = self.students_table.parent()
+            if table_card:
+                table_card.update()
+                table_card.repaint()
+
             logger.info(f"Refreshed students table with {len(students)} students")
+            logger.debug(f"Table row count: {self.students_table.rowCount()}, column count: {self.students_table.columnCount()}")
+            logger.debug(f"Table is visible: {self.students_table.isVisible()}")
+            logger.debug(f"Table size: {self.students_table.size()}")
         except Exception as e:
             logger.error(f"Error refreshing students table: {e}")
             show_error_message("Error", f"Failed to refresh students: {str(e)}", self)

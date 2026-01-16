@@ -4,7 +4,7 @@ View Users Window
 Dedicated window for viewing and managing users.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QComboBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QComboBox, QSizePolicy
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -34,8 +34,8 @@ class ViewUsersWindow(BaseFunctionWindow):
         """Setup the main content area."""
         # Create main content layout
         main_layout = self.create_flex_layout("column", False)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(16)
+        main_layout.set_margins(24, 24, 24, 24)
+        main_layout.set_spacing(16)
         
         # Action bar
         action_bar = self._create_action_bar()
@@ -44,9 +44,14 @@ class ViewUsersWindow(BaseFunctionWindow):
         # Users table
         users_card = self._create_users_table()
         main_layout.add_widget(users_card, stretch=1)
+
+        logger.debug(f"Users card created: {users_card}")
+        logger.debug(f"Users card size policy: {users_card.sizePolicy()}")
         
         # Add to content
+        logger.debug(f"Adding main layout to content: {main_layout}")
         self.add_layout_to_content(main_layout)
+        logger.debug("Main layout added to content")
     
     def _create_action_bar(self) -> QWidget:
         """Create the action bar."""
@@ -103,6 +108,8 @@ class ViewUsersWindow(BaseFunctionWindow):
         
         table_card = QWidget()
         table_card.setProperty("card", "true")
+        table_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        table_card.setMinimumHeight(250)
         table_card.setStyleSheet(f"""
             QWidget[card="true"] {{
                 background-color: {theme["surface"]};
@@ -128,7 +135,13 @@ class ViewUsersWindow(BaseFunctionWindow):
         self.users_table.setHorizontalHeaderLabels(["Username", "Role", "Status"])
         self.users_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.users_table.setAlternatingRowColors(True)
+        self.users_table.setMinimumHeight(150)
+        self.users_table.setMinimumWidth(400)
         table_layout.addWidget(self.users_table)
+
+        logger.debug(f"Users table created: {self.users_table}")
+        logger.debug(f"Table parent: {self.users_table.parent()}")
+        logger.debug(f"Table is visible: {self.users_table.isVisible()}")
         
         return table_card
     
@@ -141,7 +154,7 @@ class ViewUsersWindow(BaseFunctionWindow):
             # Apply filter
             role_filter = self.role_filter.currentText()
             if role_filter != "All Roles":
-                users = [u for u in users if u.role == role_filter]
+                users = [u for u in users if u['role'] == role_filter]
             
             # Clear table
             self.users_table.setRowCount(0)
@@ -150,12 +163,38 @@ class ViewUsersWindow(BaseFunctionWindow):
             for user in users:
                 row = self.users_table.rowCount()
                 self.users_table.insertRow(row)
-                
-                self.users_table.setItem(row, 0, QTableWidgetItem(user.username))
-                self.users_table.setItem(row, 1, QTableWidgetItem(user.role))
+
+                self.users_table.setItem(row, 0, QTableWidgetItem(user['username']))
+                self.users_table.setItem(row, 1, QTableWidgetItem(user['role']))
                 self.users_table.setItem(row, 2, QTableWidgetItem("Active"))
-            
+
+            # Resize columns to fit content
+            self.users_table.resizeColumnsToContents()
+            self.users_table.resizeRowsToContents()
+
+            # Ensure minimum height for visibility
+            if self.users_table.rowCount() > 0:
+                self.users_table.setMinimumHeight(200)
+
+            # Force layout update
+            self.users_table.update()
+            self.users_table.repaint()
+            table_card = self.users_table.parent()
+            if table_card:
+                table_card.update()
+                table_card.repaint()
+
             logger.info(f"Refreshed users table with {len(users)} users")
+            logger.debug(f"Table row count: {self.users_table.rowCount()}, column count: {self.users_table.columnCount()}")
+            logger.debug(f"Table is visible: {self.users_table.isVisible()}")
+            logger.debug(f"Table size: {self.users_table.size()}")
+
+            # Additional debug info
+            for row in range(self.users_table.rowCount()):
+                username_item = self.users_table.item(row, 0)
+                role_item = self.users_table.item(row, 1)
+                status_item = self.users_table.item(row, 2)
+                logger.debug(f"Row {row}: username='{username_item.text() if username_item else 'None'}', role='{role_item.text() if role_item else 'None'}', status='{status_item.text() if status_item else 'None'}'")
         except Exception as e:
             logger.error(f"Error refreshing users table: {e}")
             show_error_message("Error", f"Failed to refresh users: {str(e)}", self)
