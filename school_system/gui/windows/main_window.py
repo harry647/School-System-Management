@@ -2204,6 +2204,42 @@ For additional support, contact your system administrator.
         
         return scroll_widget
 
+    def _create_manage_furniture_view(self) -> QWidget:
+        """Create the manage furniture content view."""
+        try:
+            from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
+            window = ManageFurnitureWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open furniture management: {str(e)}")
+            logger.error(f"Error opening furniture management window: {str(e)}")
+            return self._create_default_view("manage_furniture", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_furniture_assignments_view(self) -> QWidget:
+        """Create the furniture assignments content view."""
+        try:
+            from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
+            window = FurnitureAssignmentsWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open furniture assignments: {str(e)}")
+            logger.error(f"Error opening furniture assignments window: {str(e)}")
+            return self._create_default_view("furniture_assignments", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_furniture_maintenance_view(self) -> QWidget:
+        """Create the furniture maintenance content view."""
+        try:
+            from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
+            window = FurnitureMaintenanceWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open furniture maintenance: {str(e)}")
+            logger.error(f"Error opening furniture maintenance window: {str(e)}")
+            return self._create_default_view("furniture_maintenance", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
     def _on_content_changed(self, content_id: str):
         """Handle content view changes."""
         self.update_status(f"Viewing: {content_id.replace('_', ' ').title()}")

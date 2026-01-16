@@ -873,3 +873,49 @@ class FurnitureService:
         except Exception as e:
             logger.error(f"Error getting furniture usage history: {e}")
             return []
+
+    def get_all_furniture(self) -> List[dict]:
+        """
+        Get all furniture items (chairs and lockers) as unified list.
+
+        Returns:
+            A list of dictionaries containing furniture information.
+        """
+        logger.info("Retrieving all furniture items")
+
+        try:
+            furniture_items = []
+
+            # Get all chairs
+            chairs = self.chair_repository.get_all()
+            for chair in chairs:
+                furniture_items.append({
+                    'furniture_id': f"CH{chair.chair_id}",
+                    'type': 'Chair',
+                    'location': chair.location or "",
+                    'status': 'Assigned' if chair.assigned else 'Available',
+                    'assigned_to': chair.assigned_to or "",
+                    'condition': chair.cond or "Good",
+                    'form': chair.form or "",
+                    'color': chair.color or ""
+                })
+
+            # Get all lockers
+            lockers = self.locker_repository.get_all()
+            for locker in lockers:
+                furniture_items.append({
+                    'furniture_id': f"LK{locker.locker_id}",
+                    'type': 'Locker',
+                    'location': locker.location or "",
+                    'status': 'Assigned' if locker.assigned else 'Available',
+                    'assigned_to': locker.assigned_to or "",
+                    'condition': locker.cond or "Good",
+                    'form': locker.form or "",
+                    'color': locker.color or ""
+                })
+
+            logger.info(f"Retrieved {len(furniture_items)} furniture items")
+            return furniture_items
+        except Exception as e:
+            logger.error(f"Error retrieving all furniture: {e}")
+            return []
