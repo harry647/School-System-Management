@@ -148,7 +148,7 @@ class ViewBooksWindow(BaseFunctionWindow):
         self.books_table = self.create_table(0, 8)
         self.books_table.setColumnCount(8)
         self.books_table.setHorizontalHeaderLabels([
-            "Book ID", "Title", "Author", "ISBN", "Subject", "Class", "Condition", "Status"
+            "Book ID", "Title", "Author", "ISBN", "Category", "Class", "Condition", "Status"
         ])
         self.books_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.books_table.setAlternatingRowColors(True)
@@ -187,17 +187,17 @@ class ViewBooksWindow(BaseFunctionWindow):
                 status = "Available"
                 try:
                     borrowed = self.book_service.get_borrowed_books()
-                    if any(b.book_id == book.book_id for b in borrowed):
+                    if any(b.book_number == book.book_number for b in borrowed):
                         status = "Borrowed"
                 except:
                     pass
                 
-                self.books_table.setItem(row, 0, QTableWidgetItem(book.book_id))
+                self.books_table.setItem(row, 0, QTableWidgetItem(book.book_number))
                 self.books_table.setItem(row, 1, QTableWidgetItem(book.title))
                 self.books_table.setItem(row, 2, QTableWidgetItem(book.author or ""))
                 self.books_table.setItem(row, 3, QTableWidgetItem(book.isbn or ""))
-                self.books_table.setItem(row, 4, QTableWidgetItem(book.subject or ""))
-                self.books_table.setItem(row, 5, QTableWidgetItem(book.class_name or ""))
+                self.books_table.setItem(row, 4, QTableWidgetItem(book.category or ""))
+                self.books_table.setItem(row, 5, QTableWidgetItem(""))
                 self.books_table.setItem(row, 6, QTableWidgetItem(book.condition or "Good"))
                 self.books_table.setItem(row, 7, QTableWidgetItem(status))
             
@@ -236,9 +236,9 @@ class ViewBooksWindow(BaseFunctionWindow):
             show_error_message("No Selection", "Please select a book to edit.", self)
             return
         
-        book_id = self.books_table.item(selected_rows[0].row(), 0).text()
+        book_number = self.books_table.item(selected_rows[0].row(), 0).text()
         from school_system.gui.windows.book_window.edit_book_window import EditBookWindow
-        edit_window = EditBookWindow(book_id, self, self.current_user, self.current_role)
+        edit_window = EditBookWindow(book_number, self, self.current_user, self.current_role)
         edit_window.book_updated.connect(self._refresh_books_table)
         edit_window.show()
     
@@ -249,20 +249,20 @@ class ViewBooksWindow(BaseFunctionWindow):
             show_error_message("No Selection", "Please select a book to delete.", self)
             return
         
-        book_id = self.books_table.item(selected_rows[0].row(), 0).text()
+        book_number = self.books_table.item(selected_rows[0].row(), 0).text()
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
         dialog = ConfirmationDialog(
             title="Delete Book",
-            message=f"Are you sure you want to delete book {book_id}?\n\nThis action cannot be undone.",
+            message=f"Are you sure you want to delete book {book_number}?\n\nThis action cannot be undone.",
             parent=self,
             confirm_text="Delete",
             cancel_text="Cancel"
         )
-        
+
         if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:
             try:
-                self.book_service.remove_book(book_id)
-                show_success_message("Success", f"Book {book_id} deleted successfully.", self)
+                self.book_service.remove_book(book_number)
+                show_success_message("Success", f"Book {book_number} deleted successfully.", self)
                 self._refresh_books_table()
             except Exception as e:
                 show_error_message("Error", f"Failed to delete book: {str(e)}", self)

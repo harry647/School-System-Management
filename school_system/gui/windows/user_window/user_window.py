@@ -247,8 +247,8 @@ class UserWindow(BaseWindow):
 
         header = QWidget()
         header_layout = QVBoxLayout(header)
-        header_layout.set_margins(0, 0, 0, 0)
-        header_layout.set_spacing(8)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
 
         # Title
         title = QLabel("User Management Center")
@@ -336,8 +336,8 @@ class UserWindow(BaseWindow):
         """Create a function navigation card."""
         card = QWidget()
         card_layout = QVBoxLayout(card)
-        card_layout.set_margins(20, 20, 20, 20)
-        card_layout.set_spacing(12)
+        card_layout.setContentsMargins(20, 20, 20, 20)
+        card_layout.setSpacing(12)
 
         # Apply card styling
         card.setStyleSheet(f"""

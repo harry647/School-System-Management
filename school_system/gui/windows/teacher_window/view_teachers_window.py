@@ -147,7 +147,7 @@ class ViewTeachersWindow(BaseFunctionWindow):
                 self.teachers_table.insertRow(row)
                 
                 self.teachers_table.setItem(row, 0, QTableWidgetItem(teacher.teacher_id))
-                self.teachers_table.setItem(row, 1, QTableWidgetItem(teacher.name))
+                self.teachers_table.setItem(row, 1, QTableWidgetItem(teacher.teacher_name))
                 self.teachers_table.setItem(row, 2, QTableWidgetItem(teacher.department or ""))
                 self.teachers_table.setItem(row, 3, QTableWidgetItem(teacher.email or ""))
                 self.teachers_table.setItem(row, 4, QTableWidgetItem(teacher.phone or ""))

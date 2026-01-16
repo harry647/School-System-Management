@@ -107,27 +107,6 @@ class EditTeacherWindow(BaseFunctionWindow):
         dept_layout.addWidget(self.department_input)
         form_layout.addLayout(dept_layout)
         
-        # Email field
-        email_layout = QVBoxLayout()
-        email_label = QLabel("Email")
-        email_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
-        email_layout.addWidget(email_label)
-        
-        self.email_input = self.create_input("Enter email address")
-        self.email_input.setFixedHeight(44)
-        email_layout.addWidget(self.email_input)
-        form_layout.addLayout(email_layout)
-        
-        # Phone field
-        phone_layout = QVBoxLayout()
-        phone_label = QLabel("Phone")
-        phone_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
-        phone_layout.addWidget(phone_label)
-        
-        self.phone_input = self.create_input("Enter phone number")
-        self.phone_input.setFixedHeight(44)
-        phone_layout.addWidget(self.phone_input)
-        form_layout.addLayout(phone_layout)
         
         form_layout.addStretch()
         
@@ -155,10 +134,8 @@ class EditTeacherWindow(BaseFunctionWindow):
             teacher = self.teacher_service.get_teacher_by_id(self.teacher_id)
             if teacher:
                 self.teacher_id_input.setText(teacher.teacher_id)
-                self.name_input.setText(teacher.name)
+                self.name_input.setText(teacher.teacher_name)
                 self.department_input.setText(teacher.department or "")
-                self.email_input.setText(teacher.email or "")
-                self.phone_input.setText(teacher.phone or "")
         except Exception as e:
             logger.error(f"Error loading teacher data: {e}")
             show_error_message("Error", f"Failed to load teacher data: {str(e)}", self)
@@ -168,8 +145,6 @@ class EditTeacherWindow(BaseFunctionWindow):
         # Get form data
         name = self.name_input.text().strip()
         department = self.department_input.text().strip()
-        email = self.email_input.text().strip()
-        phone = self.phone_input.text().strip()
         
         # Validate
         if not name:
@@ -181,9 +156,7 @@ class EditTeacherWindow(BaseFunctionWindow):
             teacher_data = {
                 "teacher_id": self.teacher_id,
                 "name": name,
-                "department": department if department else None,
-                "email": email if email else None,
-                "phone": phone if phone else None
+                "department": department if department else None
             }
             
             self.teacher_service.update_teacher(self.teacher_id, teacher_data)
