@@ -16,6 +16,29 @@ from typing import Callable, Dict, Any
 from school_system.config.logging import logger
 from school_system.gui.base.base_window import BaseApplicationWindow
 from school_system.gui.windows.user_window.user_window import UserWindow
+from school_system.gui.windows.book_window import (
+    BookWindow,
+    BookAddWorkflow,
+    BookEditWorkflow,
+    BookBorrowWorkflow,
+    BookReturnWorkflow
+)
+from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
+from school_system.gui.windows.book_window.distribution_window import DistributionWindow
+from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
+from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
+from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
+from school_system.gui.windows.report_window.book_reports_window import BookReportsWindow
+from school_system.gui.windows.report_window.student_reports_window import StudentReportsWindow
+from school_system.gui.windows.report_window.custom_reports_window import CustomReportsWindow
+from school_system.gui.windows.student_window.add_student_window import AddStudentWindow
+from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
+from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
+from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
+from school_system.gui.windows.teacher_window.add_teacher_window import AddTeacherWindow
+from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
+from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
+from school_system.gui.windows.teacher_window.teacher_import_export_window import TeacherImportExportWindow
 
 
 class MainWindow(BaseApplicationWindow):
@@ -192,6 +215,7 @@ class MainWindow(BaseApplicationWindow):
                     ("📝 Class Management", "class_management"),
                     ("📚 Library Activity", "library_activity"),
                     ("📤 Import/Export", "student_import_export"),
+                    ("📄 Ream Management", "ream_management"),
                 ]
             },
             {
@@ -662,20 +686,24 @@ class MainWindow(BaseApplicationWindow):
 
     def _load_content(self, content_id: str):
         """Load and display the specified content view."""
-        if content_id in self.content_views:
-            # Switch to existing view
-            self.content_stack.setCurrentWidget(self.content_views[content_id])
-        else:
-            # Create new view
-            view = self._create_content_view(content_id)
-            if view:
-                self.content_views[content_id] = view
-                self.content_stack.addWidget(view)
-                self.content_stack.setCurrentWidget(view)
+        try:
+            if content_id in self.content_views:
+                # Switch to existing view
+                self.content_stack.setCurrentWidget(self.content_views[content_id])
+            else:
+                # Create new view
+                view = self._create_content_view(content_id)
+                if view:
+                    self.content_views[content_id] = view
+                    self.content_stack.addWidget(view)
+                    self.content_stack.setCurrentWidget(view)
 
-        self.current_view = content_id
-        self.content_changed.emit(content_id)
-        logger.info(f"Loaded content view: {content_id}")
+            self.current_view = content_id
+            self.content_changed.emit(content_id)
+            logger.info(f"Loaded content view: {content_id}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load content: {str(e)}")
+            logger.error(f"Error loading content view {content_id}: {str(e)}")
 
     def _create_content_view(self, content_id: str) -> QWidget:
         """Create a content view widget for the given content ID."""
@@ -693,18 +721,92 @@ class MainWindow(BaseApplicationWindow):
             "add_book": lambda: self._create_add_book_view(),
             "borrow_book": lambda: self._create_borrow_book_view(),
             "return_book": lambda: self._create_return_book_view(),
+            "distribution": lambda: self._create_distribution_view(),
+            "book_import_export": lambda: self._create_book_import_export_view(),
             "view_teachers": lambda: self._create_view_teachers_view(),
             "add_teacher": lambda: self._create_add_teacher_view(),
+            "edit_teacher": lambda: self._create_edit_teacher_view(),
+            "teacher_import_export": lambda: self._create_teacher_import_export_view(),
             "manage_users": lambda: self._create_manage_users_view(),
             "settings": lambda: self._create_settings_view(),
             "help": lambda: self._create_help_view(),
+            "manage_furniture": lambda: self._create_manage_furniture_view(),
+            "furniture_assignments": lambda: self._create_furniture_assignments_view(),
+            "furniture_maintenance": lambda: self._create_furniture_maintenance_view(),
+            "book_reports": lambda: self._create_book_reports_view(),
+            "student_reports": lambda: self._create_student_reports_view(),
+            "custom_reports": lambda: self._create_custom_reports_view(),
+            "ream_management": lambda: self._create_ream_management_view(),
         }
+        
+        # Add error handling for missing or corrupted files
+        try:
+            # Verify that all furniture windows can be imported
+            from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
+            from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
+            from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
+            logger.info("All furniture windows imported successfully")
+        except ImportError as e:
+            logger.error(f"Failed to import furniture windows: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load furniture module: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error loading furniture module: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Unexpected error loading furniture module: {str(e)}")
 
-        creator = content_creators.get(content_id)
-        if creator:
-            return creator()
-        else:
-            # Default empty view
+        # Add error handling for student windows
+        try:
+            # Verify that all student windows can be imported
+            from school_system.gui.windows.student_window.add_student_window import AddStudentWindow
+            from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
+            from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
+            from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
+            logger.info("All student windows imported successfully")
+        except ImportError as e:
+            logger.error(f"Failed to import student windows: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load student module: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error loading student module: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Unexpected error loading student module: {str(e)}")
+
+        # Add error handling for report windows
+        try:
+            # Verify that all report windows can be imported
+            from school_system.gui.windows.report_window.book_reports_window import BookReportsWindow
+            from school_system.gui.windows.report_window.student_reports_window import StudentReportsWindow
+            from school_system.gui.windows.report_window.custom_reports_window import CustomReportsWindow
+            logger.info("All report windows imported successfully")
+        except ImportError as e:
+            logger.error(f"Failed to import report windows: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load report module: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error loading report module: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Unexpected error loading report module: {str(e)}")
+
+        # Add error handling for teacher windows
+        try:
+            # Verify that all teacher windows can be imported
+            from school_system.gui.windows.teacher_window.add_teacher_window import AddTeacherWindow
+            from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
+            from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
+            from school_system.gui.windows.teacher_window.teacher_import_export_window import TeacherImportExportWindow
+            logger.info("All teacher windows imported successfully")
+        except ImportError as e:
+            logger.error(f"Failed to import teacher windows: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load teacher module: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error loading teacher module: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Unexpected error loading teacher module: {str(e)}")
+
+        try:
+            creator = content_creators.get(content_id)
+            if creator:
+                return creator()
+            else:
+                # Default empty view
+                return self._create_default_view(content_id, theme, role_color)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to create content view: {str(e)}")
+            logger.error(f"Error creating content view {content_id}: {str(e)}")
             return self._create_default_view(content_id, theme, role_color)
 
     def _create_dashboard_view(self) -> QWidget:
@@ -1121,9 +1223,45 @@ class MainWindow(BaseApplicationWindow):
             }}
         """)
 
+        distribution_btn = QPushButton("📦 Distribution")
+        distribution_btn.clicked.connect(lambda: self._load_content("distribution"))
+        distribution_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        import_export_btn = QPushButton("📤 Import/Export")
+        import_export_btn.clicked.connect(lambda: self._load_content("book_import_export"))
+        import_export_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
         actions_layout.addWidget(add_btn)
         actions_layout.addWidget(borrow_btn)
         actions_layout.addWidget(return_btn)
+        actions_layout.addWidget(distribution_btn)
+        actions_layout.addWidget(import_export_btn)
         actions_layout.addStretch()
 
         card_layout.addLayout(actions_layout)
@@ -1175,6 +1313,102 @@ class MainWindow(BaseApplicationWindow):
         """)
         form_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(form_placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_distribution_view(self) -> QWidget:
+        """Create the distribution content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📦 Book Distribution")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder = QLabel("Book distribution interface will be displayed here.\n\nManage book distribution sessions and allocations.")
+        placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder)
+
+        layout.addWidget(content_card)
+        layout.addStretch()
+
+        return scroll_widget
+
+    def _create_book_import_export_view(self) -> QWidget:
+        """Create the book import/export content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+
+        # Header
+        header = QLabel("📤 Book Import/Export")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+
+        card_layout = QVBoxLayout(content_card)
+
+        placeholder = QLabel("Book import/export interface will be displayed here.\n\nImport books from files or export book data.")
+        placeholder.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder)
 
         layout.addWidget(content_card)
         layout.addStretch()
@@ -1373,51 +1607,38 @@ class MainWindow(BaseApplicationWindow):
 
     def _create_add_teacher_view(self) -> QWidget:
         """Create the add teacher content view."""
-        theme_manager = self.get_theme_manager()
-        theme = theme_manager._themes[self.get_theme()]
+        try:
+            window = AddTeacherWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open add teacher window: {str(e)}")
+            logger.error(f"Error opening add teacher window: {str(e)}")
+            return self._create_default_view("add_teacher", theme, role_color)
 
-        scroll_widget = QWidget()
-        layout = QVBoxLayout(scroll_widget)
-        layout.setContentsMargins(32, 32, 32, 32)
-        layout.setSpacing(20)
+    def _create_edit_teacher_view(self) -> QWidget:
+        """Create the edit teacher content view."""
+        try:
+            # For edit teacher, we need to select a teacher first
+            # This is a placeholder - actual implementation would require teacher selection
+            window = EditTeacherWindow("TEACHER_ID", self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open edit teacher window: {str(e)}")
+            logger.error(f"Error opening edit teacher window: {str(e)}")
+            return self._create_default_view("edit_teacher", theme, role_color)
 
-        # Header
-        header = QLabel("➕ Add New Staff Member")
-        header.setStyleSheet(f"""
-            font-size: 28px;
-            font-weight: bold;
-            color: {theme["text"]};
-            margin-bottom: 16px;
-        """)
-        layout.addWidget(header)
-
-        # Form placeholder
-        content_card = QFrame()
-        content_card.setProperty("contentCard", "true")
-        content_card.setStyleSheet(f"""
-            QFrame[contentCard="true"] {{
-                background-color: {theme["surface"]};
-                border-radius: 12px;
-                border: 1px solid {theme["border"]};
-                padding: 32px;
-            }}
-        """)
-
-        card_layout = QVBoxLayout(content_card)
-
-        form_placeholder = QLabel("Staff registration form will be displayed here.\n\nFields: Name, Subject, Contact Info, etc.")
-        form_placeholder.setStyleSheet(f"""
-            font-size: 16px;
-            color: {theme["text_secondary"]};
-            text-align: center;
-        """)
-        form_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        card_layout.addWidget(form_placeholder)
-
-        layout.addWidget(content_card)
-        layout.addStretch()
-
-        return scroll_widget
+    def _create_teacher_import_export_view(self) -> QWidget:
+        """Create the teacher import/export content view."""
+        try:
+            window = TeacherImportExportWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open teacher import/export window: {str(e)}")
+            logger.error(f"Error opening teacher import/export window: {str(e)}")
+            return self._create_default_view("teacher_import_export", theme, role_color)
 
     def _create_manage_users_view(self) -> QWidget:
         """Create the manage users content view."""
@@ -1578,7 +1799,7 @@ For additional support, contact your system administrator.
         layout = QVBoxLayout(scroll_widget)
         layout.setContentsMargins(32, 32, 32, 32)
         layout.setSpacing(20)
-
+        
         # Header
         header = QLabel(f"📄 {content_id.replace('_', ' ').title()}")
         header.setStyleSheet(f"""
@@ -1588,7 +1809,7 @@ For additional support, contact your system administrator.
             margin-bottom: 16px;
         """)
         layout.addWidget(header)
-
+        
         # Content placeholder
         content_card = QFrame()
         content_card.setProperty("contentCard", "true")
@@ -1600,9 +1821,9 @@ For additional support, contact your system administrator.
                 padding: 32px;
             }}
         """)
-
+        
         card_layout = QVBoxLayout(content_card)
-
+        
         placeholder_label = QLabel(f"This is the {content_id.replace('_', ' ')} view.\n\nFeature coming soon! 🚧")
         placeholder_label.setStyleSheet(f"""
             font-size: 18px;
@@ -1611,10 +1832,235 @@ For additional support, contact your system administrator.
         """)
         placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(placeholder_label)
-
+        
         layout.addWidget(content_card)
         layout.addStretch()
+        
+        return scroll_widget
 
+    def _create_book_reports_view(self) -> QWidget:
+        """Create the book reports content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+        
+        # Header
+        header = QLabel("📊 Book Reports")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+        
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+        
+        card_layout = QVBoxLayout(content_card)
+        
+        placeholder_label = QLabel("Book reports interface will be displayed here.\n\nGenerate and view various book-related reports.")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+        
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+        
+        generate_btn = QPushButton("📊 Generate Report")
+        generate_btn.clicked.connect(self._show_book_reports)
+        generate_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+                opacity: 0.9;
+            }}
+        """)
+        
+        actions_layout.addWidget(generate_btn)
+        actions_layout.addStretch()
+        
+        card_layout.addLayout(actions_layout)
+        
+        layout.addWidget(content_card)
+        layout.addStretch()
+        
+        return scroll_widget
+
+    def _create_student_reports_view(self) -> QWidget:
+        """Create the student reports content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+        
+        # Header
+        header = QLabel("📊 Student Reports")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+        
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+        
+        card_layout = QVBoxLayout(content_card)
+        
+        placeholder_label = QLabel("Student reports interface will be displayed here.\n\nGenerate and view various student-related reports.")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+        
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+        
+        generate_btn = QPushButton("📊 Generate Report")
+        generate_btn.clicked.connect(self._show_student_reports)
+        generate_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+                opacity: 0.9;
+            }}
+        """)
+        
+        actions_layout.addWidget(generate_btn)
+        actions_layout.addStretch()
+        
+        card_layout.addLayout(actions_layout)
+        
+        layout.addWidget(content_card)
+        layout.addStretch()
+        
+        return scroll_widget
+
+    def _create_custom_reports_view(self) -> QWidget:
+        """Create the custom reports content view."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+        
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
+        
+        # Header
+        header = QLabel("📊 Custom Reports")
+        header.setStyleSheet(f"""
+            font-size: 28px;
+            font-weight: bold;
+            color: {theme["text"]};
+            margin-bottom: 16px;
+        """)
+        layout.addWidget(header)
+        
+        # Content placeholder
+        content_card = QFrame()
+        content_card.setProperty("contentCard", "true")
+        content_card.setStyleSheet(f"""
+            QFrame[contentCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 32px;
+            }}
+        """)
+        
+        card_layout = QVBoxLayout(content_card)
+        
+        placeholder_label = QLabel("Custom reports interface will be displayed here.\n\nCreate and generate custom reports across all data.")
+        placeholder_label.setStyleSheet(f"""
+            font-size: 16px;
+            color: {theme["text_secondary"]};
+            text-align: center;
+        """)
+        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(placeholder_label)
+        
+        # Action buttons
+        actions_layout = QHBoxLayout()
+        actions_layout.setSpacing(12)
+        
+        generate_btn = QPushButton("📊 Generate Report")
+        generate_btn.clicked.connect(self._show_custom_reports)
+        generate_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme["primary"]};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary"]};
+                opacity: 0.9;
+            }}
+        """)
+        
+        actions_layout.addWidget(generate_btn)
+        actions_layout.addStretch()
+        
+        card_layout.addLayout(actions_layout)
+        
+        layout.addWidget(content_card)
+        layout.addStretch()
+        
         return scroll_widget
 
     def _on_content_changed(self, content_id: str):
@@ -3003,21 +3449,23 @@ For additional support, contact your system administrator.
     def _show_students(self):
         """Show view students window."""
         try:
-            from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
             window = ViewStudentsWindow(self, self.username, self.role)
             window.show()
+            logger.info(f"View students window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open students window: {str(e)}")
+            logger.error(f"Error opening view students window: {str(e)}")
     
     def _add_student(self):
         """Show add student window."""
         try:
-            from school_system.gui.windows.student_window.add_student_window import AddStudentWindow
             window = AddStudentWindow(self, self.username, self.role)
             window.student_added.connect(lambda: logger.info("Student added, refresh if needed"))
             window.show()
+            logger.info(f"Add student window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open add student window: {str(e)}")
+            logger.error(f"Error opening add student window: {str(e)}")
     
     def _manage_students(self):
         """Show view students window (same as _show_students)."""
@@ -3030,11 +3478,12 @@ For additional support, contact your system administrator.
     def _show_edit_student(self):
         """Show edit student window."""
         try:
-            from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
             window = EditStudentWindow(self, self.username, self.role)
             window.show()
+            logger.info(f"Edit student window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open edit student window: {str(e)}")
+            logger.error(f"Error opening edit student window: {str(e)}")
     
     def _show_teachers(self):
         """Show teacher management window."""
@@ -3051,7 +3500,8 @@ For additional support, contact your system administrator.
     def _show_teacher_management(self):
         """Show the teacher management window."""
         try:
-            teacher_window = TeacherWindow(self, self.username, self.role)
+            from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
+            teacher_window = ViewTeachersWindow(self, self.username, self.role)
             teacher_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open teacher management: {str(e)}")
@@ -3068,7 +3518,6 @@ For additional support, contact your system administrator.
     def _show_teacher_import_export(self):
         """Show teacher import/export window."""
         try:
-            from school_system.gui.windows.teacher_window.teacher_import_export_window import TeacherImportExportWindow
             window = TeacherImportExportWindow(self, self.username, self.role)
             window.show()
         except Exception as e:
@@ -3123,6 +3572,27 @@ For additional support, contact your system administrator.
             book_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open book management: {str(e)}")
+            logger.error(f"Error opening book management window: {str(e)}")
+
+    def _show_distribution(self):
+        """Show distribution window."""
+        try:
+            from school_system.gui.windows.book_window.distribution_window import DistributionWindow
+            distribution_window = DistributionWindow(self, self.username, self.role)
+            distribution_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open distribution window: {str(e)}")
+            logger.error(f"Error opening distribution window: {str(e)}")
+
+    def _show_book_import_export(self):
+        """Show book import/export window."""
+        try:
+            from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
+            import_export_window = BookImportExportWindow(self, self.username, self.role)
+            import_export_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open book import/export window: {str(e)}")
+            logger.error(f"Error opening book import/export window: {str(e)}")
 
     def _show_borrow_book(self):
         """Show borrow book window."""
@@ -3166,8 +3636,10 @@ For additional support, contact your system administrator.
             from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
             window = ManageFurnitureWindow(self, self.username, self.role)
             window.show()
+            logger.info(f"Furniture management window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open furniture management: {str(e)}")
+            logger.error(f"Error opening furniture management window: {str(e)}")
     
     def _show_furniture_assignments(self):
         """Show furniture assignments window."""
@@ -3175,8 +3647,10 @@ For additional support, contact your system administrator.
             from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
             window = FurnitureAssignmentsWindow(self, self.username, self.role)
             window.show()
+            logger.info(f"Furniture assignments window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open furniture assignments: {str(e)}")
+            logger.error(f"Error opening furniture assignments window: {str(e)}")
     
     def _show_furniture_maintenance(self):
         """Show furniture maintenance window."""
@@ -3184,13 +3658,14 @@ For additional support, contact your system administrator.
             from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
             window = FurnitureMaintenanceWindow(self, self.username, self.role)
             window.show()
+            logger.info(f"Furniture maintenance window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open furniture maintenance: {str(e)}")
+            logger.error(f"Error opening furniture maintenance window: {str(e)}")
     
     def _show_book_reports(self):
         """Show book reports window."""
         try:
-            from school_system.gui.windows.report_window.book_reports_window import BookReportsWindow
             window = BookReportsWindow(self, self.username, self.role)
             window.show()
         except Exception as e:
@@ -3199,7 +3674,6 @@ For additional support, contact your system administrator.
     def _show_student_reports(self):
         """Show student reports window."""
         try:
-            from school_system.gui.windows.report_window.student_reports_window import StudentReportsWindow
             window = StudentReportsWindow(self, self.username, self.role)
             window.show()
         except Exception as e:
@@ -3208,7 +3682,6 @@ For additional support, contact your system administrator.
     def _show_custom_reports(self):
         """Show custom reports window."""
         try:
-            from school_system.gui.windows.report_window.custom_reports_window import CustomReportsWindow
             window = CustomReportsWindow(self, self.username, self.role)
             window.show()
         except Exception as e:
@@ -3277,11 +3750,12 @@ Developed for efficient school administration."""
     def _show_ream_management_window(self):
         """Show the ream management window."""
         try:
-            from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
             window = ReamManagementWindow(self, self.username, self.role)
             window.show()
+            logger.info(f"Ream management window opened by user {self.username}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open ream management: {str(e)}")
+            logger.error(f"Error opening ream management window: {str(e)}")
     
     def closeEvent(self, event):
         """Handle window closing."""
