@@ -16,6 +16,15 @@ from typing import Callable, Dict, Any
 from school_system.config.logging import logger
 from school_system.gui.base.base_window import BaseApplicationWindow
 from school_system.gui.windows.user_window.user_window import UserWindow
+from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
+from school_system.gui.windows.user_window.add_user_window import AddUserWindow
+from school_system.gui.windows.user_window.edit_user_window import EditUserWindow
+from school_system.gui.windows.user_window.delete_user_window import DeleteUserWindow
+from school_system.gui.windows.user_window.user_settings_window import UserSettingsWindow
+from school_system.gui.windows.user_window.short_form_mappings_window import ShortFormMappingsWindow
+from school_system.gui.windows.user_window.user_sessions_window import UserSessionsWindow
+from school_system.gui.windows.user_window.user_activity_window import UserActivityWindow
+from school_system.gui.windows.user_window.user_validation import UserValidator
 from school_system.gui.windows.book_window import (
     BookWindow,
     BookAddWorkflow,
@@ -201,6 +210,52 @@ class MainWindow(BaseApplicationWindow):
         sidebar_layout.addWidget(dashboard_btn)
         sidebar_layout.addSpacing(12)
 
+        # Furniture Management buttons
+        furniture_btn = QToolButton()
+        furniture_btn.setText("🪑 Furniture Management")
+        furniture_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        furniture_btn.setStyleSheet(f"""
+            QToolButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                font-weight: 500;
+                border-radius: 10px;
+                margin: 2px 10px;
+                padding: 12px 20px;
+                font-size: 13px;
+                border: 1px solid {theme["border"]};
+            }}
+            QToolButton:hover {{
+                background-color: {theme["surface_hover"]};
+                color: {role_color};
+            }}
+        """)
+        furniture_btn.clicked.connect(lambda: self._load_content("manage_furniture"))
+        sidebar_layout.addWidget(furniture_btn)
+
+        # User Management buttons
+        user_btn = QToolButton()
+        user_btn.setText("👥 User Management")
+        user_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        user_btn.setStyleSheet(f"""
+            QToolButton {{
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                font-weight: 500;
+                border-radius: 10px;
+                margin: 2px 10px;
+                padding: 12px 20px;
+                font-size: 13px;
+                border: 1px solid {theme["border"]};
+            }}
+            QToolButton:hover {{
+                background-color: {theme["surface_hover"]};
+                color: {role_color};
+            }}
+        """)
+        user_btn.clicked.connect(lambda: self._load_content("manage_users"))
+        sidebar_layout.addWidget(user_btn)
+
         sidebar_layout.addSpacing(16)
 
         # Core Management Sections with Dropdown Menus
@@ -255,6 +310,13 @@ class MainWindow(BaseApplicationWindow):
                 "menu_items": [
                     ("👤 Manage Users", "manage_users"),
                     ("👁️ View Users", "view_users"),
+                    ("➕ Add User", "add_user"),
+                    ("✏️ Edit User", "edit_user"),
+                    ("🗑️ Delete User", "delete_user"),
+                    ("⚙️ User Settings", "user_settings"),
+                    ("🔤 Short Form Mappings", "short_form_mappings"),
+                    ("🔐 User Sessions", "user_sessions"),
+                    ("📊 User Activity", "user_activity"),
                 ]
             },
             {
@@ -728,6 +790,14 @@ class MainWindow(BaseApplicationWindow):
             "edit_teacher": lambda: self._create_edit_teacher_view(),
             "teacher_import_export": lambda: self._create_teacher_import_export_view(),
             "manage_users": lambda: self._create_manage_users_view(),
+            "view_users": lambda: self._create_view_users_view(),
+            "add_user": lambda: self._create_add_user_view(),
+            "edit_user": lambda: self._create_edit_user_view(),
+            "delete_user": lambda: self._create_delete_user_view(),
+            "user_settings": lambda: self._create_user_settings_view(),
+            "short_form_mappings": lambda: self._create_short_form_mappings_view(),
+            "user_sessions": lambda: self._create_user_sessions_view(),
+            "user_activity": lambda: self._create_user_activity_view(),
             "settings": lambda: self._create_settings_view(),
             "help": lambda: self._create_help_view(),
             "manage_furniture": lambda: self._create_manage_furniture_view(),
@@ -752,6 +822,26 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             logger.error(f"Unexpected error loading furniture module: {str(e)}")
             QMessageBox.critical(self, "Error", f"Unexpected error loading furniture module: {str(e)}")
+
+        # Add error handling for user windows
+        try:
+            # Verify that all user windows can be imported
+            from school_system.gui.windows.user_window.user_window import UserWindow
+            from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
+            from school_system.gui.windows.user_window.add_user_window import AddUserWindow
+            from school_system.gui.windows.user_window.edit_user_window import EditUserWindow
+            from school_system.gui.windows.user_window.delete_user_window import DeleteUserWindow
+            from school_system.gui.windows.user_window.user_settings_window import UserSettingsWindow
+            from school_system.gui.windows.user_window.short_form_mappings_window import ShortFormMappingsWindow
+            from school_system.gui.windows.user_window.user_sessions_window import UserSessionsWindow
+            from school_system.gui.windows.user_window.user_activity_window import UserActivityWindow
+            logger.info("All user windows imported successfully")
+        except ImportError as e:
+            logger.error(f"Failed to import user windows: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load user module: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error loading user module: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Unexpected error loading user module: {str(e)}")
 
         # Add error handling for student windows
         try:
@@ -1642,51 +1732,102 @@ class MainWindow(BaseApplicationWindow):
 
     def _create_manage_users_view(self) -> QWidget:
         """Create the manage users content view."""
-        theme_manager = self.get_theme_manager()
-        theme = theme_manager._themes[self.get_theme()]
+        try:
+            window = UserWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open user management window: {str(e)}")
+            logger.error(f"Error opening user management window: {str(e)}")
+            return self._create_default_view("manage_users", theme, role_color)
 
-        scroll_widget = QWidget()
-        layout = QVBoxLayout(scroll_widget)
-        layout.setContentsMargins(32, 32, 32, 32)
-        layout.setSpacing(20)
+    def _create_view_users_view(self) -> QWidget:
+        """Create the view users content view."""
+        try:
+            window = ViewUsersWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open view users window: {str(e)}")
+            logger.error(f"Error opening view users window: {str(e)}")
+            return self._create_default_view("view_users", theme, role_color)
 
-        # Header
-        header = QLabel("👥 User Management")
-        header.setStyleSheet(f"""
-            font-size: 28px;
-            font-weight: bold;
-            color: {theme["text"]};
-            margin-bottom: 16px;
-        """)
-        layout.addWidget(header)
+    def _create_add_user_view(self) -> QWidget:
+        """Create the add user content view."""
+        try:
+            window = AddUserWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open add user window: {str(e)}")
+            logger.error(f"Error opening add user window: {str(e)}")
+            return self._create_default_view("add_user", theme, role_color)
 
-        # Content placeholder
-        content_card = QFrame()
-        content_card.setProperty("contentCard", "true")
-        content_card.setStyleSheet(f"""
-            QFrame[contentCard="true"] {{
-                background-color: {theme["surface"]};
-                border-radius: 12px;
-                border: 1px solid {theme["border"]};
-                padding: 32px;
-            }}
-        """)
+    def _create_edit_user_view(self) -> QWidget:
+        """Create the edit user content view."""
+        try:
+            window = EditUserWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open edit user window: {str(e)}")
+            logger.error(f"Error opening edit user window: {str(e)}")
+            return self._create_default_view("edit_user", theme, role_color)
 
-        card_layout = QVBoxLayout(content_card)
+    def _create_delete_user_view(self) -> QWidget:
+        """Create the delete user content view."""
+        try:
+            window = DeleteUserWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open delete user window: {str(e)}")
+            logger.error(f"Error opening delete user window: {str(e)}")
+            return self._create_default_view("delete_user", theme, role_color)
 
-        placeholder = QLabel("User management interface will be displayed here.\n\nManage user accounts, roles, and permissions.")
-        placeholder.setStyleSheet(f"""
-            font-size: 16px;
-            color: {theme["text_secondary"]};
-            text-align: center;
-        """)
-        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        card_layout.addWidget(placeholder)
+    def _create_user_settings_view(self) -> QWidget:
+        """Create the user settings content view."""
+        try:
+            window = UserSettingsWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open user settings window: {str(e)}")
+            logger.error(f"Error opening user settings window: {str(e)}")
+            return self._create_default_view("user_settings", theme, role_color)
 
-        layout.addWidget(content_card)
-        layout.addStretch()
+    def _create_short_form_mappings_view(self) -> QWidget:
+        """Create the short form mappings content view."""
+        try:
+            window = ShortFormMappingsWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open short form mappings window: {str(e)}")
+            logger.error(f"Error opening short form mappings window: {str(e)}")
+            return self._create_default_view("short_form_mappings", theme, role_color)
 
-        return scroll_widget
+    def _create_user_sessions_view(self) -> QWidget:
+        """Create the user sessions content view."""
+        try:
+            window = UserSessionsWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open user sessions window: {str(e)}")
+            logger.error(f"Error opening user sessions window: {str(e)}")
+            return self._create_default_view("user_sessions", theme, role_color)
+
+    def _create_user_activity_view(self) -> QWidget:
+        """Create the user activity content view."""
+        try:
+            window = UserActivityWindow(self, self.username, self.role)
+            window.show()
+            return QWidget()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open user activity window: {str(e)}")
+            logger.error(f"Error opening user activity window: {str(e)}")
+            return self._create_default_view("user_activity", theme, role_color)
 
     def _create_settings_view(self) -> QWidget:
         """Create the settings content view."""
