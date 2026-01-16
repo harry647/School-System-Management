@@ -140,6 +140,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         
         # Ream entries table
         self.ream_table = self.create_table(0, 4)
+        self.ream_table.setColumnCount(4)
         self.ream_table.setHorizontalHeaderLabels(["Student ID", "Student Name", "Reams Count", "Date Added"])
         self.ream_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.ream_table.setAlternatingRowColors(True)

@@ -182,6 +182,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Current borrows table
         self.current_borrows_table = self.create_table(0, 5)
+        self.current_borrows_table.setColumnCount(5)
         self.current_borrows_table.setHorizontalHeaderLabels(["Student ID", "Book Title", "Borrow Date", "Due Date", "Status"])
         self.current_borrows_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.current_borrows_table.setAlternatingRowColors(True)
@@ -267,6 +268,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Overdue books table
         self.overdue_table = self.create_table(0, 6)
+        self.overdue_table.setColumnCount(6)
         self.overdue_table.setHorizontalHeaderLabels(["Student ID", "Book Title", "Borrow Date", "Due Date", "Days Overdue", "Fine"])
         self.overdue_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.overdue_table.setAlternatingRowColors(True)
@@ -353,6 +355,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # History table
         self.history_table = self.create_table(0, 6)
+        self.history_table.setColumnCount(6)
         self.history_table.setHorizontalHeaderLabels(["Student ID", "Book Title", "Activity", "Date", "Due Date", "Return Date"])
         self.history_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.history_table.setAlternatingRowColors(True)

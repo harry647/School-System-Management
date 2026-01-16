@@ -167,6 +167,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         
         # Borrowed books table
         self.borrowed_books_table = self.create_table(0, 5)
+        self.borrowed_books_table.setColumnCount(5)
         self.borrowed_books_table.setHorizontalHeaderLabels([
             "User ID", "User Type", "Book ID", "Borrowed Date", "Status"
         ])

@@ -253,6 +253,7 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         # Students table
         self.class_students_table = self.create_table(0, 3)
+        self.class_students_table.setColumnCount(3)
         self.class_students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream"])
         self.class_students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.class_students_table.setAlternatingRowColors(True)
@@ -457,10 +458,11 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
         dialog = ConfirmationDialog(
-            self,
-            "Delete Class",
-            f"Are you sure you want to delete class '{class_info['name']}'?",
-            "This will remove all student enrollments for this class."
+            title="Delete Class",
+            message=f"Are you sure you want to delete class '{class_info['name']}'?\n\nThis will remove all student enrollments for this class.",
+            parent=self,
+            confirm_text="Delete",
+            cancel_text="Cancel"
         )
 
         if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:
@@ -534,10 +536,11 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
         dialog = ConfirmationDialog(
-            self,
-            "Remove Student",
-            f"Are you sure you want to remove student {student_id} from this class?",
-            "The student will no longer be enrolled in this class."
+            title="Remove Student",
+            message=f"Are you sure you want to remove student {student_id} from this class?\n\nThe student will no longer be enrolled in this class.",
+            parent=self,
+            confirm_text="Remove",
+            cancel_text="Cancel"
         )
 
         if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:

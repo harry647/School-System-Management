@@ -146,6 +146,7 @@ class ViewBooksWindow(BaseFunctionWindow):
         
         # Books table
         self.books_table = self.create_table(0, 8)
+        self.books_table.setColumnCount(8)
         self.books_table.setHorizontalHeaderLabels([
             "Book ID", "Title", "Author", "ISBN", "Subject", "Class", "Condition", "Status"
         ])
@@ -251,10 +252,11 @@ class ViewBooksWindow(BaseFunctionWindow):
         book_id = self.books_table.item(selected_rows[0].row(), 0).text()
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
         dialog = ConfirmationDialog(
-            self,
-            "Delete Book",
-            f"Are you sure you want to delete book {book_id}?",
-            "This action cannot be undone."
+            title="Delete Book",
+            message=f"Are you sure you want to delete book {book_id}?\n\nThis action cannot be undone.",
+            parent=self,
+            confirm_text="Delete",
+            cancel_text="Cancel"
         )
         
         if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:

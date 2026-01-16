@@ -186,6 +186,7 @@ class DistributionWindow(BaseFunctionWindow):
         
         # Sessions table
         self.sessions_table = self.create_table(0, 5)
+        self.sessions_table.setColumnCount(5)
         self.sessions_table.setHorizontalHeaderLabels([
             "Session ID", "Class", "Stream", "Term", "Date"
         ])

@@ -256,10 +256,11 @@ class ViewStudentsWindow(BaseFunctionWindow):
         student_id = self.students_table.item(selected_rows[0].row(), 0).text()
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
         dialog = ConfirmationDialog(
-            self,
-            "Delete Student",
-            f"Are you sure you want to delete student {student_id}?",
-            "This action cannot be undone."
+            title="Delete Student",
+            message=f"Are you sure you want to delete student {student_id}?\n\nThis action cannot be undone.",
+            parent=self,
+            confirm_text="Delete",
+            cancel_text="Cancel"
         )
         
         if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:

@@ -124,6 +124,7 @@ class ManageFurnitureWindow(BaseFunctionWindow):
         
         # Furniture table
         self.furniture_table = self.create_table(0, 5)
+        self.furniture_table.setColumnCount(5)
         self.furniture_table.setHorizontalHeaderLabels(["Furniture ID", "Type", "Location", "Status", "Assigned To"])
         self.furniture_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.furniture_table.setAlternatingRowColors(True)

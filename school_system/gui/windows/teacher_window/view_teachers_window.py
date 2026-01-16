@@ -125,6 +125,7 @@ class ViewTeachersWindow(BaseFunctionWindow):
         
         # Teachers table
         self.teachers_table = self.create_table(0, 5)
+        self.teachers_table.setColumnCount(5)  # Ensure columns are set
         self.teachers_table.setHorizontalHeaderLabels(["Teacher ID", "Name", "Department", "Email", "Phone"])
         self.teachers_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.teachers_table.setAlternatingRowColors(True)
@@ -198,10 +199,11 @@ class ViewTeachersWindow(BaseFunctionWindow):
         teacher_id = self.teachers_table.item(selected_rows[0].row(), 0).text()
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
         dialog = ConfirmationDialog(
-            self,
-            "Delete Teacher",
-            f"Are you sure you want to delete teacher {teacher_id}?",
-            "This action cannot be undone."
+            title="Delete Teacher",
+            message=f"Are you sure you want to delete teacher {teacher_id}?\n\nThis action cannot be undone.",
+            parent=self,
+            confirm_text="Delete",
+            cancel_text="Cancel"
         )
         
         if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:

@@ -155,6 +155,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         
         # Maintenance table
         self.maintenance_table = self.create_table(0, 4)
+        self.maintenance_table.setColumnCount(4)
         self.maintenance_table.setHorizontalHeaderLabels(["Furniture ID", "Type", "Date", "Notes"])
         self.maintenance_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.maintenance_table.setAlternatingRowColors(True)

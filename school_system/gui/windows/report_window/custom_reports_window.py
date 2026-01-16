@@ -131,6 +131,7 @@ class CustomReportsWindow(BaseFunctionWindow):
         
         # Results table
         self.results_table = self.create_table(0, 5)
+        self.results_table.setColumnCount(5)
         self.results_table.setHorizontalHeaderLabels(["ID", "Name", "Type", "Status", "Details"])
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)

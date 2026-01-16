@@ -132,6 +132,7 @@ class ViewUsersWindow(BaseFunctionWindow):
         
         # Users table
         self.users_table = self.create_table(0, 3)
+        self.users_table.setColumnCount(3)  # Ensure columns are set
         self.users_table.setHorizontalHeaderLabels(["Username", "Role", "Status"])
         self.users_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.users_table.setAlternatingRowColors(True)

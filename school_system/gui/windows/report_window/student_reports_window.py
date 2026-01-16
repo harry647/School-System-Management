@@ -137,6 +137,7 @@ class StudentReportsWindow(BaseFunctionWindow):
         
         # Results table
         self.results_table = self.create_table(0, 4)
+        self.results_table.setColumnCount(4)
         self.results_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream", "Details"])
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)

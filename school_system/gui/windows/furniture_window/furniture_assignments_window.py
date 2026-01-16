@@ -143,6 +143,7 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         
         # Assignments table
         self.assignments_table = self.create_table(0, 4)
+        self.assignments_table.setColumnCount(4)
         self.assignments_table.setHorizontalHeaderLabels(["Furniture ID", "User ID", "Assigned Date", "Status"])
         self.assignments_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.assignments_table.setAlternatingRowColors(True)
