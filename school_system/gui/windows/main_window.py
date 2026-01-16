@@ -2095,101 +2095,1526 @@ class MainWindow(BaseApplicationWindow):
     def _create_manage_users_view(self) -> QWidget:
         """Create the manage users content view."""
         try:
-            window = UserWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Import the user window logic but create content widget instead of window
+            from school_system.gui.windows.user_window.user_window import UserWindow
+
+            # Create a container widget for the user management interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create user management content using UserWindow logic but adapted for content view
+            user_window_content = self._create_user_management_content()
+            layout.addWidget(user_window_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open user management window: {str(e)}")
-            logger.error(f"Error opening user management window: {str(e)}")
-            return self._create_default_view("manage_users", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load user management interface: {str(e)}")
+            logger.error(f"Error loading user management interface: {str(e)}")
+            return self._create_default_view("manage_users", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_user_management_content(self) -> QWidget:
+        """Create the user management navigation content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            # Create main content layout
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header section
+            header = self._create_user_management_header(theme)
+            main_layout.addWidget(header)
+
+            # Function cards grid
+            cards_grid = self._create_user_function_cards(theme)
+            main_layout.addWidget(cards_grid)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating user management content: {str(e)}")
+            # Return a simple error message widget
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading user management interface")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_user_management_header(self, theme) -> QWidget:
+        """Create the header section for user management."""
+        header = QWidget()
+        header_layout = QVBoxLayout(header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
+
+        # Title
+        title = QLabel("User Management Center")
+        title_font = QFont()
+        title_font.setPointSize(24)
+        title_font.setBold(True)
+        title.setFont(title_font)
+        title.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
+        header_layout.addWidget(title)
+
+        # Subtitle
+        subtitle = QLabel(f"Welcome, {self.username} ({self.role})")
+        subtitle_font = QFont()
+        subtitle_font.setPointSize(14)
+        subtitle.setFont(subtitle_font)
+        subtitle.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 16px;")
+        header_layout.addWidget(subtitle)
+
+        # Description
+        description = QLabel(
+            "Manage user accounts, settings, sessions, and activity logs. "
+            "Click on any function below to open the dedicated management interface."
+        )
+        description.setStyleSheet(f"color: {theme['text_secondary']};")
+        description.setWordWrap(True)
+        header_layout.addWidget(description)
+
+        return header
+
+    def _create_user_function_cards(self, theme) -> QWidget:
+        """Create a grid of function cards for user management navigation."""
+        container = QWidget()
+        grid_layout = QGridLayout(container)
+        grid_layout.setContentsMargins(0, 0, 0, 0)
+        grid_layout.setSpacing(16)
+
+        # Row 1: User Management functions
+        grid_layout.addWidget(self._create_user_function_card(
+            "👥 Manage Users", "View, add, edit, and delete user accounts",
+            lambda: self._load_content("view_users"), theme
+        ), 0, 0)
+
+        grid_layout.addWidget(self._create_user_function_card(
+            "➕ Add User", "Create new user accounts with roles",
+            lambda: self._load_content("add_user"), theme
+        ), 0, 1)
+
+        grid_layout.addWidget(self._create_user_function_card(
+            "✏️ Edit User", "Update user roles and permissions",
+            lambda: self._load_content("edit_user"), theme
+        ), 0, 2)
+
+        grid_layout.addWidget(self._create_user_function_card(
+            "🗑️ Delete User", "Remove user accounts permanently",
+            lambda: self._load_content("delete_user"), theme
+        ), 0, 3)
+
+        # Row 2: Settings and mappings
+        grid_layout.addWidget(self._create_user_function_card(
+            "⚙️ User Settings", "Manage user preferences and notifications",
+            lambda: self._load_content("user_settings"), theme
+        ), 1, 0)
+
+        grid_layout.addWidget(self._create_user_function_card(
+            "🔤 Short Forms", "Manage short form mappings",
+            lambda: self._load_content("short_form_mappings"), theme
+        ), 1, 1)
+
+        grid_layout.addWidget(self._create_user_function_card(
+            "🔐 Sessions", "Manage user login sessions",
+            lambda: self._load_content("user_sessions"), theme
+        ), 1, 2)
+
+        grid_layout.addWidget(self._create_user_function_card(
+            "📊 Activity Logs", "Track user actions and activities",
+            lambda: self._load_content("user_activity"), theme
+        ), 1, 3)
+
+        return container
+
+    def _create_user_function_card(self, title: str, description: str, callback, theme) -> QWidget:
+        """Create a function navigation card."""
+        card = QWidget()
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(20, 20, 20, 20)
+        card_layout.setSpacing(12)
+
+        # Apply card styling
+        card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                min-height: 120px;
+            }}
+
+            QWidget:hover {{
+                background-color: {theme["surface_hover"]};
+                border-color: {theme["primary"]};
+            }}
+        """)
+
+        # Make card clickable
+        card.mousePressEvent = lambda event: callback()
+
+        # Title
+        title_label = QLabel(title)
+        title_font = QFont()
+        title_font.setPointSize(16)
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        title_label.setStyleSheet(f"color: {theme['text']};")
+        card_layout.addWidget(title_label)
+
+        # Description
+        desc_label = QLabel(description)
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']};")
+        desc_label.setWordWrap(True)
+        card_layout.addWidget(desc_label)
+
+        card_layout.addStretch()
+
+        return card
 
     def _create_view_users_view(self) -> QWidget:
         """Create the view users content view."""
         try:
-            window = ViewUsersWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the view users interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(16)
+
+            # Create view users content
+            view_users_content = self._create_view_users_content()
+            layout.addWidget(view_users_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open view users window: {str(e)}")
-            logger.error(f"Error opening view users window: {str(e)}")
-            return self._create_default_view("view_users", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load view users interface: {str(e)}")
+            logger.error(f"Error loading view users interface: {str(e)}")
+            return self._create_default_view("view_users", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_view_users_content(self) -> QWidget:
+        """Create the view users content widget."""
+        try:
+            from school_system.services.auth_service import AuthService
+
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(16)
+
+            # Action bar
+            action_bar = self._create_view_users_action_bar(theme)
+            main_layout.addWidget(action_bar)
+
+            # Users table
+            users_table = self._create_view_users_table(theme)
+            main_layout.addWidget(users_table, stretch=1)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating view users content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading users view")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_view_users_action_bar(self, theme) -> QWidget:
+        """Create the action bar for view users."""
+        action_card = QWidget()
+        action_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 16px;
+            }}
+        """)
+
+        action_layout = QHBoxLayout(action_card)
+        action_layout.setContentsMargins(16, 16, 16, 16)
+        action_layout.setSpacing(12)
+
+        # Search box
+        self.view_users_search_box = QLineEdit()
+        self.view_users_search_box.setPlaceholderText("Search users by username or role...")
+        self.view_users_search_box.setMinimumWidth(300)
+        self.view_users_search_box.textChanged.connect(self._on_view_users_search)
+        action_layout.addWidget(self.view_users_search_box)
+
+        # Role filter
+        self.view_users_role_filter = QComboBox()
+        self.view_users_role_filter.addItem("All Roles")
+        self.view_users_role_filter.addItems(["admin", "librarian", "teacher", "student"])
+        self.view_users_role_filter.setMinimumWidth(150)
+        self.view_users_role_filter.currentTextChanged.connect(self._on_view_users_filter_changed)
+        action_layout.addWidget(self.view_users_role_filter)
+
+        action_layout.addStretch()
+
+        # Action buttons
+        add_btn = QPushButton("➕ Add User")
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["primary"]};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+            }}
+        """)
+        add_btn.clicked.connect(lambda: self._load_content("add_user"))
+        action_layout.addWidget(add_btn)
+
+        refresh_btn = QPushButton("🔄 Refresh")
+        refresh_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        refresh_btn.clicked.connect(self._refresh_view_users_table)
+        action_layout.addWidget(refresh_btn)
+
+        return action_card
+
+    def _create_view_users_table(self, theme) -> QWidget:
+        """Create the users table."""
+        table_card = QWidget()
+        table_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        table_layout = QVBoxLayout(table_card)
+
+        # Create table
+        self.view_users_table = QTableWidget()
+        self.view_users_table.setColumnCount(5)
+        self.view_users_table.setHorizontalHeaderLabels(["Username", "Role", "Created Date", "Last Login", "Actions"])
+
+        # Table styling
+        self.view_users_table.setStyleSheet(f"""
+            QTableWidget {{
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                background-color: {theme["surface"]};
+                gridline-color: {theme["border"]};
+            }}
+
+            QHeaderView::section {{
+                background-color: {theme["surface"]};
+                padding: 12px 16px;
+                border: none;
+                border-bottom: 2px solid {theme["border"]};
+                font-weight: 600;
+                font-size: 13px;
+                color: {theme["text"]};
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+
+            QTableWidget::item {{
+                padding: 8px 12px;
+                border-bottom: 1px solid {theme["border"]};
+            }}
+
+            QTableWidget::item:selected {{
+                background-color: {theme["primary"]};
+                color: white;
+            }}
+
+            QTableWidget::item:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        # Set column widths
+        self.view_users_table.setColumnWidth(0, 150)  # Username
+        self.view_users_table.setColumnWidth(1, 120)  # Role
+        self.view_users_table.setColumnWidth(2, 150)  # Created Date
+        self.view_users_table.setColumnWidth(3, 150)  # Last Login
+        self.view_users_table.setColumnWidth(4, 200)  # Actions
+
+        table_layout.addWidget(self.view_users_table)
+
+        # Load initial data
+        self._refresh_view_users_table()
+
+        return table_card
+
+    def _on_view_users_search(self, text: str):
+        """Handle search text changes for view users."""
+        self._filter_view_users_table()
+
+    def _on_view_users_filter_changed(self, role: str):
+        """Handle role filter changes for view users."""
+        self._filter_view_users_table()
+
+    def _refresh_view_users_table(self):
+        """Refresh the view users table with current data."""
+        try:
+            from school_system.services.auth_service import AuthService
+
+            auth_service = AuthService()
+            users = auth_service.get_all_users()
+
+            self.view_users_table.setRowCount(len(users))
+
+            for row, user in enumerate(users):
+                # Username
+                username_item = QTableWidgetItem(user.get('username', ''))
+                username_item.setFlags(username_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.view_users_table.setItem(row, 0, username_item)
+
+                # Role
+                role_item = QTableWidgetItem(user.get('role', ''))
+                role_item.setFlags(role_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.view_users_table.setItem(row, 1, role_item)
+
+                # Created Date
+                created_date = user.get('created_at', '')
+                if created_date:
+                    try:
+                        # Format the date if it's a datetime object
+                        if hasattr(created_date, 'strftime'):
+                            created_date = created_date.strftime('%Y-%m-%d %H:%M')
+                    except:
+                        pass
+                created_item = QTableWidgetItem(str(created_date))
+                created_item.setFlags(created_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.view_users_table.setItem(row, 2, created_item)
+
+                # Last Login
+                last_login = user.get('last_login', '')
+                if last_login:
+                    try:
+                        # Format the date if it's a datetime object
+                        if hasattr(last_login, 'strftime'):
+                            last_login = last_login.strftime('%Y-%m-%d %H:%M')
+                    except:
+                        pass
+                login_item = QTableWidgetItem(str(last_login))
+                login_item.setFlags(login_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.view_users_table.setItem(row, 3, login_item)
+
+                # Actions
+                actions_widget = QWidget()
+                actions_layout = QHBoxLayout(actions_widget)
+                actions_layout.setContentsMargins(4, 4, 4, 4)
+                actions_layout.setSpacing(8)
+
+                edit_btn = QPushButton("Edit")
+                edit_btn.setFixedSize(60, 30)
+                edit_btn.clicked.connect(lambda checked, u=user: self._edit_user(u))
+                actions_layout.addWidget(edit_btn)
+
+                delete_btn = QPushButton("Delete")
+                delete_btn.setFixedSize(60, 30)
+                delete_btn.clicked.connect(lambda checked, u=user: self._delete_user(u))
+                actions_layout.addWidget(delete_btn)
+
+                actions_layout.addStretch()
+                self.view_users_table.setCellWidget(row, 4, actions_widget)
+
+            # Apply current filters
+            self._filter_view_users_table()
+
+        except Exception as e:
+            logger.error(f"Error refreshing view users table: {str(e)}")
+            QMessageBox.warning(self, "Error", f"Failed to refresh users table: {str(e)}")
+
+    def _filter_view_users_table(self):
+        """Filter the view users table based on search and role filter."""
+        try:
+            search_text = self.view_users_search_box.text().lower()
+            role_filter = self.view_users_role_filter.currentText()
+
+            for row in range(self.view_users_table.rowCount()):
+                show_row = True
+
+                # Search filter
+                if search_text:
+                    username = self.view_users_table.item(row, 0).text().lower()
+                    role = self.view_users_table.item(row, 1).text().lower()
+                    if search_text not in username and search_text not in role:
+                        show_row = False
+
+                # Role filter
+                if role_filter != "All Roles":
+                    table_role = self.view_users_table.item(row, 1).text()
+                    if table_role != role_filter:
+                        show_row = False
+
+                self.view_users_table.setRowHidden(row, not show_row)
+
+        except Exception as e:
+            logger.error(f"Error filtering view users table: {str(e)}")
+
+    def _edit_user(self, user):
+        """Handle editing a user."""
+        try:
+            # Store the user to edit and switch to edit view
+            self.selected_user_for_edit = user
+            self._load_content("edit_user")
+        except Exception as e:
+            logger.error(f"Error initiating user edit: {str(e)}")
+            QMessageBox.warning(self, "Error", f"Failed to open edit user: {str(e)}")
+
+    def _delete_user(self, user):
+        """Handle deleting a user."""
+        try:
+            # Store the user to delete and switch to delete view
+            self.selected_user_for_delete = user
+            self._load_content("delete_user")
+        except Exception as e:
+            logger.error(f"Error initiating user delete: {str(e)}")
+            QMessageBox.warning(self, "Error", f"Failed to open delete user: {str(e)}")
 
     def _create_add_user_view(self) -> QWidget:
         """Create the add user content view."""
         try:
-            window = AddUserWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the add user interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create add user content
+            add_user_content = self._create_add_user_content()
+            layout.addWidget(add_user_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open add user window: {str(e)}")
-            logger.error(f"Error opening add user window: {str(e)}")
-            return self._create_default_view("add_user", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load add user interface: {str(e)}")
+            logger.error(f"Error loading add user interface: {str(e)}")
+            return self._create_default_view("add_user", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_add_user_content(self) -> QWidget:
+        """Create the add user content widget."""
+        try:
+            from school_system.services.auth_service import AuthService
+            from school_system.gui.windows.user_window.user_validation import UserValidator
+
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("Add New User")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Form card
+            form_card = self._create_add_user_form(theme)
+            main_layout.addWidget(form_card)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating add user content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading add user form")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_add_user_form(self, theme) -> QWidget:
+        """Create the add user form."""
+        form_card = QWidget()
+        form_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        form_layout = QVBoxLayout(form_card)
+        form_layout.setSpacing(16)
+
+        # Username field
+        username_layout = QVBoxLayout()
+        username_label = QLabel("Username:")
+        username_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        username_layout.addWidget(username_label)
+
+        self.add_user_username = QLineEdit()
+        self.add_user_username.setPlaceholderText("Enter username")
+        self.add_user_username.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        username_layout.addWidget(self.add_user_username)
+        form_layout.addLayout(username_layout)
+
+        # Password field
+        password_layout = QVBoxLayout()
+        password_label = QLabel("Password:")
+        password_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        password_layout.addWidget(password_label)
+
+        self.add_user_password = QLineEdit()
+        self.add_user_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.add_user_password.setPlaceholderText("Enter password")
+        self.add_user_password.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        password_layout.addWidget(self.add_user_password)
+        form_layout.addLayout(password_layout)
+
+        # Confirm password field
+        confirm_password_layout = QVBoxLayout()
+        confirm_password_label = QLabel("Confirm Password:")
+        confirm_password_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        confirm_password_layout.addWidget(confirm_password_label)
+
+        self.add_user_confirm_password = QLineEdit()
+        self.add_user_confirm_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.add_user_confirm_password.setPlaceholderText("Confirm password")
+        self.add_user_confirm_password.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+        """)
+        confirm_password_layout.addWidget(self.add_user_confirm_password)
+        form_layout.addLayout(confirm_password_layout)
+
+        # Role field
+        role_layout = QVBoxLayout()
+        role_label = QLabel("Role:")
+        role_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        role_layout.addWidget(role_label)
+
+        self.add_user_role = QComboBox()
+        self.add_user_role.addItems(["student", "teacher", "librarian", "admin"])
+        self.add_user_role.setStyleSheet(f"""
+            QComboBox {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+            QComboBox:focus {{
+                border: 2px solid {theme["border_focus"]};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 4px solid {theme["text"]};
+                margin-right: 8px;
+            }}
+        """)
+        role_layout.addWidget(self.add_user_role)
+        form_layout.addLayout(role_layout)
+
+        form_layout.addStretch()
+
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        cancel_btn.clicked.connect(lambda: self._load_content("manage_users"))
+        buttons_layout.addWidget(cancel_btn)
+
+        add_btn = QPushButton("Add User")
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["primary"]};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+            }}
+        """)
+        add_btn.clicked.connect(self._add_user)
+        buttons_layout.addWidget(add_btn)
+
+        form_layout.addLayout(buttons_layout)
+
+        return form_card
+
+    def _add_user(self):
+        """Handle adding a new user."""
+        try:
+            from school_system.services.auth_service import AuthService
+            from school_system.gui.windows.user_window.user_validation import UserValidator
+
+            username = self.add_user_username.text().strip()
+            password = self.add_user_password.text()
+            confirm_password = self.add_user_confirm_password.text()
+            role = self.add_user_role.currentText()
+
+            # Validate input
+            validator = UserValidator()
+            if not validator.validate_username(username):
+                QMessageBox.warning(self, "Invalid Username", "Username must be 3-20 characters and contain only letters, numbers, and underscores.")
+                return
+
+            if not validator.validate_password(password):
+                QMessageBox.warning(self, "Invalid Password", "Password must be at least 6 characters long.")
+                return
+
+            if password != confirm_password:
+                QMessageBox.warning(self, "Password Mismatch", "Passwords do not match.")
+                return
+
+            # Check if user already exists
+            auth_service = AuthService()
+            if auth_service.user_exists(username):
+                QMessageBox.warning(self, "User Exists", "A user with this username already exists.")
+                return
+
+            # Create user
+            success = auth_service.create_user(username, password, role)
+            if success:
+                QMessageBox.information(self, "Success", f"User '{username}' created successfully!")
+                # Clear form
+                self.add_user_username.clear()
+                self.add_user_password.clear()
+                self.add_user_confirm_password.clear()
+                self.add_user_role.setCurrentIndex(0)
+                # Emit signal to refresh user lists
+                self._on_user_data_changed()
+            else:
+                QMessageBox.critical(self, "Error", "Failed to create user.")
+
+        except Exception as e:
+            logger.error(f"Error adding user: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to add user: {str(e)}")
+
+    def _on_user_data_changed(self):
+        """Handle when user data has been changed."""
+        # This could trigger a refresh of any open user lists
+        # For now, it's a placeholder for future enhancements
+        pass
 
     def _create_edit_user_view(self) -> QWidget:
         """Create the edit user content view."""
         try:
-            window = EditUserWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the edit user interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create edit user content
+            edit_user_content = self._create_edit_user_content()
+            layout.addWidget(edit_user_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open edit user window: {str(e)}")
-            logger.error(f"Error opening edit user window: {str(e)}")
-            return self._create_default_view("edit_user", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load edit user interface: {str(e)}")
+            logger.error(f"Error loading edit user interface: {str(e)}")
+            return self._create_default_view("edit_user", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_delete_user_view(self) -> QWidget:
         """Create the delete user content view."""
         try:
-            window = DeleteUserWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the delete user interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create delete user content
+            delete_user_content = self._create_delete_user_content()
+            layout.addWidget(delete_user_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open delete user window: {str(e)}")
-            logger.error(f"Error opening delete user window: {str(e)}")
-            return self._create_default_view("delete_user", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load delete user interface: {str(e)}")
+            logger.error(f"Error loading delete user interface: {str(e)}")
+            return self._create_default_view("delete_user", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
+
+    def _create_edit_user_content(self) -> QWidget:
+        """Create the edit user content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("Edit User")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Check if a user is selected for editing
+            if not hasattr(self, 'selected_user_for_edit') or not self.selected_user_for_edit:
+                # Show user selection interface
+                selection_card = self._create_user_selection_card("edit", theme)
+                main_layout.addWidget(selection_card)
+            else:
+                # Show edit form for selected user
+                edit_form = self._create_edit_user_form(theme)
+                main_layout.addWidget(edit_form)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating edit user content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading edit user interface")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_delete_user_content(self) -> QWidget:
+        """Create the delete user content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("Delete User")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Check if a user is selected for deletion
+            if not hasattr(self, 'selected_user_for_delete') or not self.selected_user_for_delete:
+                # Show user selection interface
+                selection_card = self._create_user_selection_card("delete", theme)
+                main_layout.addWidget(selection_card)
+            else:
+                # Show delete confirmation for selected user
+                delete_confirmation = self._create_delete_user_confirmation(theme)
+                main_layout.addWidget(delete_confirmation)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating delete user content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading delete user interface")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_user_selection_card(self, action: str, theme) -> QWidget:
+        """Create a user selection card for edit/delete actions."""
+        card = QWidget()
+        card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(card)
+        layout.setSpacing(16)
+
+        message = QLabel(f"Please select a user to {action} from the Users view first.")
+        message.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 16px;")
+        message.setWordWrap(True)
+        layout.addWidget(message)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        back_btn = QPushButton("← Back to Users")
+        back_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        back_btn.clicked.connect(lambda: self._load_content("view_users"))
+        buttons_layout.addWidget(back_btn)
+
+        layout.addLayout(buttons_layout)
+
+        return card
+
+    def _create_edit_user_form(self, theme) -> QWidget:
+        """Create the edit user form for the selected user."""
+        user = self.selected_user_for_edit
+
+        form_card = QWidget()
+        form_card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        form_layout = QVBoxLayout(form_card)
+        form_layout.setSpacing(16)
+
+        # Current user info
+        info_label = QLabel(f"Editing user: {user.get('username', '')}")
+        info_label.setStyleSheet(f"font-weight: bold; color: {theme['text']}; font-size: 16px;")
+        form_layout.addWidget(info_label)
+
+        # Role field
+        role_layout = QVBoxLayout()
+        role_label = QLabel("Role:")
+        role_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        role_layout.addWidget(role_label)
+
+        self.edit_user_role = QComboBox()
+        self.edit_user_role.addItems(["student", "teacher", "librarian", "admin"])
+        current_role = user.get('role', 'student')
+        self.edit_user_role.setCurrentText(current_role)
+        self.edit_user_role.setStyleSheet(f"""
+            QComboBox {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+        """)
+        role_layout.addWidget(self.edit_user_role)
+        form_layout.addLayout(role_layout)
+
+        # Password reset option
+        password_reset_layout = QVBoxLayout()
+        password_reset_label = QLabel("Password Reset (leave empty to keep current):")
+        password_reset_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        password_reset_layout.addWidget(password_reset_label)
+
+        self.edit_user_new_password = QLineEdit()
+        self.edit_user_new_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.edit_user_new_password.setPlaceholderText("New password (optional)")
+        self.edit_user_new_password.setStyleSheet(f"""
+            QLineEdit {{
+                padding: 10px 14px;
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+            }}
+        """)
+        password_reset_layout.addWidget(self.edit_user_new_password)
+        form_layout.addLayout(password_reset_layout)
+
+        form_layout.addStretch()
+
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        cancel_btn.clicked.connect(lambda: self._load_content("manage_users"))
+        buttons_layout.addWidget(cancel_btn)
+
+        save_btn = QPushButton("Save Changes")
+        save_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["primary"]};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["primary_hover"] if "primary_hover" in theme else theme["primary"]};
+            }}
+        """)
+        save_btn.clicked.connect(self._save_user_changes)
+        buttons_layout.addWidget(save_btn)
+
+        form_layout.addLayout(buttons_layout)
+
+        return form_card
+
+    def _create_delete_user_confirmation(self, theme) -> QWidget:
+        """Create the delete user confirmation for the selected user."""
+        user = self.selected_user_for_delete
+
+        card = QWidget()
+        card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+            }}
+        """)
+
+        layout = QVBoxLayout(card)
+        layout.setSpacing(16)
+
+        # Warning message
+        warning_label = QLabel("⚠️ Warning: This action cannot be undone!")
+        warning_label.setStyleSheet(f"font-weight: bold; color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+        layout.addWidget(warning_label)
+
+        # User info
+        user_info = QLabel(f"You are about to delete user: {user.get('username', '')}")
+        user_info.setStyleSheet(f"color: {theme['text']}; font-size: 14px;")
+        layout.addWidget(user_info)
+
+        # Confirmation message
+        confirm_msg = QLabel("Are you sure you want to permanently delete this user account? This will remove all associated data.")
+        confirm_msg.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 14px;")
+        confirm_msg.setWordWrap(True)
+        layout.addWidget(confirm_msg)
+
+        layout.addStretch()
+
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
+                color: {theme["text"]};
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+        cancel_btn.clicked.connect(lambda: self._load_content("manage_users"))
+        buttons_layout.addWidget(cancel_btn)
+
+        delete_btn = QPushButton("Delete User")
+        delete_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid {theme["border"]};
+                background-color: {theme['error'] if 'error' in theme else 'red'};
+                color: white;
+                min-height: 36px;
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme['error_hover'] if 'error_hover' in theme else '#cc0000'};
+            }}
+        """)
+        delete_btn.clicked.connect(self._confirm_delete_user)
+        buttons_layout.addWidget(delete_btn)
+
+        layout.addLayout(buttons_layout)
+
+        return card
+
+    def _save_user_changes(self):
+        """Save changes to the edited user."""
+        try:
+            from school_system.services.auth_service import AuthService
+
+            user = self.selected_user_for_edit
+            username = user.get('username')
+            new_role = self.edit_user_role.currentText()
+            new_password = self.edit_user_new_password.text().strip()
+
+            auth_service = AuthService()
+
+            # Update role if changed
+            if new_role != user.get('role'):
+                success = auth_service.update_user_role(username, new_role)
+                if not success:
+                    QMessageBox.critical(self, "Error", "Failed to update user role.")
+                    return
+
+            # Update password if provided
+            if new_password:
+                from school_system.gui.windows.user_window.user_validation import UserValidator
+                validator = UserValidator()
+                if not validator.validate_password(new_password):
+                    QMessageBox.warning(self, "Invalid Password", "Password must be at least 6 characters long.")
+                    return
+
+                success = auth_service.update_user_password(username, new_password)
+                if not success:
+                    QMessageBox.critical(self, "Error", "Failed to update user password.")
+                    return
+
+            QMessageBox.information(self, "Success", f"User '{username}' updated successfully!")
+            # Clear selection and return to manage users
+            if hasattr(self, 'selected_user_for_edit'):
+                delattr(self, 'selected_user_for_edit')
+            self._on_user_data_changed()
+            self._load_content("manage_users")
+
+        except Exception as e:
+            logger.error(f"Error saving user changes: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to save user changes: {str(e)}")
+
+    def _confirm_delete_user(self):
+        """Confirm and delete the selected user."""
+        try:
+            from school_system.services.auth_service import AuthService
+
+            user = self.selected_user_for_delete
+            username = user.get('username')
+
+            # Double-check with user
+            reply = QMessageBox.question(
+                self, "Confirm Deletion",
+                f"Are you absolutely sure you want to delete user '{username}'?\n\nThis action cannot be undone!",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                auth_service = AuthService()
+                success = auth_service.delete_user(username)
+
+                if success:
+                    QMessageBox.information(self, "Success", f"User '{username}' deleted successfully!")
+                    # Clear selection and return to manage users
+                    if hasattr(self, 'selected_user_for_delete'):
+                        delattr(self, 'selected_user_for_delete')
+                    self._on_user_data_changed()
+                    self._load_content("manage_users")
+                else:
+                    QMessageBox.critical(self, "Error", "Failed to delete user.")
+
+        except Exception as e:
+            logger.error(f"Error deleting user: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to delete user: {str(e)}")
+
+    def _create_user_settings_content(self) -> QWidget:
+        """Create the user settings content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("User Settings")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Settings card
+            settings_card = QWidget()
+            settings_card.setStyleSheet(f"""
+                QWidget {{
+                    background-color: {theme["surface"]};
+                    border: 1px solid {theme["border"]};
+                    border-radius: 12px;
+                    padding: 24px;
+                }}
+            """)
+
+            settings_layout = QVBoxLayout(settings_card)
+            settings_layout.setSpacing(16)
+
+            placeholder = QLabel("User settings functionality will be implemented here.")
+            placeholder.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 16px;")
+            settings_layout.addWidget(placeholder)
+
+            main_layout.addWidget(settings_card)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating user settings content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading user settings")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_short_form_mappings_content(self) -> QWidget:
+        """Create the short form mappings content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("Short Form Mappings")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Mappings card
+            mappings_card = QWidget()
+            mappings_card.setStyleSheet(f"""
+                QWidget {{
+                    background-color: {theme["surface"]};
+                    border: 1px solid {theme["border"]};
+                    border-radius: 12px;
+                    padding: 24px;
+                }}
+            """)
+
+            mappings_layout = QVBoxLayout(mappings_card)
+            mappings_layout.setSpacing(16)
+
+            placeholder = QLabel("Short form mappings functionality will be implemented here.")
+            placeholder.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 16px;")
+            mappings_layout.addWidget(placeholder)
+
+            main_layout.addWidget(mappings_card)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating short form mappings content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading short form mappings")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_user_sessions_content(self) -> QWidget:
+        """Create the user sessions content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("User Sessions")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Sessions card
+            sessions_card = QWidget()
+            sessions_card.setStyleSheet(f"""
+                QWidget {{
+                    background-color: {theme["surface"]};
+                    border: 1px solid {theme["border"]};
+                    border-radius: 12px;
+                    padding: 24px;
+                }}
+            """)
+
+            sessions_layout = QVBoxLayout(sessions_card)
+            sessions_layout.setSpacing(16)
+
+            placeholder = QLabel("User sessions management functionality will be implemented here.")
+            placeholder.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 16px;")
+            sessions_layout.addWidget(placeholder)
+
+            main_layout.addWidget(sessions_card)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating user sessions content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading user sessions")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
+
+    def _create_user_activity_content(self) -> QWidget:
+        """Create the user activity content widget."""
+        try:
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            content_widget = QWidget()
+            main_layout = QVBoxLayout(content_widget)
+            main_layout.setContentsMargins(24, 24, 24, 24)
+            main_layout.setSpacing(24)
+
+            # Header
+            header = QLabel("User Activity Logs")
+            header.setStyleSheet(f"""
+                font-size: 24px;
+                font-weight: bold;
+                color: {theme["text"]};
+                margin-bottom: 8px;
+            """)
+            main_layout.addWidget(header)
+
+            # Activity card
+            activity_card = QWidget()
+            activity_card.setStyleSheet(f"""
+                QWidget {{
+                    background-color: {theme["surface"]};
+                    border: 1px solid {theme["border"]};
+                    border-radius: 12px;
+                    padding: 24px;
+                }}
+            """)
+
+            activity_layout = QVBoxLayout(activity_card)
+            activity_layout.setSpacing(16)
+
+            placeholder = QLabel("User activity logs functionality will be implemented here.")
+            placeholder.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 16px;")
+            activity_layout.addWidget(placeholder)
+
+            main_layout.addWidget(activity_card)
+
+            return content_widget
+
+        except Exception as e:
+            logger.error(f"Error creating user activity content: {str(e)}")
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel("Error loading user activity logs")
+            error_label.setStyleSheet(f"color: {theme['error'] if 'error' in theme else 'red'}; font-size: 16px;")
+            error_layout.addWidget(error_label)
+            return error_widget
 
     def _create_user_settings_view(self) -> QWidget:
         """Create the user settings content view."""
         try:
-            window = UserSettingsWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the user settings interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create user settings content
+            settings_content = self._create_user_settings_content()
+            layout.addWidget(settings_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open user settings window: {str(e)}")
-            logger.error(f"Error opening user settings window: {str(e)}")
-            return self._create_default_view("user_settings", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load user settings interface: {str(e)}")
+            logger.error(f"Error loading user settings interface: {str(e)}")
+            return self._create_default_view("user_settings", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_short_form_mappings_view(self) -> QWidget:
         """Create the short form mappings content view."""
         try:
-            window = ShortFormMappingsWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the short form mappings interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create short form mappings content
+            mappings_content = self._create_short_form_mappings_content()
+            layout.addWidget(mappings_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open short form mappings window: {str(e)}")
-            logger.error(f"Error opening short form mappings window: {str(e)}")
-            return self._create_default_view("short_form_mappings", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load short form mappings interface: {str(e)}")
+            logger.error(f"Error loading short form mappings interface: {str(e)}")
+            return self._create_default_view("short_form_mappings", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_user_sessions_view(self) -> QWidget:
         """Create the user sessions content view."""
         try:
-            window = UserSessionsWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the user sessions interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create user sessions content
+            sessions_content = self._create_user_sessions_content()
+            layout.addWidget(sessions_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open user sessions window: {str(e)}")
-            logger.error(f"Error opening user sessions window: {str(e)}")
-            return self._create_default_view("user_sessions", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load user sessions interface: {str(e)}")
+            logger.error(f"Error loading user sessions interface: {str(e)}")
+            return self._create_default_view("user_sessions", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_user_activity_view(self) -> QWidget:
         """Create the user activity content view."""
         try:
-            window = UserActivityWindow(self, self.username, self.role)
-            window.show()
-            return QWidget()
+            # Create container for the user activity interface
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.setContentsMargins(32, 32, 32, 32)
+            layout.setSpacing(24)
+
+            # Create user activity content
+            activity_content = self._create_user_activity_content()
+            layout.addWidget(activity_content)
+
+            return container
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to open user activity window: {str(e)}")
-            logger.error(f"Error opening user activity window: {str(e)}")
-            return self._create_default_view("user_activity", theme, role_color)
+            QMessageBox.critical(self, "Error", f"Failed to load user activity interface: {str(e)}")
+            logger.error(f"Error loading user activity interface: {str(e)}")
+            return self._create_default_view("user_activity", self.get_theme_manager()._themes[self.get_theme()], self._get_role_color())
 
     def _create_settings_view(self) -> QWidget:
         """Create the settings content view."""
