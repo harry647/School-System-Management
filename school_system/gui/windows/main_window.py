@@ -5420,19 +5420,34 @@ For additional support, contact your system administrator.
 
     def clear_content(self):
         """Clear all widgets from the content area to avoid duplication."""
-        # Clear all widgets from the content layout
-        while self._content_layout.count():
-            item = self._content_layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
-            else:
-                # If it's a layout, clear it as well
-                layout = item.layout()
-                if layout is not None:
-                    self._clear_layout(layout)
-        
-        logger.info("Content area cleared to prevent duplication")
+        try:
+            # Clear all widgets from the content stack (QStackedWidget)
+            while self.content_stack.count() > 0:
+                widget = self.content_stack.widget(0)
+                if widget is not None:
+                    self.content_stack.removeWidget(widget)
+                    widget.deleteLater()
+
+            logger.info("Content area cleared to prevent duplication")
+        except RuntimeError as e:
+            logger.error(f"RuntimeError accessing content layout: {e}")
+            logger.warning("Reinitializing content layout due to deletion")
+            try:
+                # Try to reinitialize the content stack if it was deleted
+                if not hasattr(self, 'content_stack') or self.content_stack is None:
+                    logger.error("Failed to reinitialize content layout: content_stack is None")
+                    return
+
+                # Clear any remaining widgets
+                while self.content_stack.count() > 0:
+                    widget = self.content_stack.widget(0)
+                    if widget is not None:
+                        self.content_stack.removeWidget(widget)
+                        widget.deleteLater()
+
+            except Exception as e:
+                logger.error(f"Failed to reinitialize content layout: {e}")
+                logger.error("Critical error: Cannot recover from deleted QWidget")
     
     def _clear_layout(self, layout):
         """Recursively clear all widgets from a layout."""
@@ -5801,6 +5816,48 @@ For additional support, contact your system administrator.
             QFrame[enhancedStatCard="true"]:hover {{
                 border-color: {color};
                 background-color: {theme["surface_hover"]};
+            }}
+
+            /* Dropdown Menu Styling for Dark Theme */
+            QMenu {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 8px 0px;
+                margin: 0px;
+                color: {theme["text"]};
+            }}
+
+            QMenu::item {{
+                background-color: transparent;
+                padding: 12px 24px;
+                margin: 0px 8px;
+                border-radius: 6px;
+                color: {theme["text"]};
+                font-size: 13px;
+                font-weight: 500;
+            }}
+
+            QMenu::item:selected {{
+                background-color: {theme["surface_hover"]};
+                color: {theme["text"]};
+            }}
+
+            QMenu::item:hover {{
+                background-color: {theme["primary"]};
+                color: white;
+            }}
+
+            QMenu::separator {{
+                height: 1px;
+                background-color: {theme["border"]};
+                margin: 8px 16px;
+            }}
+
+            /* Menu indicator (arrow) */
+            QMenu::indicator {{
+                width: 12px;
+                height: 12px;
             }}
         """)
 
