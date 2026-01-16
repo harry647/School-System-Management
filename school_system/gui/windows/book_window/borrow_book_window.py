@@ -72,7 +72,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         
         # Form title
         title_label = QLabel("Borrow Book")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
@@ -152,7 +152,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         # Table title and refresh button
         title_layout = QHBoxLayout()
         title_label = QLabel("Borrowed Books")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         title_layout.addWidget(title_label)

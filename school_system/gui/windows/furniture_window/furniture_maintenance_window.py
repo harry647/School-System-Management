@@ -69,7 +69,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         
         # Form title
         title_label = QLabel("Record Maintenance")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
@@ -148,7 +148,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         
         # Table title
         title_label = QLabel("Maintenance Records")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         table_layout.addWidget(title_label)

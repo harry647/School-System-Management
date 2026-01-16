@@ -66,7 +66,7 @@ class BookReportsWindow(BaseFunctionWindow):
         
         # Title
         title_label = QLabel("Generate Book Report")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(title_label)
@@ -130,7 +130,7 @@ class BookReportsWindow(BaseFunctionWindow):
         
         # Title
         title_label = QLabel("Report Results")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(title_label)

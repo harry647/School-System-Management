@@ -90,7 +90,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Header
         header = QLabel("📖 Borrow Book")
-        header_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        header_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         header.setFont(header_font)
         header.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(header)
@@ -203,7 +203,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Header
         header = QLabel("↩️ Return Book")
-        header_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        header_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         header.setFont(header_font)
         header.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(header)
@@ -288,7 +288,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Header
         header = QLabel("📚 Library Activity History")
-        header_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        header_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         header.setFont(header_font)
         header.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(header)

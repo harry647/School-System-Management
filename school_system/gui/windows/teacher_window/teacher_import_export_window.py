@@ -66,7 +66,7 @@ class TeacherImportExportWindow(BaseFunctionWindow):
         
         # Title
         title_label = QLabel("Import Teachers")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         import_layout.addWidget(title_label)
@@ -120,7 +120,7 @@ class TeacherImportExportWindow(BaseFunctionWindow):
         
         # Title
         title_label = QLabel("Export Teachers")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         export_layout.addWidget(title_label)

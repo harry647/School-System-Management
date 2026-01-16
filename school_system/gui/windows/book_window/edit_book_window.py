@@ -71,7 +71,7 @@ class EditBookWindow(BaseFunctionWindow):
         
         # Form title
         title_label = QLabel("Edit Book Information")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)

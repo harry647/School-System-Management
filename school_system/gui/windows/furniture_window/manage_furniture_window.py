@@ -117,7 +117,7 @@ class ManageFurnitureWindow(BaseFunctionWindow):
         
         # Table title
         title_label = QLabel("Furniture List")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         table_layout.addWidget(title_label)

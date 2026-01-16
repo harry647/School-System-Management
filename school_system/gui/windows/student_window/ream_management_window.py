@@ -71,7 +71,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         
         # Title
         title_label = QLabel("Add Ream Entry")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(title_label)
@@ -133,7 +133,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         
         # Table title
         title_label = QLabel("Ream Entries")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(title_label)

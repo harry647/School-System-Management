@@ -8,7 +8,7 @@ dropdown menus and dynamic content loading.
 from PyQt6.QtWidgets import (QLabel, QMessageBox, QMenuBar, QSizePolicy, QFrame,
                             QVBoxLayout, QToolButton, QHBoxLayout, QPushButton,
                             QLineEdit, QGridLayout, QSplitter, QScrollArea,
-                            QStackedWidget, QWidget, QMenu)
+                            QStackedWidget, QWidget, QMenu, QComboBox, QTableWidget)
 from PyQt6.QtCore import Qt, QTime, QTimer, pyqtSignal
 from PyQt6.QtGui import QIcon, QFont, QAction
 from typing import Callable, Dict, Any

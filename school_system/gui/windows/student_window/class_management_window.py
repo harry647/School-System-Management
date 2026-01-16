@@ -71,7 +71,7 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         # Header
         header_label = QLabel("📚 Classes")
-        header_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        header_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         header_label.setFont(header_font)
         header_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(header_label)
@@ -203,7 +203,7 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         # Header
         header_label = QLabel("👨‍🎓 Students in Class")
-        header_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        header_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         header_label.setFont(header_font)
         header_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(header_label)

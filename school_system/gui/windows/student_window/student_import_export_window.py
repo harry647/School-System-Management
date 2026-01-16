@@ -205,7 +205,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # Title
         title_label = QLabel("📥 Import Students")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(title_label)
@@ -284,7 +284,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # Title
         title_label = QLabel("📤 Export Students")
-        title_font = QFont("Segoe UI", 18, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(title_label)
@@ -345,7 +345,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # Title
         title_label = QLabel("📊 Import Results")
-        title_font = QFont("Segoe UI", 16, QFont.Weight.SemiBold)
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]};")
         layout.addWidget(title_label)
