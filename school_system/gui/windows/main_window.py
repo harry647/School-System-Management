@@ -208,54 +208,6 @@ class MainWindow(BaseApplicationWindow):
         """)
         dashboard_btn.clicked.connect(lambda: self._load_content("dashboard"))
         sidebar_layout.addWidget(dashboard_btn)
-        sidebar_layout.addSpacing(12)
-
-        # Furniture Management buttons
-        furniture_btn = QToolButton()
-        furniture_btn.setText("🪑 Furniture Management")
-        furniture_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        furniture_btn.setStyleSheet(f"""
-            QToolButton {{
-                background-color: {theme["surface"]};
-                color: {theme["text"]};
-                font-weight: 500;
-                border-radius: 10px;
-                margin: 2px 10px;
-                padding: 12px 20px;
-                font-size: 13px;
-                border: 1px solid {theme["border"]};
-            }}
-            QToolButton:hover {{
-                background-color: {theme["surface_hover"]};
-                color: {role_color};
-            }}
-        """)
-        furniture_btn.clicked.connect(lambda: self._load_content("manage_furniture"))
-        sidebar_layout.addWidget(furniture_btn)
-
-        # User Management buttons
-        user_btn = QToolButton()
-        user_btn.setText("👥 User Management")
-        user_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        user_btn.setStyleSheet(f"""
-            QToolButton {{
-                background-color: {theme["surface"]};
-                color: {theme["text"]};
-                font-weight: 500;
-                border-radius: 10px;
-                margin: 2px 10px;
-                padding: 12px 20px;
-                font-size: 13px;
-                border: 1px solid {theme["border"]};
-            }}
-            QToolButton:hover {{
-                background-color: {theme["surface_hover"]};
-                color: {role_color};
-            }}
-        """)
-        user_btn.clicked.connect(lambda: self._load_content("manage_users"))
-        sidebar_layout.addWidget(user_btn)
-
         sidebar_layout.addSpacing(16)
 
         # Core Management Sections with Dropdown Menus
