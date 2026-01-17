@@ -62,7 +62,7 @@ class QRManagementWindow(QDialog):
 
     def setup_ui(self):
         """Setup the UI components."""
-        from school_system.gui.theme_manager import ThemeManager
+        from school_system.gui.base.widgets.theme import ThemeManager
         theme_manager = ThemeManager()
         theme = theme_manager._themes[theme_manager.get_theme()]
 
