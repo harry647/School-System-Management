@@ -256,7 +256,7 @@ class EnhancedReturnWindow(QDialog):
                         continue
                     
                     # Filter by subject if provided
-                    book_subject = getattr(book, 'subject', None) or getattr(book, 'category', 'N/A')
+                    book_subject = getattr(book, 'subject', None) or getattr(book, 'category', None) or 'N/A'
                     if self.subject and book_subject and book_subject != self.subject:
                         continue
                     
@@ -266,7 +266,7 @@ class EnhancedReturnWindow(QDialog):
                     self.borrowed_books_data.append({
                         'student_id': student.student_id,
                         'student_name': student.name,
-                        'admission_number': student.admission_number or str(student.student_id),
+                        'admission_number': getattr(student, 'admission_number', None) or str(student.student_id),
                         'book_id': borrowed_book.book_id,
                         'book_number': str(book_number),
                         'subject': book_subject or 'N/A',

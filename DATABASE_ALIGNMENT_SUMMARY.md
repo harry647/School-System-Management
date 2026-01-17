@@ -229,6 +229,105 @@ After running migrations, verify:
 
 ---
 
+## ✅ Model and Service Updates
+
+### 1. **Book Model** (`school_system/models/book.py`)
+
+**Fixed save() method:**
+- Now inserts all 11 columns: `book_number, title, author, category, isbn, publication_date, available, revision, book_condition, subject, class`
+- Added update() method for modifying existing books
+- Enhanced __repr__ to show title
+
+**New service methods:**
+- `get_books_by_subject(subject: str)` - Find books by subject column
+- `get_books_by_class(class_name: str)` - Find books by class column
+
+### 2. **Student Model** (`school_system/models/student.py`)
+
+**Added update() method:**
+- Updates all student fields in database
+- Enhanced __repr__ to show admission_number
+
+**New service methods:**
+- `get_students_by_admission_number(admission_number: str)` - Find students by admission number
+- Enhanced error handling in `get_student_by_id()` for backward compatibility
+
+### 3. **Enhanced Windows** (`school_system/gui/windows/book_window/`)
+
+**Enhanced Borrow Window:**
+- Uses `getattr(student, 'admission_number', None)` for backward compatibility
+- Safely handles missing admission_number column
+
+**Enhanced Return Window:**
+- Uses `getattr(book, 'subject', None) or getattr(book, 'category', None)` for subject filtering
+- Uses `getattr(student, 'admission_number', None)` for admission numbers
+- Graceful fallback when columns don't exist
+
+### 4. **Error Handling**
+
+All components now use `getattr()` with fallback values to handle:
+- Databases without `subject` column (uses `category` as fallback)
+- Databases without `admission_number` column (uses `student_id` as fallback)
+- Databases without `created_at` column (handled gracefully)
+
+---
+
+## 🚀 Usage Examples
+
+### Creating Books with New Columns
+
+```python
+# Book model now supports all fields
+book = Book(
+    book_number="MATH101",
+    title="Advanced Mathematics",
+    author="John Smith",
+    category="Mathematics",
+    isbn="1234567890",
+    publication_date="2024-01-01",
+    available=1,
+    revision=0,
+    book_condition="New",
+    subject="Mathematics",  # New field
+    class_name="Form 4"     # New field
+)
+book.save()  # Inserts all 11 columns
+```
+
+### Finding Books by Subject/Class
+
+```python
+# New service methods
+math_books = book_service.get_books_by_subject("Mathematics")
+form4_books = book_service.get_books_by_class("Form 4")
+```
+
+### Student Operations with New Columns
+
+```python
+# Student model now supports admission_number and created_at
+student = Student(
+    admission_number="2024001",
+    name="John Doe",
+    stream="Red"
+)
+student.save()  # Inserts student_id, admission_number, name, stream, created_at
+
+# Find by admission number
+students = student_service.get_students_by_admission_number("2024001")
+```
+
+### Enhanced Windows Backward Compatibility
+
+```python
+# Windows work with old databases (without new columns)
+# and new databases (with new columns)
+borrow_window = EnhancedBorrowWindow(class_level=4, stream="Red")
+return_window = EnhancedReturnWindow(subject="Mathematics")
+```
+
+---
+
 ## Notes
 
 - Migrations are **idempotent** (safe to run multiple times)
@@ -236,3 +335,5 @@ After running migrations, verify:
 - New database installations will have correct schema from `connection.py`
 - Existing databases need migrations run once
 - All migrations use transactions for safety
+- **Backward compatibility**: Code works with both old and new database schemas
+- **Forward compatibility**: New features use new columns when available, fallbacks when not

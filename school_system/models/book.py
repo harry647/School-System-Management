@@ -27,13 +27,33 @@ class Book(BaseModel):
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO books (book_number, available, revision, book_condition, subject, class) VALUES (?, ?, ?, ?, ?, ?)",
-            (self.book_number, self.available, self.revision, self.book_condition, self.subject, self.class_name)
+            """INSERT INTO books
+               (book_number, title, author, category, isbn, publication_date,
+                available, revision, book_condition, subject, class)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (self.book_number, self.title, self.author, self.category, self.isbn,
+             self.publication_date, self.available, self.revision, self.book_condition,
+             self.subject, self.class_name)
         )
         db.commit()
     
+    def update(self):
+        """Update the book in the database."""
+        db = get_db_session()
+        cursor = db.cursor()
+        cursor.execute(
+            """UPDATE books SET
+               title = ?, author = ?, category = ?, isbn = ?, publication_date = ?,
+               available = ?, revision = ?, book_condition = ?, subject = ?, class = ?
+               WHERE book_number = ?""",
+            (self.title, self.author, self.category, self.isbn, self.publication_date,
+             self.available, self.revision, self.book_condition, self.subject, self.class_name,
+             self.book_number)
+        )
+        db.commit()
+
     def __repr__(self):
-        return f"<Book(book_number={self.book_number}, available={self.available})>"
+        return f"<Book(book_number={self.book_number}, title={self.title}, available={self.available})>"
 
 class BookTag(BaseModel):
     __tablename__ = 'book_tags'

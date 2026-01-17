@@ -1460,10 +1460,10 @@ class BookService:
     def get_book_by_number(self, book_number: str) -> Optional[Book]:
         """
         Get a book by its book number.
-        
+
         Args:
             book_number: The book number to search for
-            
+
         Returns:
             The Book object if found, otherwise None
         """
@@ -1473,6 +1473,44 @@ class BookService:
         except Exception as e:
             logger.error(f"Error getting book by number: {e}")
             return None
+
+    def get_books_by_subject(self, subject: str) -> List[Book]:
+        """
+        Get all books for a specific subject.
+
+        Args:
+            subject: The subject to filter by
+
+        Returns:
+            List of Book objects for the subject
+        """
+        try:
+            # Try to find by subject column first, then fall back to category
+            books = self.book_repository.find_by_field('subject', subject)
+            if not books:
+                # Fallback to category for backward compatibility
+                books = self.book_repository.find_by_field('category', subject)
+            return books
+        except Exception as e:
+            logger.error(f"Error getting books by subject: {e}")
+            return []
+
+    def get_books_by_class(self, class_name: str) -> List[Book]:
+        """
+        Get all books for a specific class.
+
+        Args:
+            class_name: The class to filter by
+
+        Returns:
+            List of Book objects for the class
+        """
+        try:
+            books = self.book_repository.find_by_field('class', class_name)
+            return books
+        except Exception as e:
+            logger.error(f"Error getting books by class: {e}")
+            return []
     
     def log_user_action(self, username: str, action_type: str, details: str) -> bool:
         """

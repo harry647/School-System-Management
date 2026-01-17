@@ -25,8 +25,20 @@ class Student(BaseModel):
         )
         db.commit()
     
+    def update(self):
+        """Update the student in the database."""
+        db = get_db_session()
+        cursor = db.cursor()
+        cursor.execute(
+            """UPDATE students SET
+               admission_number = ?, name = ?, stream = ?, created_at = ?
+               WHERE student_id = ?""",
+            (self.admission_number, self.name, self.stream, self.created_at, self.student_id)
+        )
+        db.commit()
+
     def __repr__(self):
-        return f"<Student(student_id={self.student_id}, name={self.name})>"
+        return f"<Student(student_id={self.student_id}, admission_number={self.admission_number}, name={self.name})>"
 
 class ReamEntry(BaseModel):
     __tablename__ = 'ream_entries'

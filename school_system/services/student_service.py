@@ -50,6 +50,22 @@ class StudentService:
         streams = list(set(s.stream for s in students if s.stream))
         return sorted(streams)
 
+    def get_students_by_admission_number(self, admission_number: str) -> List[Student]:
+        """
+        Get students by admission number.
+
+        Args:
+            admission_number: The admission number to search for
+
+        Returns:
+            List of Student objects matching the admission number
+        """
+        try:
+            return self.student_repository.find_by_field('admission_number', admission_number)
+        except Exception as e:
+            logger.warning(f"admission_number column not available: {e}")
+            return []
+
     def get_student_by_id(self, student_id: str) -> Optional[Student]:
         """
         Retrieve a student by their student ID or admission number.
@@ -64,10 +80,17 @@ class StudentService:
         student = self.student_repository.get_by_id(student_id)
         if student:
             return student
-        
-        # If not found by student_id, try to find by admission_number
-        students = self.student_repository.find_by_field('admission_number', student_id)
-        return students[0] if students else None
+
+        # If not found by student_id, try to find by admission_number (for backward compatibility)
+        try:
+            students = self.student_repository.find_by_field('admission_number', student_id)
+            if students:
+                return students[0]
+        except Exception:
+            # Column might not exist in older databases
+            pass
+
+        return None
 
     def create_student(self, student_data: dict) -> Student:
         """

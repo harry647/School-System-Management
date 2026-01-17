@@ -264,7 +264,8 @@ class EnhancedBorrowWindow(QDialog):
             self.students_table.setItem(row, 0, name_item)
             
             # Admission Number
-            admission_item = QTableWidgetItem(student.admission_number or str(student.student_id))
+            admission_number = getattr(student, 'admission_number', None) or str(student.student_id)
+            admission_item = QTableWidgetItem(admission_number)
             self.students_table.setItem(row, 1, admission_item)
             
             # Book Number Input
