@@ -4,7 +4,7 @@ Distribution Window
 Dedicated window for managing book distribution sessions.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem, QDateEdit, QTabWidget, QGroupBox, QProgressBar
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem, QDateEdit, QTabWidget, QGroupBox, QProgressBar, QFileDialog
 from PyQt6.QtCore import Qt, pyqtSignal, QDate, QTimer
 from PyQt6.QtGui import QFont
 from datetime import datetime
@@ -551,7 +551,6 @@ class DistributionWindow(BaseFunctionWindow):
     def _do_generate_templates(self, template_data: dict):
         """Background task to generate templates."""
         try:
-            import tempfile
             import os
 
             self.template_status_label.setText("Generating templates...")
@@ -569,23 +568,46 @@ class DistributionWindow(BaseFunctionWindow):
                 self.template_status_label.setText(f"Generating template: {template_key}")
                 logger.info(f"Generating template: {template_key} for {len(students)} students")
 
+                # Clean template key for filename
+                safe_template_key = template_key.replace(" ", "_").replace("/", "_")
+
                 # Generate Excel
                 if generate_excel:
-                    excel_file = self._generate_excel_template(template_key, students)
-                    if excel_file:
-                        generated_files.append(("Excel", excel_file))
-                        logger.info(f"Generated Excel template: {excel_file}")
+                    # Prompt user for save location
+                    excel_file, _ = QFileDialog.getSaveFileName(
+                        self,
+                        f"Save Excel Template - {template_key}",
+                        f"{safe_template_key}.xlsx",
+                        "Excel Files (*.xlsx)"
+                    )
+
+                    if excel_file:  # User didn't cancel
+                        if self._generate_excel_template_to_file(template_key, students, excel_file):
+                            generated_files.append(("Excel", excel_file))
+                            logger.info(f"Generated Excel template: {excel_file}")
+                        else:
+                            logger.error(f"Failed to generate Excel template for {template_key}")
                     else:
-                        logger.error(f"Failed to generate Excel template for {template_key}")
+                        logger.info(f"User cancelled Excel save for {template_key}")
 
                 # Generate PDF
                 if generate_pdf:
-                    pdf_file = self._generate_pdf_template(template_key, students)
-                    if pdf_file:
-                        generated_files.append(("PDF", pdf_file))
-                        logger.info(f"Generated PDF template: {pdf_file}")
+                    # Prompt user for save location
+                    pdf_file, _ = QFileDialog.getSaveFileName(
+                        self,
+                        f"Save PDF Template - {template_key}",
+                        f"{safe_template_key}.pdf",
+                        "PDF Files (*.pdf)"
+                    )
+
+                    if pdf_file:  # User didn't cancel
+                        if self._generate_pdf_template_to_file(template_key, students, pdf_file):
+                            generated_files.append(("PDF", pdf_file))
+                            logger.info(f"Generated PDF template: {pdf_file}")
+                        else:
+                            logger.error(f"Failed to generate PDF template for {template_key}")
                     else:
-                        logger.error(f"Failed to generate PDF template for {template_key}")
+                        logger.info(f"User cancelled PDF save for {template_key}")
 
                 completed += 1
                 progress = int((completed / total_templates) * 100)
@@ -595,14 +617,17 @@ class DistributionWindow(BaseFunctionWindow):
             self.template_status_label.setText(f"Generation complete! Created {len(generated_files)} files.")
 
             # Show success message with file locations
-            success_msg = f"Successfully generated {len(generated_files)} template files:\n\n"
-            for format_type, file_path in generated_files[:5]:  # Show first 5
-                success_msg += f"• {format_type}: {os.path.basename(file_path)}\n"
+            if generated_files:
+                success_msg = f"Successfully generated {len(generated_files)} template files:\n\n"
+                for format_type, file_path in generated_files[:10]:  # Show first 10
+                    success_msg += f"• {format_type}: {os.path.basename(file_path)}\nSaved to: {file_path}\n\n"
 
-            if len(generated_files) > 5:
-                success_msg += f"\n... and {len(generated_files) - 5} more files"
+                if len(generated_files) > 10:
+                    success_msg += f"... and {len(generated_files) - 10} more files"
 
-            show_success_message("Templates Generated", success_msg, self)
+                show_success_message("Templates Generated", success_msg, self)
+            else:
+                show_info_message("No Templates Generated", "No templates were generated. All saves were cancelled or failed.", self)
 
         except Exception as e:
             logger.error(f"Error generating templates: {e}")
@@ -679,11 +704,9 @@ class DistributionWindow(BaseFunctionWindow):
         all_students = self.student_service.get_all_students()
         return {"All_Classes_Combined": all_students}
 
-    def _generate_excel_template(self, template_key: str, students: list) -> str:
-        """Generate Excel template for borrowing."""
+    def _generate_excel_template_to_file(self, template_key: str, students: list, file_path: str) -> bool:
+        """Generate Excel template for borrowing to a specific file path."""
         try:
-            import tempfile
-
             # Parse template key to get details
             parts = template_key.split('_')
             class_info = parts[1] if len(parts) > 1 else "All"
@@ -706,13 +729,9 @@ class DistributionWindow(BaseFunctionWindow):
 
             df = pd.DataFrame(data)
 
-            # Create temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
-                excel_file = tmp_file.name
-
             # Save to Excel with basic formatting
             try:
-                with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
+                with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
                     df.to_excel(writer, sheet_name='Borrowing_Template', index=False)
 
                     # Try to add basic formatting
@@ -755,14 +774,14 @@ class DistributionWindow(BaseFunctionWindow):
                         # Continue with basic Excel file
 
             except Exception as excel_error:
-                logger.error(f"Failed to save Excel file: {excel_error}")
-                return None
+                logger.error(f"Failed to save Excel file {file_path}: {excel_error}")
+                return False
 
-            return excel_file
+            return True
 
         except Exception as e:
             logger.error(f"Error generating Excel template: {e}")
-            return None
+            return False
 
     def _generate_pdf_template(self, template_key: str, students: list) -> str:
         """Generate PDF template for borrowing."""
@@ -832,6 +851,71 @@ class DistributionWindow(BaseFunctionWindow):
         except Exception as e:
             logger.error(f"Error generating PDF template: {e}")
             return None
+
+    def _generate_pdf_template_to_file(self, template_key: str, students: list, file_path: str) -> bool:
+        """Generate PDF template for borrowing to a specific file path."""
+        try:
+            from fpdf import FPDF
+            from datetime import datetime
+
+            # Parse template key to get details
+            parts = template_key.split('_')
+            class_info = parts[1] if len(parts) > 1 else "All"
+            stream_info = parts[2] if len(parts) > 2 else "All"
+            subject_info = parts[3] if len(parts) > 3 else "All"
+
+            # Create PDF
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+
+            # Header
+            pdf.set_font("Arial", 'B', 16)
+            pdf.cell(0, 10, "SCHOOL MANAGEMENT SYSTEM", ln=True, align='C')
+            pdf.cell(0, 10, "BOOK BORROWING TEMPLATE", ln=True, align='C')
+            pdf.ln(10)
+
+            # Template details
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(0, 8, f"Class/Form: {class_info}", ln=True)
+            pdf.cell(0, 8, f"Stream: {stream_info}", ln=True)
+            pdf.cell(0, 8, f"Subject: {subject_info}", ln=True)
+            pdf.cell(0, 8, f"Generated by: {self.current_user}", ln=True)
+            pdf.cell(0, 8, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
+            pdf.ln(10)
+
+            # Table headers
+            pdf.set_font("Arial", 'B', 10)
+            headers = ["#", "Student Name", "Admission No.", "Book Number", "Signature"]
+            col_widths = [15, 60, 30, 35, 40]
+
+            for i, header in enumerate(headers):
+                pdf.cell(col_widths[i], 8, header, border=1, align='C')
+            pdf.ln()
+
+            # Table data
+            pdf.set_font("Arial", size=9)
+            for i, student in enumerate(students, 1):
+                pdf.cell(col_widths[0], 6, str(i), border=1, align='C')
+                pdf.cell(col_widths[1], 6, student.name[:25], border=1)  # Truncate long names
+                admission = student.admission_number or str(student.student_id)
+                pdf.cell(col_widths[2], 6, admission, border=1, align='C')
+                pdf.cell(col_widths[3], 6, "", border=1, align='C')  # Empty for book number
+                pdf.cell(col_widths[4], 6, "", border=1, align='C')  # Empty for signature
+                pdf.ln()
+
+            # Footer instructions
+            pdf.ln(10)
+            pdf.set_font("Arial", 'I', 8)
+            pdf.multi_cell(0, 5, "Instructions:\n1. Fill in the Book Number column with the assigned book numbers.\n2. Students should sign in the Signature column when receiving books.\n3. Return this form to the librarian after distribution.")
+
+            # Save to specified file path
+            pdf.output(file_path)
+            return True
+
+        except Exception as e:
+            logger.error(f"Error generating PDF template: {e}")
+            return False
 
     def _on_create_session(self):
         """Handle create session button click."""
