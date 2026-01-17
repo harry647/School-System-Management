@@ -164,49 +164,6 @@ class ImportWorker(QThread):
             else:
                 raise ValueError("Invalid JSON format. Expected list or object with 'students' key")
 
-    def _generate_import_template(self):
-        """Generate a student import Excel template."""
-        try:
-            from datetime import datetime
-            import pandas as pd
-
-            file_path, _ = QFileDialog.getSaveFileName(
-                self, "Save Template", "student_import_template.xlsx", "Excel Files (*.xlsx)"
-            )
-
-            if not file_path:
-                return
-
-            # Create sample data
-            sample_data = [
-                {
-                    'Student_ID': '2024001',
-                    'Admission_Number': '2024001',
-                    'Name': 'John Doe',
-                    'Class_Name': 'Form 3',
-                    'Stream_Name': 'Red',
-                    'Stream': '3 Red',
-                    'QR_Code': '',
-                    'QR_Generated_At': '',
-                    'Created_At': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                }
-            ]
-
-            # Create template with sample data and empty rows
-            df = pd.DataFrame(sample_data)
-            empty_rows = pd.DataFrame([{col: '' for col in EXCEL_STUDENT_IMPORT_COLUMNS}] * 10)
-            template_df = pd.concat([df, empty_rows], ignore_index=True)
-
-            template_df.to_excel(file_path, index=False)
-
-            show_success_message("Template Generated",
-                               f"Student import template saved to:\n{file_path}", self)
-
-        except Exception as e:
-            logger.error(f"Error generating student template: {e}")
-            show_error_message("Template Generation Failed",
-                             f"Failed to generate template: {str(e)}", self)
-
 
 class StudentImportExportWindow(BaseFunctionWindow):
     """Dedicated window for importing and exporting student data."""
@@ -652,3 +609,46 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump(data, file, indent=2, ensure_ascii=False)
+
+    def _generate_import_template(self):
+        """Generate a student import Excel template."""
+        try:
+            from datetime import datetime
+            import pandas as pd
+
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save Template", "student_import_template.xlsx", "Excel Files (*.xlsx)"
+            )
+
+            if not file_path:
+                return
+
+            # Create sample data
+            sample_data = [
+                {
+                    'Student_ID': '2024001',
+                    'Admission_Number': '2024001',
+                    'Name': 'John Doe',
+                    'Class_Name': 'Form 3',
+                    'Stream_Name': 'Red',
+                    'Stream': '3 Red',
+                    'QR_Code': '',
+                    'QR_Generated_At': '',
+                    'Created_At': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+            ]
+
+            # Create template with sample data and empty rows
+            df = pd.DataFrame(sample_data)
+            empty_rows = pd.DataFrame([{col: '' for col in EXCEL_STUDENT_IMPORT_COLUMNS}] * 10)
+            template_df = pd.concat([df, empty_rows], ignore_index=True)
+
+            template_df.to_excel(file_path, index=False)
+
+            show_success_message("Template Generated",
+                               f"Student import template saved to:\n{file_path}", self)
+
+        except Exception as e:
+            logger.error(f"Error generating student template: {e}")
+            show_error_message("Template Generation Failed",
+                             f"Failed to generate template: {str(e)}", self)
