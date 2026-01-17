@@ -72,6 +72,9 @@ class MainWindow(BaseApplicationWindow):
         self.role = role
         self.on_logout = on_logout
 
+        # Initialize services for dashboard data
+        self._init_dashboard_services()
+
         # Content management
         self.current_view = "dashboard"
         self.content_views = {}

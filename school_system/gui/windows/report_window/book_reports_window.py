@@ -86,7 +86,8 @@ class BookReportsWindow(BaseFunctionWindow):
             "Borrowed Books",
             "Available Books",
             "Overdue Books",
-            "Book Inventory"
+            "Book Inventory",
+            "Borrowing Analytics"
         ])
         type_layout.addWidget(self.report_type_combo)
         
@@ -135,13 +136,18 @@ class BookReportsWindow(BaseFunctionWindow):
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(title_label)
         
-        # Results table
-        self.results_table = self.create_table(0, 4)
-        self.results_table.setColumnCount(4)
-        self.results_table.setHorizontalHeaderLabels(["Book ID", "Title", "Status", "Details"])
+        # Results table (dynamic columns based on report type)
+        self.results_table = self.create_table(0, 8)  # Increased columns for analytics
+        self.results_table.setColumnCount(8)
+        self.results_table.setHorizontalHeaderLabels(["Book ID", "Title", "Status", "Details", "", "", "", ""])
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)
         layout.addWidget(self.results_table)
+
+        # Analytics summary area (initially hidden)
+        self.analytics_summary = self._create_analytics_summary_area()
+        layout.addWidget(self.analytics_summary)
+        self.analytics_summary.setVisible(False)
 
         return card
 
@@ -199,6 +205,9 @@ class BookReportsWindow(BaseFunctionWindow):
                 # This would need to be implemented in ReportService
                 report_data = self.report_service.get_book_inventory_report()
                 self._populate_books_table(report_data)
+            elif report_type == "Borrowing Analytics":
+                analytics_data = self.report_service.get_borrowing_analytics_report()
+                self._display_borrowing_analytics(analytics_data)
 
             show_success_message("Success", f"Report '{report_type}' generated successfully.", self)
 
@@ -222,3 +231,162 @@ class BookReportsWindow(BaseFunctionWindow):
             except Exception as e:
                 logger.error(f"Error exporting report: {e}")
                 show_error_message("Error", f"Failed to export report: {str(e)}", self)
+
+    def _create_analytics_summary_area(self) -> QWidget:
+        """Create the analytics summary display area."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        summary_widget = QWidget()
+        summary_layout = QVBoxLayout(summary_widget)
+        summary_layout.setSpacing(10)
+
+        # Summary text area
+        self.summary_text = QTextEdit()
+        self.summary_text.setReadOnly(True)
+        self.summary_text.setMaximumHeight(300)
+        self.summary_text.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 12px;
+                color: {theme["text"]};
+                font-family: 'Segoe UI', sans-serif;
+            }}
+        """)
+        summary_layout.addWidget(self.summary_text)
+
+        return summary_widget
+
+    def _display_borrowing_analytics(self, analytics_data: dict):
+        """Display comprehensive borrowing analytics."""
+        try:
+            self.analytics_summary.setVisible(True)
+            self.results_table.setRowCount(0)
+
+            summary_text = "📊 BORROWING ANALYTICS REPORT\n"
+            summary_text += "=" * 50 + "\n\n"
+
+            # Inventory Summary
+            inventory = analytics_data.get('inventory_summary', {})
+            if inventory:
+                summary_text += "📚 INVENTORY SUMMARY\n"
+                summary_text += f"• Total Books: {inventory.get('total_books', 0)}\n"
+                summary_text += f"• Available Books: {inventory.get('available_books', 0)}\n"
+                summary_text += f"• Borrowed Books: {inventory.get('borrowed_books', 0)}\n"
+                summary_text += f"• Borrowed Percentage: {inventory.get('borrowed_percentage', 0)}%\n\n"
+
+            # Students Not Borrowed Any Books
+            not_borrowed = analytics_data.get('students_not_borrowed_any_books', {})
+            if not_borrowed:
+                summary_text += "👨‍🎓 STUDENTS WHO HAVE NOT BORROWED ANY BOOKS\n"
+                summary_text += f"• Total: {not_borrowed.get('total_students_not_borrowed', 0)} students\n"
+
+                students_by_stream = not_borrowed.get('students_by_stream', {})
+                for stream, students in students_by_stream.items():
+                    summary_text += f"• {stream}: {len(students)} students\n"
+                summary_text += "\n"
+
+            # Borrowing Percentage by Class
+            percentages = analytics_data.get('borrowing_percentage_by_class', [])
+            if percentages:
+                summary_text += "📈 BORROWING PERCENTAGE BY CLASS\n"
+                self.results_table.setHorizontalHeaderLabels([
+                    "Form", "Total Students", "Students Borrowed", "Borrowing %", "Total Borrowings", "Avg per Student"
+                ])
+                self.results_table.setColumnCount(6)
+
+                for i, data in enumerate(percentages):
+                    self.results_table.insertRow(i)
+                    self.results_table.setItem(i, 0, QTableWidgetItem(data.get('form', '')))
+                    self.results_table.setItem(i, 1, QTableWidgetItem(str(data.get('total_students', 0))))
+                    self.results_table.setItem(i, 2, QTableWidgetItem(str(data.get('students_borrowed', 0))))
+                    self.results_table.setItem(i, 3, QTableWidgetItem(f"{data.get('student_borrowing_percentage', 0)}%"))
+                    self.results_table.setItem(i, 4, QTableWidgetItem(str(data.get('total_borrowings', 0))))
+                    self.results_table.setItem(i, 5, QTableWidgetItem(str(data.get('average_borrowings_per_student', 0))))
+
+            # Books Categorized by Subject/Form
+            categorized = analytics_data.get('books_categorized_by_subject_form', [])
+            if categorized:
+                summary_text += "📖 BOOKS CATEGORIZED BY SUBJECT AND FORM\n"
+                summary_text += f"• Total Categories: {len(categorized)}\n\n"
+
+                # Create a new table for this data
+                self._display_books_categorized_table(categorized)
+
+            # Students Not Borrowed by Stream/Subject
+            not_borrowed_detailed = analytics_data.get('students_not_borrowed_by_stream_subject', [])
+            if not_borrowed_detailed:
+                summary_text += "🎯 STUDENTS NOT BORROWED BY STREAM/SUBJECT\n"
+                summary_text += f"• Categories with missing borrowers: {len(not_borrowed_detailed)}\n"
+
+                for item in not_borrowed_detailed[:5]:  # Show first 5
+                    summary_text += f"• {item.get('form')} {item.get('stream')} - {item.get('subject')}: {item.get('count', 0)} students\n"
+
+                if len(not_borrowed_detailed) > 5:
+                    summary_text += f"• ... and {len(not_borrowed_detailed) - 5} more categories\n"
+
+            self.summary_text.setPlainText(summary_text)
+
+        except Exception as e:
+            logger.error(f"Error displaying borrowing analytics: {e}")
+            show_error_message("Error", f"Failed to display analytics: {str(e)}", self)
+
+    def _display_books_categorized_table(self, categorized_data: list):
+        """Display books categorized by subject/form in a separate table view."""
+        try:
+            # Create a new table for categorized books (we'll reuse the existing table for now)
+            # In a production system, you might want separate table widgets
+            self.results_table.setHorizontalHeaderLabels([
+                "Form", "Subject", "Total Books", "Available", "Borrowed", "Borrowed %"
+            ])
+            self.results_table.setColumnCount(6)
+            self.results_table.setRowCount(0)
+
+            for i, data in enumerate(categorized_data):
+                self.results_table.insertRow(i)
+                total_books = data.get('total_books', 0)
+                borrowed_books = data.get('borrowed_books', 0)
+                borrowed_percentage = (borrowed_books / total_books * 100) if total_books > 0 else 0
+
+                self.results_table.setItem(i, 0, QTableWidgetItem(data.get('form', '')))
+                self.results_table.setItem(i, 1, QTableWidgetItem(data.get('subject', '')))
+                self.results_table.setItem(i, 2, QTableWidgetItem(str(total_books)))
+                self.results_table.setItem(i, 3, QTableWidgetItem(str(data.get('available_books', 0))))
+                self.results_table.setItem(i, 4, QTableWidgetItem(str(borrowed_books)))
+                self.results_table.setItem(i, 5, QTableWidgetItem(f"{borrowed_percentage:.1f}%"))
+
+        except Exception as e:
+            logger.error(f"Error displaying books categorized table: {e}")
+
+    def _populate_books_table(self, report_data: list):
+        """Populate the results table with book report data."""
+        try:
+            self.analytics_summary.setVisible(False)  # Hide analytics summary for regular reports
+            self.results_table.setRowCount(0)  # Clear existing data
+
+            # Reset to default headers for regular book reports
+            self.results_table.setHorizontalHeaderLabels(["Book ID", "Title", "Status", "Details"])
+            self.results_table.setColumnCount(4)
+
+            for row_idx, book_data in enumerate(report_data):
+                self.results_table.insertRow(row_idx)
+
+                book = book_data.get('book', {})
+
+                # Extract book information
+                book_id = book.get('id', '') if isinstance(book, dict) else getattr(book, 'id', '')
+                title = book.get('title', '') if isinstance(book, dict) else getattr(book, 'title', '')
+                status = book.get('status', 'Unknown') if isinstance(book, dict) else getattr(book, 'available', True) and 'Available' or 'Borrowed'
+                details = book.get('author', '') if isinstance(book, dict) else getattr(book, 'author', '')
+
+                # Set table items
+                self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(book_id)))
+                self.results_table.setItem(row_idx, 1, QTableWidgetItem(title))
+                self.results_table.setItem(row_idx, 2, QTableWidgetItem(status))
+                self.results_table.setItem(row_idx, 3, QTableWidgetItem(details))
+
+        except Exception as e:
+            logger.error(f"Error populating books table: {e}")
+            show_error_message("Error", f"Failed to display report data: {str(e)}", self)
