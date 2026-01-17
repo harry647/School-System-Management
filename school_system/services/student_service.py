@@ -66,6 +66,46 @@ class StudentService:
             logger.warning(f"admission_number column not available: {e}")
             return []
 
+    def generate_qr_code_for_student(self, admission_number: str) -> str:
+        """
+        Generate a unique QR code for a student.
+
+        Args:
+            admission_number: Admission number of the student
+
+        Returns:
+            The generated QR code string
+        """
+        try:
+            student = self.get_student_by_id(admission_number)
+            if not student:
+                return None
+
+            qr_code = student.generate_qr_code()
+            self.student_repository.update(student)
+            logger.info(f"Generated QR code {qr_code} for student {admission_number}")
+            return qr_code
+        except Exception as e:
+            logger.error(f"Error generating QR code for student {admission_number}: {e}")
+            return None
+
+    def get_student_by_qr_code(self, qr_code: str) -> Optional[Student]:
+        """
+        Get a student by their QR code.
+
+        Args:
+            qr_code: The QR code to search for
+
+        Returns:
+            Student object if found, None otherwise
+        """
+        try:
+            students = self.student_repository.find_by_field('qr_code', qr_code)
+            return students[0] if students else None
+        except Exception as e:
+            logger.error(f"Error finding student by QR code {qr_code}: {e}")
+            return None
+
     def get_student_by_id(self, student_id: str) -> Optional[Student]:
         """
         Retrieve a student by their student ID or admission number.

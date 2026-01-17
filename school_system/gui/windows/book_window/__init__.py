@@ -7,6 +7,7 @@ This package provides a complete book management interface including:
 - Distribution session management
 - Import/export functionality
 - Reports and analytics
+- QR code management system
 
 All components are organized into subpackages:
 - components: Reusable UI components (Card, Button, InputField, etc.)
@@ -17,6 +18,11 @@ All components are organized into subpackages:
 
 # Main window class
 from .view_books_window import ViewBooksWindow as BookWindow
+
+# Enhanced windows
+from .enhanced_borrow_window import EnhancedBorrowWindow
+from .enhanced_return_window import EnhancedReturnWindow
+from .qr_management_window import QRManagementWindow
 
 # UI Components
 from .components import (
@@ -67,7 +73,12 @@ from .workflows import (
 __all__ = [
     # Main window
     'BookWindow',
-    
+
+    # Enhanced windows
+    'EnhancedBorrowWindow',
+    'EnhancedReturnWindow',
+    'QRManagementWindow',
+
     # UI Components
     'FlexLayout',
     'Card',
@@ -78,28 +89,10 @@ __all__ = [
     'Table',
     'SearchBox',
     'ValidationLabel',
-    
-    # Constants
-    'SPACING_SMALL',
-    'SPACING_MEDIUM',
-    'SPACING_LARGE',
-    'CARD_PADDING',
-    'CARD_SPACING',
-    'REQUIRED_FIELDS',
-    'BOOK_CONDITIONS',
-    'REMOVAL_REASONS',
-    'USER_TYPES',
-    'RETURN_CONDITIONS',
-    'SESSION_STATUSES',
-    'STANDARD_SUBJECTS',
-    'STANDARD_CLASSES',
-    'STANDARD_STREAMS',
-    'STANDARD_TERMS',
-    'EXPORT_FORMATS',
-    
-    # Validation
+
+    # Utilities
     'BookValidationHelper',
-    
+
     # Workflows
     'BookWorkflowBase',
     'BookAddWorkflow',

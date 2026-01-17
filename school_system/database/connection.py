@@ -137,7 +137,9 @@ def initialize_database():
                 name TEXT NOT NULL,
                 stream TEXT NOT NULL,
                 admission_number TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                qr_code TEXT UNIQUE,
+                qr_generated_at TIMESTAMP
             )
         """)
         
@@ -154,7 +156,9 @@ def initialize_database():
                 revision INTEGER DEFAULT 0,
                 book_condition TEXT DEFAULT 'New',
                 subject TEXT,
-                class TEXT
+                class TEXT,
+                qr_code TEXT UNIQUE,
+                qr_generated_at TIMESTAMP
             )
         """)
         

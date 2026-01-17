@@ -1511,6 +1511,109 @@ class BookService:
         except Exception as e:
             logger.error(f"Error getting books by class: {e}")
             return []
+
+    def generate_qr_code_for_book(self, book_id: int) -> str:
+        """
+        Generate a unique QR code for a book.
+
+        Args:
+            book_id: ID of the book
+
+        Returns:
+            The generated QR code string
+        """
+        try:
+            book = self.book_repository.get_by_id(book_id)
+            if not book:
+                return None
+
+            qr_code = book.generate_qr_code()
+            self.book_repository.update(book)
+            logger.info(f"Generated QR code {qr_code} for book {book.book_number}")
+            return qr_code
+        except Exception as e:
+            logger.error(f"Error generating QR code for book {book_id}: {e}")
+            return None
+
+    def get_book_by_qr_code(self, qr_code: str) -> Optional[Book]:
+        """
+        Get a book by its QR code.
+
+        Args:
+            qr_code: The QR code to search for
+
+        Returns:
+            Book object if found, None otherwise
+        """
+        try:
+            books = self.book_repository.find_by_field('qr_code', qr_code)
+            return books[0] if books else None
+        except Exception as e:
+            logger.error(f"Error finding book by QR code {qr_code}: {e}")
+            return None
+
+    def borrow_book_by_qr(self, book_qr_code: str, student_qr_code: str) -> bool:
+        """
+        Borrow a book using QR codes.
+
+        Args:
+            book_qr_code: QR code of the book
+            student_qr_code: QR code of the student
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Get book by QR code
+            book = self.get_book_by_qr_code(book_qr_code)
+            if not book:
+                logger.error(f"Book with QR code {book_qr_code} not found")
+                return False
+
+            # Get student by QR code
+            student = self.student_service.get_student_by_qr_code(student_qr_code)
+            if not student:
+                logger.error(f"Student with QR code {student_qr_code} not found")
+                return False
+
+            # Borrow the book
+            return self.borrow_book(book.id, student.admission_number, 'student')
+
+        except Exception as e:
+            logger.error(f"Error borrowing book by QR codes: {e}")
+            return False
+
+    def return_book_by_qr(self, book_qr_code: str, student_qr_code: str, return_condition: str = "Good") -> bool:
+        """
+        Return a book using QR codes.
+
+        Args:
+            book_qr_code: QR code of the book
+            student_qr_code: QR code of the student
+            return_condition: Condition of returned book
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Get book by QR code
+            book = self.get_book_by_qr_code(book_qr_code)
+            if not book:
+                logger.error(f"Book with QR code {book_qr_code} not found")
+                return False
+
+            # Get student by QR code
+            student = self.student_service.get_student_by_qr_code(student_qr_code)
+            if not student:
+                logger.error(f"Student with QR code {student_qr_code} not found")
+                return False
+
+            # Return the book
+            return self.return_book_student(student.admission_number, book.id, return_condition)
+
+        except Exception as e:
+            logger.error(f"Error returning book by QR codes: {e}")
+            return False
     
     def log_user_action(self, username: str, action_type: str, details: str) -> bool:
         """

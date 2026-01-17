@@ -48,6 +48,19 @@ def migrate_students_table():
         else:
             logger.info("Students table already has created_at column")
 
+        # Add QR code columns for students
+        if 'qr_code' not in columns:
+            cursor.execute("ALTER TABLE students ADD COLUMN qr_code TEXT UNIQUE")
+            logger.info("Added qr_code column to students table")
+        else:
+            logger.info("Students table already has qr_code column")
+
+        if 'qr_generated_at' not in columns:
+            cursor.execute("ALTER TABLE students ADD COLUMN qr_generated_at TIMESTAMP")
+            logger.info("Added qr_generated_at column to students table")
+        else:
+            logger.info("Students table already has qr_generated_at column")
+
         conn.commit()
         logger.info("Students table migration completed successfully")
         return True

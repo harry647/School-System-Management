@@ -7,7 +7,8 @@ class Book(BaseModel):
     
     def __init__(self, book_number, title, author, category=None,
                  isbn=None, publication_date=None, available=1,
-                 revision=0, book_condition="New", id=None, subject=None, class_name=None):
+                 revision=0, book_condition="New", id=None, subject=None, class_name=None,
+                 qr_code=None, qr_generated_at=None):
         super().__init__()
         self.id = id
         self.book_number = book_number
@@ -21,6 +22,8 @@ class Book(BaseModel):
         self.book_condition = book_condition
         self.subject = subject
         self.class_name = class_name
+        self.qr_code = qr_code
+        self.qr_generated_at = qr_generated_at
     
     def save(self):
         """Save the book to the database."""
@@ -29,11 +32,11 @@ class Book(BaseModel):
         cursor.execute(
             """INSERT INTO books
                (book_number, title, author, category, isbn, publication_date,
-                available, revision, book_condition, subject, class)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                available, revision, book_condition, subject, class, qr_code, qr_generated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (self.book_number, self.title, self.author, self.category, self.isbn,
              self.publication_date, self.available, self.revision, self.book_condition,
-             self.subject, self.class_name)
+             self.subject, self.class_name, self.qr_code, self.qr_generated_at)
         )
         db.commit()
     
@@ -44,16 +47,26 @@ class Book(BaseModel):
         cursor.execute(
             """UPDATE books SET
                title = ?, author = ?, category = ?, isbn = ?, publication_date = ?,
-               available = ?, revision = ?, book_condition = ?, subject = ?, class = ?
+               available = ?, revision = ?, book_condition = ?, subject = ?, class = ?,
+               qr_code = ?, qr_generated_at = ?
                WHERE book_number = ?""",
             (self.title, self.author, self.category, self.isbn, self.publication_date,
              self.available, self.revision, self.book_condition, self.subject, self.class_name,
-             self.book_number)
+             self.qr_code, self.qr_generated_at, self.book_number)
         )
         db.commit()
 
+    def generate_qr_code(self):
+        """Generate a unique QR code for this book."""
+        import hashlib
+        import datetime
+        unique_string = f"{self.book_number}_{self.title}_{datetime.datetime.now().isoformat()}"
+        self.qr_code = hashlib.sha256(unique_string.encode()).hexdigest()[:16].upper()
+        self.qr_generated_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return self.qr_code
+
     def __repr__(self):
-        return f"<Book(book_number={self.book_number}, title={self.title}, available={self.available})>"
+        return f"<Book(book_number={self.book_number}, title={self.title}, qr_code={self.qr_code}, available={self.available})>"
 
 class BookTag(BaseModel):
     __tablename__ = 'book_tags'

@@ -235,6 +235,7 @@ class MainWindow(BaseApplicationWindow):
                     ("↩️ Return Book", "return_book"),
                     ("🔹 Enhanced Borrow (Per Stream/Subject)", "enhanced_borrow_book"),
                     ("🔹 Enhanced Return (Per Stream/Subject)", "enhanced_return_book"),
+                    ("📱 QR Code Management", "qr_management"),
                     ("📦 Distribution", "distribution"),
                     ("📤 Import/Export", "book_import_export"),
                 ]
@@ -367,6 +368,8 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._open_enhanced_borrow_window())
                     elif action_id == "enhanced_return_book":
                         action.triggered.connect(lambda checked: self._open_enhanced_return_window())
+                    elif action_id == "qr_management":
+                        action.triggered.connect(lambda checked: self._open_qr_management_window())
                     elif action_id == "distribution":
                         action.triggered.connect(lambda checked: self._open_distribution_window())
                     elif action_id == "book_import_export":
@@ -4321,14 +4324,14 @@ class MainWindow(BaseApplicationWindow):
             # First, show a dialog to select class/stream/subject (optional)
             from school_system.gui.windows.book_window.enhanced_return_window import EnhancedReturnWindow
             from school_system.gui.windows.dialogs.class_stream_selection_dialog import ClassStreamSelectionDialog
-            
+
             # Open selection dialog
             selection_dialog = ClassStreamSelectionDialog(self, self.username, self.role)
             if selection_dialog.exec() == QDialog.DialogCode.Accepted:
                 class_level = selection_dialog.get_class_level()
                 stream = selection_dialog.get_stream()
                 subject = selection_dialog.get_subject()
-                
+
                 window = EnhancedReturnWindow(
                     self,
                     self.username,
@@ -4359,6 +4362,22 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             logger.error(f"Error opening enhanced return window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open enhanced return window: {str(e)}")
+
+    def _open_qr_management_window(self):
+        """Open the QR code management window."""
+        try:
+            from school_system.gui.windows.book_window.qr_management_window import QRManagementWindow
+            window = QRManagementWindow(
+                self,
+                self.username,
+                self.role,
+                initial_tab="books"
+            )
+            window.operation_completed.connect(self._on_book_data_changed)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening QR management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open QR management window: {str(e)}")
 
     def _open_distribution_window(self):
         """Open the distribution window."""

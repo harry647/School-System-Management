@@ -21,6 +21,7 @@ fpdf>=1.7.2
 
 # QR Code Generation - For generating QR codes
 qrcode[pil]>=7.3.1
+Pillow>=9.0.0
 
 # ==================================================
 # Standard Library Modules (Included with Python)

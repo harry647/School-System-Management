@@ -14,6 +14,7 @@ def run_all_migrations():
     migrations = [
         ('add_books_subject_class_migration', 'migrate_books_table'),
         ('ensure_all_student_columns_migration', 'migrate_students_table'),
+        ('add_qr_codes_migration', 'migrate_qr_codes'),
     ]
     
     results = []
