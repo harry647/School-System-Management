@@ -8,7 +8,7 @@ class Book(BaseModel):
     def __init__(self, book_number, title, author, category=None,
                  isbn=None, publication_date=None, available=1,
                  revision=0, book_condition="New", id=None, subject=None, class_name=None,
-                 qr_code=None, qr_generated_at=None):
+                 qr_code=None, qr_generated_at=None, **kwargs):
         super().__init__()
         self.id = id
         self.book_number = book_number
@@ -21,7 +21,8 @@ class Book(BaseModel):
         self.revision = revision
         self.book_condition = book_condition
         self.subject = subject
-        self.class_name = class_name
+        # Handle both 'class_name' and 'class' (database column name)
+        self.class_name = class_name or kwargs.get('class')
         self.qr_code = qr_code
         self.qr_generated_at = qr_generated_at
     

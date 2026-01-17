@@ -651,21 +651,72 @@ class BookService:
         """
         logger.info(f"Importing books from Excel file: {filename}")
         ValidationUtils.validate_input(filename, "Filename cannot be empty")
-        
+
         try:
             data = self.import_export_service.import_from_excel(filename)
             books = []
-            
+
             for book_data in data:
                 book = Book(**book_data)
                 created_book = self.book_repository.create(book)
                 books.append(created_book)
-            
+
             logger.info(f"Successfully imported {len(books)} books from {filename}")
             return books
         except Exception as e:
             logger.error(f"Error importing books from Excel: {e}")
             return []
+
+    def import_books_from_excel_with_validation(self, filename: str, required_columns: List[str]) -> Tuple[bool, List[Dict], str]:
+        """
+        Import books from Excel with validation of required columns.
+
+        Args:
+            filename: Path to the Excel file
+            required_columns: List of required column names
+
+        Returns:
+            Tuple of (success, data, error_message)
+        """
+        logger.info(f"Importing books from Excel with validation: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+
+        try:
+            success, data, error_msg = self.import_export_service.import_from_excel_with_validation(
+                filename, required_columns
+            )
+
+            if not success:
+                return success, data, error_msg
+
+            # Validate and clean the data
+            validated_data = []
+            for row in data:
+                # Ensure required fields are present and not empty
+                validated_row = {}
+                missing_required = []
+
+                for col in required_columns:
+                    value = row.get(col, '').strip() if row.get(col) else ''
+                    if not value:
+                        missing_required.append(col)
+                    validated_row[col] = value
+
+                if missing_required:
+                    return False, [], f"Row missing required data: {', '.join(missing_required)}"
+
+                # Add optional fields
+                optional_fields = ['category', 'isbn', 'publication_date', 'subject', 'class', 'condition']
+                for field in optional_fields:
+                    validated_row[field] = row.get(field, '')
+
+                validated_data.append(validated_row)
+
+            return True, validated_data, ""
+
+        except Exception as e:
+            logger.error(f"Error importing books from Excel with validation: {e}")
+            return False, [], f"Import failed: {str(e)}"
 
     def create_session(self, class_name, stream, subject, term, created_by, students):
         """
@@ -1358,13 +1409,95 @@ class BookService:
         """
         logger.info(f"Exporting books to Excel file: {filename}")
         ValidationUtils.validate_input(filename, "Filename cannot be empty")
-        
+
         try:
             books = self.book_repository.get_all()
-            data = [book.__dict__ for book in books]
+
+            # Convert books to exportable data, excluding internal fields
+            data = []
+            for book in books:
+                book_dict = {
+                    'book_number': book.book_number,
+                    'title': book.title,
+                    'author': book.author,
+                    'category': getattr(book, 'category', ''),
+                    'isbn': getattr(book, 'isbn', ''),
+                    'publication_date': getattr(book, 'publication_date', ''),
+                    'available': book.available,
+                    'revision': book.revision,
+                    'book_condition': book.book_condition,
+                    'subject': getattr(book, 'subject', ''),
+                    'class': getattr(book, 'class_name', ''),
+                    'qr_code': getattr(book, 'qr_code', ''),
+                    'qr_generated_at': getattr(book, 'qr_generated_at', '')
+                }
+                data.append(book_dict)
+
             return self.import_export_service.export_to_excel(data, filename)
         except Exception as e:
             logger.error(f"Error exporting books to Excel: {e}")
+            return False
+
+    def export_books_to_csv(self, filename: str) -> bool:
+        """
+        Export books to a CSV file.
+
+        Args:
+            filename: The name of the CSV file.
+
+        Returns:
+            True if the export was successful, otherwise False.
+        """
+        logger.info(f"Exporting books to CSV file: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+
+        try:
+            books = self.book_repository.get_all()
+
+            # Convert books to exportable data
+            data = []
+            for book in books:
+                book_dict = {
+                    'book_number': book.book_number,
+                    'title': book.title,
+                    'author': book.author,
+                    'category': getattr(book, 'category', ''),
+                    'isbn': getattr(book, 'isbn', ''),
+                    'publication_date': getattr(book, 'publication_date', ''),
+                    'available': book.available,
+                    'revision': book.revision,
+                    'book_condition': book.book_condition,
+                    'subject': getattr(book, 'subject', ''),
+                    'class': getattr(book, 'class_name', ''),
+                    'qr_code': getattr(book, 'qr_code', ''),
+                    'qr_generated_at': getattr(book, 'qr_generated_at', '')
+                }
+                data.append(book_dict)
+
+            return self.import_export_service.export_to_csv(data, filename)
+        except Exception as e:
+            logger.error(f"Error exporting books to CSV: {e}")
+            return False
+
+    def generate_book_import_template(self, filename: str, columns: List[str], sample_data: List[Dict] = None) -> bool:
+        """
+        Generate an Excel template for book import.
+
+        Args:
+            filename: The name of the Excel file to create
+            columns: List of column headers
+            sample_data: Optional sample data to include
+
+        Returns:
+            True if template generation was successful, False otherwise
+        """
+        logger.info(f"Generating book import template: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+
+        try:
+            return self.import_export_service.generate_excel_template(filename, columns, sample_data)
+        except Exception as e:
+            logger.error(f"Error generating book import template: {e}")
             return False
     
     def bulk_borrow_books_from_excel(self, filename: str, current_user: str) -> Tuple[bool, str, dict]:

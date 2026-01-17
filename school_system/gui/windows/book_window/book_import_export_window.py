@@ -72,11 +72,49 @@ class BookImportExportWindow(BaseFunctionWindow):
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         import_layout.addWidget(title_label)
         
-        # Description
-        desc_label = QLabel("Import books from an Excel file (.xlsx). The file should contain columns: Book ID, Title, Author, ISBN, Subject, Class, Condition.")
+        # Required columns information
+        columns_info = QVBoxLayout()
+        columns_info.setSpacing(8)
+
+        # Main description
+        desc_label = QLabel("Import books from an Excel file (.xlsx).")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 12px;")
-        import_layout.addWidget(desc_label)
+        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 8px;")
+        columns_info.addWidget(desc_label)
+
+        # Required columns
+        required_label = QLabel("Required Columns:")
+        required_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px;")
+        columns_info.addWidget(required_label)
+
+        required_cols = QLabel("• Book Number (text, unique)")
+        required_cols.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
+        columns_info.addWidget(required_cols)
+
+        required_cols2 = QLabel("• Title (text)")
+        required_cols2.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
+        columns_info.addWidget(required_cols2)
+
+        required_cols3 = QLabel("• Author (text)")
+        required_cols3.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
+        columns_info.addWidget(required_cols3)
+
+        # Optional columns
+        optional_label = QLabel("Optional Columns:")
+        optional_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px; margin-top: 8px;")
+        columns_info.addWidget(optional_label)
+
+        optional_cols = QLabel("• Category, ISBN, Publication Date, Subject, Class, Condition")
+        optional_cols.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
+        columns_info.addWidget(optional_cols)
+
+        # Template generation button
+        template_btn = self.create_button("📄 Generate Import Template", "outline")
+        template_btn.setFixedWidth(200)
+        template_btn.clicked.connect(self._generate_import_template)
+        columns_info.addWidget(template_btn)
+
+        import_layout.addLayout(columns_info)
         
         # File selection
         file_layout = QHBoxLayout()
@@ -175,13 +213,54 @@ class BookImportExportWindow(BaseFunctionWindow):
         if not hasattr(self, 'import_file_path') or not self.import_file_path:
             show_error_message("No File Selected", "Please select a file to import.", self)
             return
-        
+
         try:
-            # Import books from file
-            # Note: This would need to be implemented in BookService
-            # For now, just show a message
-            show_success_message("Success", f"Books imported successfully from {self.import_file_path}.", self)
-            
+            # Define required columns for book import
+            required_columns = ['book_number', 'title', 'author']
+
+            # Import books from file using service method
+            success, data, error_msg = self.book_service.import_books_from_excel_with_validation(
+                self.import_file_path, required_columns
+            )
+
+            if not success:
+                show_error_message("Import Error", error_msg, self)
+                return
+
+            # Process the imported data
+            imported_books = []
+            for book_data in data:
+                try:
+                    # Map Excel columns to model parameters
+                    book_params = {
+                        'book_number': str(book_data.get('book_number', '')).strip(),
+                        'title': str(book_data.get('title', '')).strip(),
+                        'author': str(book_data.get('author', '')).strip(),
+                        'category': book_data.get('category'),
+                        'isbn': book_data.get('isbn'),
+                        'publication_date': book_data.get('publication_date'),
+                        'subject': book_data.get('subject'),
+                        'class_name': book_data.get('class'),
+                        'book_condition': book_data.get('condition', 'New')
+                    }
+
+                    # Create book using service
+                    created_book = self.book_service.create_book(book_params)
+                    imported_books.append(created_book)
+
+                except Exception as e:
+                    logger.warning(f"Failed to create book from row: {book_data}, error: {e}")
+                    continue
+
+            if imported_books:
+                show_success_message("Success",
+                    f"Successfully imported {len(imported_books)} books from {self.import_file_path.split('/')[-1]}.",
+                    self)
+                logger.info(f"Imported {len(imported_books)} books from {self.import_file_path}")
+            else:
+                show_error_message("Import Warning",
+                    "No books were imported. Please check your Excel file format and data.", self)
+
             # Clear file selection
             self.import_file_label.setText("No file selected")
             self.import_file_label.setStyleSheet(f"""
@@ -192,8 +271,7 @@ class BookImportExportWindow(BaseFunctionWindow):
             """)
             if hasattr(self, 'import_file_path'):
                 delattr(self, 'import_file_path')
-            
-            logger.info(f"Books imported from {self.import_file_path}")
+
         except Exception as e:
             logger.error(f"Error importing books: {e}")
             show_error_message("Error", f"Failed to import books: {str(e)}", self)
@@ -201,29 +279,97 @@ class BookImportExportWindow(BaseFunctionWindow):
     def _on_export_books(self):
         """Handle export books button click."""
         format_text = self.export_format_combo.currentText()
-        
-        # Determine file extension
+
+        # Determine file extension and export method
         if "Excel" in format_text or ".xlsx" in format_text:
             file_ext = "xlsx"
             file_filter = "Excel Files (*.xlsx)"
+            export_method = "excel"
         else:
             file_ext = "csv"
             file_filter = "CSV Files (*.csv)"
-        
+            export_method = "csv"
+
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save Export File",
             f"books_export.{file_ext}",
             file_filter
         )
-        
+
         if file_path:
             try:
-                # Export books to file
-                # Note: This would need to be implemented in BookService
-                # For now, just show a message
-                show_success_message("Success", f"Books exported successfully to {file_path}.", self)
-                logger.info(f"Books exported to {file_path}")
+                success = False
+                if export_method == "excel":
+                    success = self.book_service.export_books_to_excel(file_path)
+                else:
+                    # For CSV export, we'll need to implement this in the service
+                    success = self.book_service.export_books_to_csv(file_path)
+
+                if success:
+                    show_success_message("Success", f"Books exported successfully to {file_path}.", self)
+                    logger.info(f"Books exported to {file_path}")
+                else:
+                    show_error_message("Export Error", "Failed to export books. Please check the logs.", self)
+
             except Exception as e:
                 logger.error(f"Error exporting books: {e}")
                 show_error_message("Error", f"Failed to export books: {str(e)}", self)
+
+    def _generate_import_template(self):
+        """Generate an Excel template for book import."""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Import Template",
+            "book_import_template.xlsx",
+            "Excel Files (*.xlsx)"
+        )
+
+        if file_path:
+            try:
+                # Define columns for the template
+                columns = [
+                    'book_number', 'title', 'author', 'category', 'isbn',
+                    'publication_date', 'subject', 'class', 'condition'
+                ]
+
+                # Sample data
+                sample_data = [
+                    {
+                        'book_number': 'MATH101',
+                        'title': 'Advanced Mathematics',
+                        'author': 'John Smith',
+                        'category': 'Mathematics',
+                        'isbn': '1234567890123',
+                        'publication_date': '2024-01-15',
+                        'subject': 'Mathematics',
+                        'class': 'Form 4',
+                        'condition': 'New'
+                    },
+                    {
+                        'book_number': 'ENG201',
+                        'title': 'English Literature',
+                        'author': 'Jane Doe',
+                        'category': 'English',
+                        'isbn': '9876543210987',
+                        'publication_date': '2023-09-01',
+                        'subject': 'English',
+                        'class': 'Form 3',
+                        'condition': 'Good'
+                    }
+                ]
+
+                # Generate template
+                success = self.book_service.generate_book_import_template(file_path, columns, sample_data)
+
+                if success:
+                    show_success_message("Template Generated",
+                        f"Import template saved to: {file_path}\n\nThe template includes sample data and all required columns.",
+                        self)
+                    logger.info(f"Book import template generated: {file_path}")
+                else:
+                    show_error_message("Template Error", "Failed to generate import template.", self)
+
+            except Exception as e:
+                logger.error(f"Error generating import template: {e}")
+                show_error_message("Error", f"Failed to generate template: {str(e)}", self)
