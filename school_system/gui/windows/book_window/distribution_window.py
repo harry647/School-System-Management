@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt6.QtCore import Qt, pyqtSignal, QDate, QTimer
 from PyQt6.QtGui import QFont
 from datetime import datetime
+import pandas as pd
 
 from school_system.gui.windows.base_function_window import BaseFunctionWindow
 from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
@@ -566,18 +567,25 @@ class DistributionWindow(BaseFunctionWindow):
 
             for template_key, students in template_data.items():
                 self.template_status_label.setText(f"Generating template: {template_key}")
+                logger.info(f"Generating template: {template_key} for {len(students)} students")
 
                 # Generate Excel
                 if generate_excel:
                     excel_file = self._generate_excel_template(template_key, students)
                     if excel_file:
                         generated_files.append(("Excel", excel_file))
+                        logger.info(f"Generated Excel template: {excel_file}")
+                    else:
+                        logger.error(f"Failed to generate Excel template for {template_key}")
 
                 # Generate PDF
                 if generate_pdf:
                     pdf_file = self._generate_pdf_template(template_key, students)
                     if pdf_file:
                         generated_files.append(("PDF", pdf_file))
+                        logger.info(f"Generated PDF template: {pdf_file}")
+                    else:
+                        logger.error(f"Failed to generate PDF template for {template_key}")
 
                 completed += 1
                 progress = int((completed / total_templates) * 100)
@@ -702,38 +710,53 @@ class DistributionWindow(BaseFunctionWindow):
             with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
                 excel_file = tmp_file.name
 
-            # Save to Excel with formatting
-            with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name='Borrowing_Template', index=False)
+            # Save to Excel with basic formatting
+            try:
+                with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
+                    df.to_excel(writer, sheet_name='Borrowing_Template', index=False)
 
-                # Get workbook and worksheet
-                workbook = writer.book
-                worksheet = writer.sheets['Borrowing_Template']
+                    # Try to add basic formatting
+                    try:
+                        # Get workbook and worksheet
+                        workbook = writer.book
+                        worksheet = writer.sheets['Borrowing_Template']
 
-                # Set column widths
-                from openpyxl.utils import get_column_letter
-                for column in worksheet.columns:
-                    max_length = 0
-                    column_letter = get_column_letter(column[0].column)
+                        # Set column widths
+                        from openpyxl.utils import get_column_letter
+                        for column in worksheet.columns:
+                            max_length = 0
+                            column_letter = get_column_letter(column[0].column)
 
-                    for cell in column:
+                            for cell in column:
+                                try:
+                                    if len(str(cell.value)) > max_length:
+                                        max_length = len(str(cell.value))
+                                except:
+                                    pass
+
+                            adjusted_width = min(max_length + 2, 30)  # Max width of 30
+                            worksheet.column_dimensions[column_letter].width = adjusted_width
+
+                        # Style header row (optional - skip if it fails)
                         try:
-                            if len(str(cell.value)) > max_length:
-                                max_length = len(str(cell.value))
-                        except:
-                            pass
+                            from openpyxl.styles import Font, PatternFill
+                            header_font = Font(bold=True, color="FFFFFF")
+                            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
 
-                    adjusted_width = min(max_length + 2, 30)  # Max width of 30
-                    worksheet.column_dimensions[column_letter].width = adjusted_width
+                            for cell in worksheet[1]:
+                                cell.font = header_font
+                                cell.fill = header_fill
+                        except Exception as style_error:
+                            logger.warning(f"Could not apply Excel styling: {style_error}")
+                            # Continue without styling
 
-                # Style header row
-                from openpyxl.styles import Font, PatternFill
-                header_font = Font(bold=True, color="FFFFFF")
-                header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+                    except Exception as format_error:
+                        logger.warning(f"Could not apply Excel formatting: {format_error}")
+                        # Continue with basic Excel file
 
-                for cell in worksheet[1]:
-                    cell.font = header_font
-                    cell.fill = header_fill
+            except Exception as excel_error:
+                logger.error(f"Failed to save Excel file: {excel_error}")
+                return None
 
             return excel_file
 
