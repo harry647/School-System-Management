@@ -51,7 +51,28 @@ class EnhancedBorrowWindow(QDialog):
         self.stream_name = stream_name
         self.subject = subject
         self.current_user = current_user
-        
+
+        # Extract class level from class name for display purposes
+        self.class_level = None
+        if self.class_name:
+            # Extract numeric level from class name (e.g., "Form 4" -> 4)
+            if 'Form' in self.class_name:
+                parts = self.class_name.split()
+                for part in parts:
+                    if part.isdigit():
+                        self.class_level = int(part)
+                        break
+            elif 'Grade' in self.class_name:
+                parts = self.class_name.split()
+                for part in parts:
+                    if part.isdigit():
+                        self.class_level = int(part)
+                        break
+            elif self.class_name.isdigit():
+                self.class_level = int(self.class_name)
+
+        self.stream = self.stream_name  # For compatibility with format_class_display_name
+
         self.students = []
         self.borrow_preview_data = {}  # Store preview data: {student_id: {book_id, subject}}
         
