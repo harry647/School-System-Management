@@ -19,6 +19,9 @@ openpyxl>=3.0.7
 # PDF Generation - For generating PDF reports
 fpdf>=1.7.2
 
+# QR Code Generation - For generating QR codes
+qrcode[pil]>=7.3.1
+
 # ==================================================
 # Standard Library Modules (Included with Python)
 # ==================================================
