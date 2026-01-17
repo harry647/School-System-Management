@@ -20,7 +20,21 @@ A comprehensive school management system for managing students, teachers, books,
 - **Size**: ~150KB with sample data
 - **Admin user**: Created automatically (admin/harry123)
 
-## Quick Start
+## Installation
+
+### Prerequisites
+- Python 3.7 or higher
+- Windows/Linux/macOS
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### Verify Installation
+```bash
+python verify_requirements.py
+```
 
 ### Running the Application
 
@@ -102,8 +116,18 @@ The application automatically creates the following tables:
 
 ### Requirements
 - Python 3.7+
-- tkinter (usually included with Python)
+- Dependencies listed in `requirements.txt`
 - SQLite3 (included with Python)
+
+### Install Development Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### Verify Dependencies
+```bash
+python verify_requirements.py
+```
 
 ### Adding New Features
 

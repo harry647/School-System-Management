@@ -1492,6 +1492,34 @@ class BookService:
             logger.error(f"Error logging user action: {e}")
             return False
 
+    def borrow_book(self, book_id: int, user_id: str, user_type: str) -> bool:
+        """
+        Borrow a book for a user (student or teacher).
+
+        Args:
+            book_id: ID of the book to borrow
+            user_id: ID of the user borrowing the book
+            user_type: Type of user ('student' or 'teacher')
+
+        Returns:
+            True if borrowing was successful, False otherwise
+        """
+        logger.info(f"Borrowing book {book_id} for {user_type} {user_id}")
+
+        try:
+            # Convert string IDs to appropriate types if needed
+            if user_type == 'student':
+                user_id_int = int(user_id)
+            else:  # teacher
+                user_id_int = int(user_id)
+
+            # Use the existing reserve_book method with correct parameter order
+            return self.reserve_book(user_id_int, user_type, book_id)
+
+        except Exception as e:
+            logger.error(f"Error borrowing book: {e}")
+            return False
+
     def check_book_availability(self, book_id: int) -> bool:
         """
         Check if a book is available for borrowing

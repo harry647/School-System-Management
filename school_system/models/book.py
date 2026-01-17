@@ -1,5 +1,5 @@
 # Book models
-from .base import BaseModel
+from .base import BaseModel, get_db_session
 
 class Book(BaseModel):
     __tablename__ = 'books'

@@ -21,5 +21,5 @@ class BaseModel:
 
 def get_db_session():
     """Get a database session (connection)."""
-    from school_system.database.connection import get_db_session
-    return get_db_session()
+    from school_system.database.connection import get_db_session as _get_db_session
+    return _get_db_session()

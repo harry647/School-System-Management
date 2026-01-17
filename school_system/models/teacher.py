@@ -1,5 +1,5 @@
 # Teacher model
-from .base import BaseModel
+from .base import BaseModel, get_db_session
 
 class Teacher(BaseModel):
     __tablename__ = 'teachers'

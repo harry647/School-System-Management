@@ -1,5 +1,5 @@
 # Furniture models
-from .base import BaseModel
+from .base import BaseModel, get_db_session
 
 class Chair(BaseModel):
     __tablename__ = 'chairs'
