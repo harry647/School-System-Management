@@ -126,13 +126,17 @@ class ClassManagementService:
     def get_all_class_levels(self) -> List[int]:
         """
         Get all unique class levels from the database.
-        
+
         Returns:
             A sorted list of class levels (e.g., [1, 2, 3, 4, 10, 11, 12])
         """
         categorized = self.categorize_all_students()
-        class_levels = [level for level in categorized.keys() if level > 0]
-        return sorted(class_levels)
+        class_levels = []
+        for class_name in categorized.keys():
+            class_level = self._extract_class_level_from_name(class_name)
+            if class_level is not None and class_level > 0:
+                class_levels.append(class_level)
+        return sorted(list(set(class_levels)))
     
     def get_all_streams(self, class_level: Optional[int] = None) -> List[str]:
         """
@@ -223,22 +227,53 @@ class ClassManagementService:
     def get_class_stream_combinations(self) -> List[Tuple[int, str, int]]:
         """
         Get all class-stream combinations with student counts.
-        
+
         Returns:
             A list of tuples: (class_level, stream, student_count)
         """
         categorized = self.categorize_all_students()
         combinations = []
-        
-        for class_level, streams in categorized.items():
-            if class_level < 0:  # Skip invalid formats
+
+        for class_name, streams in categorized.items():
+            # Extract numeric class level from class name
+            class_level = self._extract_class_level_from_name(class_name)
+            if class_level is None or class_level < 0:  # Skip invalid formats
                 continue
             for stream, students in streams.items():
                 if stream != "Invalid Format":
                     combinations.append((class_level, stream, len(students)))
-        
+
         return sorted(combinations, key=lambda x: (x[0], x[1]))
-    
+
+    def _extract_class_level_from_name(self, class_name: str) -> Optional[int]:
+        """
+        Extract numeric class level from class name (e.g., 'Form 4' -> 4).
+
+        Args:
+            class_name: The class name (e.g., "Form 4", "Grade 10")
+
+        Returns:
+            The numeric class level, or None if extraction fails
+        """
+        if not class_name:
+            return None
+
+        class_name = class_name.lower()
+        if 'form' in class_name:
+            parts = class_name.split()
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif 'grade' in class_name:
+            parts = class_name.split()
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif class_name.isdigit():
+            return int(class_name)
+
+        return None
+
     def format_class_display_name(self, class_level: int, stream: Optional[str] = None) -> str:
         """
         Format a class display name for UI display.

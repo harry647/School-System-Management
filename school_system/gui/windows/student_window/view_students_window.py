@@ -24,15 +24,13 @@ class ViewStudentsWindow(BaseFunctionWindow):
     def __init__(self, parent=None, current_user: str = "", current_role: str = ""):
         """Initialize the view students window."""
         super().__init__("View Students", parent, current_user, current_role)
-        
+
         self.student_service = StudentService()
         self.students_table = None
-        
+        self.action_bar_layout = None  # Reference to action bar layout
+
         # Setup content
         self.setup_content()
-        
-        # Load initial data
-        self._refresh_students_table()
     
     def setup_content(self):
         """Setup the main content area."""
@@ -51,12 +49,29 @@ class ViewStudentsWindow(BaseFunctionWindow):
         
         # Add to content
         self.add_layout_to_content(main_layout)
-    
+
+        # Load initial data after table is created
+        self._refresh_students_table()
+
+    def add_button_to_action_bar(self, button: QPushButton, position: int = -1):
+        """
+        Add a button to the action bar.
+
+        Args:
+            button: Button to add
+            position: Position to insert (default: append to end)
+        """
+        if self.action_bar_layout is not None:
+            if position == -1:
+                self.action_bar_layout.addWidget(button)
+            else:
+                self.action_bar_layout.insertWidget(position, button)
+
     def _create_action_bar(self) -> QWidget:
         """Create the action bar with search, filters, and action buttons."""
         theme_manager = self.get_theme_manager()
         theme = theme_manager._themes[self.get_theme()]
-        
+
         action_card = QWidget()
         action_card.setProperty("card", "true")
         action_card.setFixedHeight(80)
@@ -68,8 +83,9 @@ class ViewStudentsWindow(BaseFunctionWindow):
                 padding: 16px;
             }}
         """)
-        
+
         action_layout = QHBoxLayout(action_card)
+        self.action_bar_layout = action_layout  # Store reference to the layout
         action_layout.setContentsMargins(16, 16, 16, 16)
         action_layout.setSpacing(12)
         
@@ -148,8 +164,8 @@ class ViewStudentsWindow(BaseFunctionWindow):
         table_layout.addWidget(title_label)
         
         # Students table
-        self.students_table = self.create_table(0, 4)
-        self.students_table.setColumnCount(4)  # Ensure columns are set
+        self.students_table = self.create_table(0, 6)
+        self.students_table.setColumnCount(6)  # Ensure columns are set
         self.students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Class", "Stream", "Legacy Stream", "Actions"])
         self.students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.students_table.setAlternatingRowColors(True)
@@ -203,7 +219,7 @@ class ViewStudentsWindow(BaseFunctionWindow):
     def _on_class_filter_changed(self):
         """Handle class filter change - repopulate stream filter."""
         self._populate_stream_filter()
-        self._on_filter_changed()
+        self._refresh_students_table()
     
     def _refresh_students_table(self):
         """Refresh the students table with current data."""
@@ -238,9 +254,9 @@ class ViewStudentsWindow(BaseFunctionWindow):
                 self.students_table.setItem(row, 2, QTableWidgetItem(student.class_name or ""))
                 self.students_table.setItem(row, 3, QTableWidgetItem(student.stream_name or ""))
                 self.students_table.setItem(row, 4, QTableWidgetItem(student.stream))
-                
+
                 # Actions column (can add buttons here if needed)
-                self.students_table.setItem(row, 3, QTableWidgetItem(""))
+                self.students_table.setItem(row, 5, QTableWidgetItem(""))
 
             # Resize columns to fit content
             self.students_table.resizeColumnsToContents()

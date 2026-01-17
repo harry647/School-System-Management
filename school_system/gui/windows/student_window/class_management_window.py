@@ -10,7 +10,7 @@ from PyQt6.QtGui import QFont
 from typing import List, Optional
 
 from school_system.gui.windows.base_function_window import BaseFunctionWindow
-from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
+from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message, show_info_message
 from school_system.config.logging import logger
 from school_system.services.student_service import StudentService
 
@@ -361,63 +361,42 @@ class ClassManagementWindow(BaseFunctionWindow):
             self.stats_label.setText("Select a class to view statistics")
             return
 
-        class_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
-        class_info = self.classes.get(class_id)
+        class_stream_data = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        class_name = class_stream_data["class"]
+        stream_name = class_stream_data["stream"]
 
-        if class_info:
-            self.current_class_label.setText(f"Selected: {class_info['name']} ({class_info['stream']})")
-            self._refresh_class_students(class_id)
-            self._update_class_statistics(class_id)
-        else:
-            self.current_class_label.setText("Class not found")
-            self.class_students_table.setRowCount(0)
+        self.current_class_label.setText(f"Selected: {class_name} - {stream_name}")
+        self._refresh_class_students(class_name, stream_name)
+        self._update_class_statistics(class_name, stream_name)
 
-    def _refresh_class_students(self, class_id: str):
-        """Refresh students in the selected class."""
+    def _refresh_class_students(self, class_name: str, stream_name: str):
+        """Refresh students in the selected class and stream."""
         try:
-            class_info = self.classes.get(class_id, {})
-            student_ids = class_info.get('students', set())
+            # Get students for the selected class and stream
+            students = self.student_service.get_students_by_class_and_stream(class_name, stream_name)
 
             self.class_students_table.setRowCount(0)
 
-            for student_id in student_ids:
-                try:
-                    student = self.student_service.get_student_by_id(student_id)
-                    if student:
-                        row = self.class_students_table.rowCount()
-                        self.class_students_table.insertRow(row)
+            for student in students:
+                row = self.class_students_table.rowCount()
+                self.class_students_table.insertRow(row)
 
-                        self.class_students_table.setItem(row, 0, QTableWidgetItem(student.student_id))
-                        self.class_students_table.setItem(row, 1, QTableWidgetItem(student.name))
-                        self.class_students_table.setItem(row, 2, QTableWidgetItem(student.stream))
-                except Exception as e:
-                    logger.error(f"Error loading student {student_id}: {e}")
+                self.class_students_table.setItem(row, 0, QTableWidgetItem(student.student_id))
+                self.class_students_table.setItem(row, 1, QTableWidgetItem(student.name))
+                self.class_students_table.setItem(row, 2, QTableWidgetItem(student.stream_name or ""))
 
-            logger.info(f"Refreshed class students with {len(student_ids)} students")
+            logger.info(f"Refreshed class students with {len(students)} students")
         except Exception as e:
             logger.error(f"Error refreshing class students: {e}")
             show_error_message("Error", f"Failed to refresh students: {str(e)}", self)
 
-    def _update_class_statistics(self, class_id: str):
+    def _update_class_statistics(self, class_name: str, stream_name: str):
         """Update class statistics display."""
         try:
-            class_info = self.classes.get(class_id, {})
-            student_ids = class_info.get('students', set())
-            total_students = len(student_ids)
+            students = self.student_service.get_students_by_class_and_stream(class_name, stream_name)
+            total_students = len(students)
 
-            # Count by stream
-            stream_counts = {}
-            for student_id in student_ids:
-                try:
-                    student = self.student_service.get_student_by_id(student_id)
-                    if student:
-                        stream_counts[student.stream] = stream_counts.get(student.stream, 0) + 1
-                except Exception as e:
-                    logger.error(f"Error loading student {student_id} for stats: {e}")
-
-            stats_text = f"Total Students: {total_students}\n\nStream Distribution:"
-            for stream, count in stream_counts.items():
-                stats_text += f"\n{stream}: {count}"
+            stats_text = f"Class: {class_name}\nStream: {stream_name}\nTotal Students: {total_students}"
 
             self.stats_label.setText(stats_text)
         except Exception as e:
@@ -454,72 +433,36 @@ class ClassManagementWindow(BaseFunctionWindow):
             show_error_message("Error", f"Failed to add class: {str(e)}", self)
 
     def _edit_class(self):
-        """Edit the selected class."""
+        """Edit the selected class (not supported in current implementation)."""
         selected_items = self.classes_list.selectedItems()
         if not selected_items:
             show_error_message("No Selection", "Please select a class to edit.", self)
             return
 
-        class_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
-        class_info = self.classes.get(class_id)
+        class_stream_data = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        class_name = class_stream_data["class"]
+        stream_name = class_stream_data["stream"]
 
-        if not class_info:
-            show_error_message("Error", "Class not found.", self)
-            return
-
-        # Set current values in inputs
-        self.class_name_input.setText(class_info["name"])
-
-        # Set stream
-        index = self.class_stream_combo.findText(class_info["stream"])
-        if index >= 0:
-            self.class_stream_combo.setCurrentIndex(index)
-        else:
-            self.class_stream_combo.setEditText(class_info["stream"])
-
-        # Change button text temporarily
-        # Note: In a real implementation, you'd want to track edit mode
-        show_info_message("Edit Mode", "Update the class information and save.", self)
+        show_info_message("Information",
+                         f"Class '{class_name}' with stream '{stream_name}' cannot be edited directly.\n\n"
+                         f"Class and stream combinations are automatically created based on student enrollments.\n\n"
+                         f"To modify class/stream combinations, update student records through the student management windows.", self)
 
     def _delete_class(self):
-        """Delete the selected class."""
+        """Delete the selected class (not supported in current implementation)."""
         selected_items = self.classes_list.selectedItems()
         if not selected_items:
             show_error_message("No Selection", "Please select a class to delete.", self)
             return
 
-        class_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
-        class_info = self.classes.get(class_id)
+        class_stream_data = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        class_name = class_stream_data["class"]
+        stream_name = class_stream_data["stream"]
 
-        if not class_info:
-            show_error_message("Error", "Class not found.", self)
-            return
-
-        from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
-        dialog = ConfirmationDialog(
-            title="Delete Class",
-            message=f"Are you sure you want to delete class '{class_info['name']}'?\n\nThis will remove all student enrollments for this class.",
-            parent=self,
-            confirm_text="Delete",
-            cancel_text="Cancel"
-        )
-
-        if dialog.exec() == ConfirmationDialog.DialogCode.Accepted:
-            try:
-                # Remove from our simple storage
-                del self.classes[class_id]
-                show_success_message("Success", f"Class '{class_info['name']}' deleted successfully.", self)
-                self._refresh_classes()
-
-                # Clear students table if this class was selected
-                if self.classes_list.selectedItems():
-                    self.class_students_table.setRowCount(0)
-                    self.current_class_label.setText("No class selected")
-                    self.stats_label.setText("Select a class to view statistics")
-
-            except Exception as e:
-                logger.error(f"Error deleting class: {e}")
-                show_error_message("Error", f"Failed to delete class: {str(e)}", self)
+        show_info_message("Information",
+                         f"Class '{class_name}' with stream '{stream_name}' cannot be deleted directly.\n\n"
+                         f"Class and stream combinations are automatically managed based on student enrollments.\n\n"
+                         f"To remove this combination, reassign or remove students from this class/stream through the student management windows.", self)
 
     def _add_student_to_class(self):
         """Add a student to the selected class."""
@@ -555,7 +498,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         select_btn.clicked.connect(on_student_selected)
 
         # Add to the action bar
-        students_window.main_layout.insertWidget(0, select_btn)
+        students_window.add_button_to_action_bar(select_btn, 0)
         students_window.show()
 
     def _remove_student_from_class(self):
