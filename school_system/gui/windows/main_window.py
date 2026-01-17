@@ -8,7 +8,7 @@ dropdown menus and dynamic content loading.
 from PyQt6.QtWidgets import (QLabel, QMessageBox, QMenuBar, QSizePolicy, QFrame,
                             QVBoxLayout, QToolButton, QHBoxLayout, QPushButton,
                             QLineEdit, QGridLayout, QSplitter, QScrollArea,
-                            QStackedWidget, QWidget, QMenu, QComboBox, QTableWidget, QTableWidgetItem)
+                            QStackedWidget, QWidget, QMenu, QComboBox, QTableWidget, QTableWidgetItem, QDialog)
 from PyQt6.QtCore import Qt, QTime, QTimer, pyqtSignal
 from PyQt6.QtGui import QIcon, QFont, QAction
 from typing import Callable, Dict, Any
@@ -233,6 +233,8 @@ class MainWindow(BaseApplicationWindow):
                     ("➕ Add Book", "add_book"),
                     ("📖 Borrow Book", "borrow_book"),
                     ("↩️ Return Book", "return_book"),
+                    ("🔹 Enhanced Borrow (Per Stream/Subject)", "enhanced_borrow_book"),
+                    ("🔹 Enhanced Return (Per Stream/Subject)", "enhanced_return_book"),
                     ("📦 Distribution", "distribution"),
                     ("📤 Import/Export", "book_import_export"),
                 ]
@@ -254,6 +256,7 @@ class MainWindow(BaseApplicationWindow):
                     ("🪑 Manage Furniture", "manage_furniture"),
                     ("📋 Assignments", "furniture_assignments"),
                     ("🔧 Maintenance", "furniture_maintenance"),
+                    ("🔹 Enhanced Furniture Management", "enhanced_furniture_management"),
                 ]
             },
             {
@@ -326,8 +329,9 @@ class MainWindow(BaseApplicationWindow):
                 if action_id in ["view_students", "add_student", "edit_student", "class_management",
                                "library_activity", "student_import_export", "ream_management",
                                "view_teachers", "add_teacher", "edit_teacher", "teacher_import_export",
-                               "view_books", "add_book", "borrow_book", "return_book", "distribution", "book_import_export",
-                               "manage_furniture", "furniture_assignments", "furniture_maintenance",
+                               "view_books", "add_book", "borrow_book", "return_book", "enhanced_borrow_book", 
+                               "enhanced_return_book", "distribution", "book_import_export",
+                               "manage_furniture", "furniture_assignments", "furniture_maintenance", "enhanced_furniture_management",
                                "manage_users", "view_users", "add_user", "edit_user", "delete_user"]:
                     if action_id == "view_students":
                         action.triggered.connect(lambda checked: self._open_view_students_window())
@@ -359,6 +363,10 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._open_borrow_book_window())
                     elif action_id == "return_book":
                         action.triggered.connect(lambda checked: self._open_return_book_window())
+                    elif action_id == "enhanced_borrow_book":
+                        action.triggered.connect(lambda checked: self._open_enhanced_borrow_window())
+                    elif action_id == "enhanced_return_book":
+                        action.triggered.connect(lambda checked: self._open_enhanced_return_window())
                     elif action_id == "distribution":
                         action.triggered.connect(lambda checked: self._open_distribution_window())
                     elif action_id == "book_import_export":
@@ -369,6 +377,8 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._open_furniture_assignments_window())
                     elif action_id == "furniture_maintenance":
                         action.triggered.connect(lambda checked: self._open_furniture_maintenance_window())
+                    elif action_id == "enhanced_furniture_management":
+                        action.triggered.connect(lambda checked: self._open_enhanced_furniture_management_window())
                     elif action_id == "manage_users":
                         action.triggered.connect(lambda checked: self._open_manage_users_window())
                     elif action_id == "view_users":
@@ -4260,6 +4270,96 @@ class MainWindow(BaseApplicationWindow):
             logger.error(f"Error opening return book window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open return book window: {str(e)}")
 
+    def _open_enhanced_borrow_window(self):
+        """Open the enhanced borrow per stream per subject window."""
+        try:
+            # First, show a dialog to select class/stream/subject (optional)
+            from school_system.gui.windows.book_window.enhanced_borrow_window import EnhancedBorrowWindow
+            from school_system.gui.windows.dialogs.class_stream_selection_dialog import ClassStreamSelectionDialog
+            
+            # Open selection dialog
+            selection_dialog = ClassStreamSelectionDialog(self, self.username, self.role)
+            if selection_dialog.exec() == QDialog.DialogCode.Accepted:
+                class_level = selection_dialog.get_class_level()
+                stream = selection_dialog.get_stream()
+                subject = selection_dialog.get_subject()
+                
+                window = EnhancedBorrowWindow(
+                    self,
+                    self.username,
+                    self.role,
+                    class_level=class_level,
+                    stream=stream,
+                    subject=subject
+                )
+                window.borrow_completed.connect(self._on_book_data_changed)
+                window.show()
+        except ImportError:
+            # If selection dialog doesn't exist, open directly without filters
+            try:
+                from school_system.gui.windows.book_window.enhanced_borrow_window import EnhancedBorrowWindow
+                window = EnhancedBorrowWindow(
+                    self,
+                    self.username,
+                    self.role,
+                    class_level=None,
+                    stream=None,
+                    subject=None
+                )
+                window.borrow_completed.connect(self._on_book_data_changed)
+                window.show()
+            except Exception as e:
+                logger.error(f"Error opening enhanced borrow window: {str(e)}")
+                QMessageBox.critical(self, "Error", f"Failed to open enhanced borrow window: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error opening enhanced borrow window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open enhanced borrow window: {str(e)}")
+
+    def _open_enhanced_return_window(self):
+        """Open the enhanced return per stream per subject window."""
+        try:
+            # First, show a dialog to select class/stream/subject (optional)
+            from school_system.gui.windows.book_window.enhanced_return_window import EnhancedReturnWindow
+            from school_system.gui.windows.dialogs.class_stream_selection_dialog import ClassStreamSelectionDialog
+            
+            # Open selection dialog
+            selection_dialog = ClassStreamSelectionDialog(self, self.username, self.role)
+            if selection_dialog.exec() == QDialog.DialogCode.Accepted:
+                class_level = selection_dialog.get_class_level()
+                stream = selection_dialog.get_stream()
+                subject = selection_dialog.get_subject()
+                
+                window = EnhancedReturnWindow(
+                    self,
+                    self.username,
+                    self.role,
+                    class_level=class_level,
+                    stream=stream,
+                    subject=subject
+                )
+                window.return_completed.connect(self._on_book_data_changed)
+                window.show()
+        except ImportError:
+            # If selection dialog doesn't exist, open directly without filters
+            try:
+                from school_system.gui.windows.book_window.enhanced_return_window import EnhancedReturnWindow
+                window = EnhancedReturnWindow(
+                    self,
+                    self.username,
+                    self.role,
+                    class_level=None,
+                    stream=None,
+                    subject=None
+                )
+                window.return_completed.connect(self._on_book_data_changed)
+                window.show()
+            except Exception as e:
+                logger.error(f"Error opening enhanced return window: {str(e)}")
+                QMessageBox.critical(self, "Error", f"Failed to open enhanced return window: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error opening enhanced return window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open enhanced return window: {str(e)}")
+
     def _open_distribution_window(self):
         """Open the distribution window."""
         try:
@@ -4309,6 +4409,48 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             logger.error(f"Error opening furniture maintenance window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open furniture maintenance window: {str(e)}")
+
+    def _open_enhanced_furniture_management_window(self):
+        """Open the enhanced furniture management window."""
+        try:
+            # First, show a dialog to select class/stream (optional)
+            from school_system.gui.windows.furniture_window.enhanced_furniture_management_window import EnhancedFurnitureManagementWindow
+            from school_system.gui.windows.dialogs.class_stream_selection_dialog import ClassStreamSelectionDialog
+            
+            # Open selection dialog
+            selection_dialog = ClassStreamSelectionDialog(self, self.username, self.role, include_subject=False)
+            if selection_dialog.exec() == QDialog.DialogCode.Accepted:
+                class_level = selection_dialog.get_class_level()
+                stream = selection_dialog.get_stream()
+                
+                window = EnhancedFurnitureManagementWindow(
+                    self,
+                    self.username,
+                    self.role,
+                    class_level=class_level,
+                    stream=stream
+                )
+                window.furniture_operation_completed.connect(self._on_furniture_data_changed)
+                window.show()
+        except ImportError:
+            # If selection dialog doesn't exist, open directly without filters
+            try:
+                from school_system.gui.windows.furniture_window.enhanced_furniture_management_window import EnhancedFurnitureManagementWindow
+                window = EnhancedFurnitureManagementWindow(
+                    self,
+                    self.username,
+                    self.role,
+                    class_level=None,
+                    stream=None
+                )
+                window.furniture_operation_completed.connect(self._on_furniture_data_changed)
+                window.show()
+            except Exception as e:
+                logger.error(f"Error opening enhanced furniture management window: {str(e)}")
+                QMessageBox.critical(self, "Error", f"Failed to open enhanced furniture management window: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error opening enhanced furniture management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open enhanced furniture management window: {str(e)}")
 
     def _open_book_reports_window(self):
         """Open the book reports window."""
@@ -6801,6 +6943,15 @@ For additional support, contact your system administrator.
 
     def _on_book_data_changed(self):
         """Handle book data changes from child windows."""
+        try:
+            # Refresh dashboard if it's currently visible
+            if self.current_view == "dashboard":
+                self._load_content("dashboard")
+        except Exception as e:
+            logger.error(f"Error refreshing after book data change: {str(e)}")
+
+    def _on_furniture_data_changed(self):
+        """Handle furniture data changes from child windows."""
         try:
             # Refresh dashboard if it's currently visible
             if self.current_view == "dashboard":

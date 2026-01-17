@@ -135,7 +135,9 @@ def initialize_database():
             CREATE TABLE IF NOT EXISTS students (
                 student_id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                stream TEXT NOT NULL
+                stream TEXT NOT NULL,
+                admission_number TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -150,7 +152,9 @@ def initialize_database():
                 publication_date TEXT,
                 available INTEGER DEFAULT 1,
                 revision INTEGER DEFAULT 0,
-                book_condition TEXT DEFAULT 'New'
+                book_condition TEXT DEFAULT 'New',
+                subject TEXT,
+                class TEXT
             )
         """)
         

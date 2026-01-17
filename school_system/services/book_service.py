@@ -10,6 +10,7 @@ from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
 from school_system.services.import_export_service import ImportExportService
 from school_system.services.student_service import StudentService
+from school_system.services.class_management_service import ClassManagementService
 
 from school_system.models.book import (Book, BookTag, BorrowedBookStudent, BorrowedBookTeacher,
  DistributionSession, DistributionStudent, DistributionImportLog)
@@ -27,6 +28,7 @@ class BookService:
         self.book_repository = BookRepository()
         self.import_export_service = ImportExportService()
         self.student_service = StudentService()
+        self.class_management_service = ClassManagementService()
 
     def get_all_books(self) -> List[Book]:
         """
@@ -1519,6 +1521,200 @@ class BookService:
         except Exception as e:
             logger.error(f"Error borrowing book: {e}")
             return False
+
+    def bulk_borrow_books_by_class_stream(
+        self,
+        book_id: int,
+        class_level: Optional[int] = None,
+        stream: Optional[str] = None,
+        subject: Optional[str] = None
+    ) -> Dict[str, any]:
+        """
+        Borrow a book for all students in a specific class/stream combination.
+        
+        Args:
+            book_id: ID of the book to borrow
+            class_level: Optional class level filter (e.g., 4 for Form 4)
+            stream: Optional stream filter (e.g., "Red")
+            subject: Optional subject name for logging/context
+            
+        Returns:
+            A dictionary with operation results:
+            {
+                'success': bool,
+                'total_students': int,
+                'successful_borrows': int,
+                'failed_borrows': int,
+                'errors': List[str],
+                'details': List[Dict]
+            }
+        """
+        logger.info(
+            f"Bulk borrowing book {book_id} for class_level={class_level}, "
+            f"stream={stream}, subject={subject}"
+        )
+        
+        result = {
+            'success': False,
+            'total_students': 0,
+            'successful_borrows': 0,
+            'failed_borrows': 0,
+            'errors': [],
+            'details': []
+        }
+        
+        try:
+            # Get students matching the criteria
+            students = self.class_management_service.get_students_for_bulk_operation(
+                class_level=class_level,
+                stream=stream
+            )
+            
+            result['total_students'] = len(students)
+            
+            if not students:
+                result['errors'].append("No students found matching the specified criteria")
+                return result
+            
+            # Check if book is available (for first student - in real scenario, 
+            # you might want to check availability for each or have multiple copies)
+            if not self.check_book_availability(book_id):
+                result['errors'].append(f"Book {book_id} is not available for borrowing")
+                return result
+            
+            # Attempt to borrow for each student
+            for student in students:
+                try:
+                    # Convert student_id to appropriate format
+                    student_id = student.student_id
+                    if isinstance(student_id, str):
+                        try:
+                            student_id_int = int(student_id)
+                        except ValueError:
+                            # If student_id is not numeric, use admission_number
+                            student_id_int = int(student.admission_number) if student.admission_number else None
+                    else:
+                        student_id_int = student_id
+                    
+                    if student_id_int is None:
+                        result['failed_borrows'] += 1
+                        result['errors'].append(f"Invalid student ID for student {student.name}")
+                        result['details'].append({
+                            'student_id': str(student.student_id),
+                            'student_name': student.name,
+                            'status': 'failed',
+                            'error': 'Invalid student ID'
+                        })
+                        continue
+                    
+                    # Borrow the book
+                    success = self.borrow_book(book_id, str(student_id_int), 'student')
+                    
+                    if success:
+                        result['successful_borrows'] += 1
+                        result['details'].append({
+                            'student_id': str(student.student_id),
+                            'student_name': student.name,
+                            'status': 'success'
+                        })
+                    else:
+                        result['failed_borrows'] += 1
+                        result['errors'].append(f"Failed to borrow book for student {student.name} ({student.student_id})")
+                        result['details'].append({
+                            'student_id': str(student.student_id),
+                            'student_name': student.name,
+                            'status': 'failed',
+                            'error': 'Borrow operation failed'
+                        })
+                        
+                except Exception as e:
+                    result['failed_borrows'] += 1
+                    error_msg = f"Error borrowing for student {student.name}: {str(e)}"
+                    result['errors'].append(error_msg)
+                    result['details'].append({
+                        'student_id': str(student.student_id),
+                        'student_name': student.name,
+                        'status': 'failed',
+                        'error': str(e)
+                    })
+                    logger.error(error_msg)
+            
+            result['success'] = result['successful_borrows'] > 0
+            
+            logger.info(
+                f"Bulk borrow completed: {result['successful_borrows']}/{result['total_students']} successful"
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in bulk borrow operation: {e}")
+            result['errors'].append(f"Bulk borrow operation failed: {str(e)}")
+        
+        return result
+    
+    def bulk_borrow_books_for_students(
+        self,
+        book_id: int,
+        student_ids: List[str]
+    ) -> Dict[str, any]:
+        """
+        Borrow a book for a list of specific students.
+        
+        Args:
+            book_id: ID of the book to borrow
+            student_ids: List of student IDs to borrow for
+            
+        Returns:
+            A dictionary with operation results (same format as bulk_borrow_books_by_class_stream)
+        """
+        logger.info(f"Bulk borrowing book {book_id} for {len(student_ids)} students")
+        
+        result = {
+            'success': False,
+            'total_students': len(student_ids),
+            'successful_borrows': 0,
+            'failed_borrows': 0,
+            'errors': [],
+            'details': []
+        }
+        
+        try:
+            for student_id in student_ids:
+                try:
+                    success = self.borrow_book(book_id, student_id, 'student')
+                    
+                    if success:
+                        result['successful_borrows'] += 1
+                        result['details'].append({
+                            'student_id': student_id,
+                            'status': 'success'
+                        })
+                    else:
+                        result['failed_borrows'] += 1
+                        result['errors'].append(f"Failed to borrow book for student {student_id}")
+                        result['details'].append({
+                            'student_id': student_id,
+                            'status': 'failed',
+                            'error': 'Borrow operation failed'
+                        })
+                        
+                except Exception as e:
+                    result['failed_borrows'] += 1
+                    error_msg = f"Error borrowing for student {student_id}: {str(e)}"
+                    result['errors'].append(error_msg)
+                    result['details'].append({
+                        'student_id': student_id,
+                        'status': 'failed',
+                        'error': str(e)
+                    })
+                    logger.error(error_msg)
+            
+            result['success'] = result['successful_borrows'] > 0
+            
+        except Exception as e:
+            logger.error(f"Error in bulk borrow operation: {e}")
+            result['errors'].append(f"Bulk borrow operation failed: {str(e)}")
+        
+        return result
 
     def check_book_availability(self, book_id: int) -> bool:
         """

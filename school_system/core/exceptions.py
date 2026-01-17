@@ -41,3 +41,8 @@ class ServiceError(SchoolSystemException):
 class FileOperationException(SchoolSystemException):
     """File operation error."""
     pass
+
+
+class ClassParsingException(SchoolSystemException):
+    """Class identifier parsing error."""
+    pass
