@@ -361,8 +361,8 @@ class MainWindow(BaseApplicationWindow):
                 if action_id in ["view_students", "add_student", "edit_student", "class_management",
                                "library_activity", "student_import_export", "ream_management",
                                "view_teachers", "add_teacher", "edit_teacher", "teacher_import_export",
-                               "view_books", "add_book", "borrow_book", "return_book", "enhanced_borrow_book", 
-                               "enhanced_return_book", "distribution", "book_import_export",
+                               "view_books", "add_book", "borrow_book", "return_book", "enhanced_borrow_book",
+                               "enhanced_return_book", "qr_management", "distribution", "book_import_export",
                                "manage_furniture", "furniture_assignments", "furniture_maintenance", "enhanced_furniture_management",
                                "manage_users", "view_users", "add_user", "edit_user", "delete_user"]:
                     if action_id == "view_students":
