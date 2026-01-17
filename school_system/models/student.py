@@ -6,7 +6,7 @@ class Student(BaseModel):
     __tablename__ = 'students'
     __pk__ = "student_id"
     
-    def __init__(self, admission_number, name, stream=None, student_id=None, created_at=None, qr_code=None, qr_generated_at=None, class_name=None, stream_name=None):
+    def __init__(self, admission_number, name, stream=None, student_id=None, created_at=None, qr_code=None, qr_generated_at=None, class_name=None, stream_name=None, **kwargs):
         super().__init__()
         # In this schema, student_id should be the same as admission_number
         self.student_id = admission_number if student_id is None else student_id
@@ -14,15 +14,20 @@ class Student(BaseModel):
         self.name = name
 
         # Handle class and stream - new separate fields
-        self.class_name = class_name
+        # Check if 'class' was passed as a kwarg (from database column name)
+        if 'class' in kwargs:
+            self.class_name = kwargs['class']
+        else:
+            self.class_name = class_name
+
         self.stream_name = stream_name
 
         # For backward compatibility, keep the old stream field
         # If new fields are provided, construct the old stream format
-        if class_name and stream_name:
+        if self.class_name and stream_name:
             # Extract class level from class_name (e.g., "Form 4" -> 4)
-            class_level = self._extract_class_level(class_name)
-            self.stream = f"{class_level} {stream_name}" if class_level else f"{class_name} {stream_name}"
+            class_level = self._extract_class_level(self.class_name)
+            self.stream = f"{class_level} {stream_name}" if class_level else f"{self.class_name} {stream_name}"
         else:
             # Use provided stream or default
             self.stream = stream or ""

@@ -93,17 +93,39 @@ class AddStudentWindow(BaseFunctionWindow):
         name_layout.addWidget(self.name_input)
         form_layout.addLayout(name_layout)
         
+        # Class field
+        class_layout = QVBoxLayout()
+        class_label = QLabel("Class *")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        class_layout.addWidget(class_label)
+
+        self.class_combo = QComboBox()
+        self.class_combo.setFixedHeight(44)
+        self.class_combo.addItem("-- Select Class --")
+        # Load classes dynamically
+        try:
+            classes = self.student_service.get_all_classes()
+            self.class_combo.addItems(classes)
+        except Exception as e:
+            logger.warning(f"Could not load classes: {e}")
+            # Fallback to standard classes
+            from school_system.gui.windows.book_window.utils.constants import STANDARD_CLASSES
+            self.class_combo.addItems(STANDARD_CLASSES)
+        self.class_combo.currentTextChanged.connect(self._on_class_changed)
+        class_layout.addWidget(self.class_combo)
+        form_layout.addLayout(class_layout)
+
         # Stream field
         stream_layout = QVBoxLayout()
         stream_label = QLabel("Stream *")
         stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
         stream_layout.addWidget(stream_label)
-        
-        self.stream_input = QComboBox()
-        self.stream_input.setFixedHeight(44)
-        self.stream_input.addItems(["Science", "Arts", "Commerce"])
-        self.stream_input.setEditable(True)
-        stream_layout.addWidget(self.stream_input)
+
+        self.stream_combo = QComboBox()
+        self.stream_combo.setFixedHeight(44)
+        self.stream_combo.addItem("-- Select Stream --")
+        self.stream_combo.setEnabled(False)  # Disabled until class is selected
+        stream_layout.addWidget(self.stream_combo)
         form_layout.addLayout(stream_layout)
         
         form_layout.addStretch()
@@ -126,25 +148,62 @@ class AddStudentWindow(BaseFunctionWindow):
         
         return form_card
     
+    def _on_class_changed(self, class_name: str):
+        """Handle class selection change."""
+        if class_name and class_name != "-- Select Class --":
+            try:
+                # Load streams for the selected class
+                streams = self.student_service.get_streams_for_class(class_name)
+                self.stream_combo.clear()
+                if streams:
+                    self.stream_combo.addItem("-- Select Stream --")
+                    self.stream_combo.addItems(streams)
+                    self.stream_combo.setEnabled(True)
+                else:
+                    self.stream_combo.addItem("No streams available")
+                    self.stream_combo.setEnabled(False)
+            except Exception as e:
+                logger.warning(f"Could not load streams for class {class_name}: {e}")
+                # Fallback to standard streams
+                from school_system.gui.windows.book_window.utils.constants import STANDARD_STREAMS
+                self.stream_combo.clear()
+                self.stream_combo.addItem("-- Select Stream --")
+                self.stream_combo.addItems(STANDARD_STREAMS)
+                self.stream_combo.setEnabled(True)
+        else:
+            # No class selected
+            self.stream_combo.clear()
+            self.stream_combo.setEnabled(False)
+
     def _on_save_student(self):
         """Handle save student button click."""
         # Get form data
         student_id = self.student_id_input.text().strip()
         name = self.name_input.text().strip()
-        stream = self.stream_input.currentText().strip()
-         
+        class_name = self.class_combo.currentText().strip()
+        stream_name = self.stream_combo.currentText().strip()
+
         # Validate
-        if not student_id or not name or not stream:
+        if not student_id or not name:
             show_error_message("Validation Error", "Please fill in all required fields.", self)
             return
-         
+
+        if class_name == "-- Select Class --" or not class_name:
+            show_error_message("Validation Error", "Please select a class.", self)
+            return
+
+        if stream_name == "-- Select Stream --" or not stream_name:
+            show_error_message("Validation Error", "Please select a stream.", self)
+            return
+
         try:
             # Create student
             student_data = {
                 "student_id": student_id,
                 "admission_number": student_id,
                 "name": name,
-                "stream": stream
+                "class_name": class_name,
+                "stream_name": stream_name
             }
              
             self.student_service.create_student(student_data)

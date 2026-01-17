@@ -23,9 +23,6 @@ class ClassManagementWindow(BaseFunctionWindow):
         super().__init__("Class Management", parent, current_user, current_role)
 
         self.student_service = StudentService()
-        # For now, use a simple dictionary to store class information
-        # In a real implementation, this would be backed by a database
-        self.classes = {}  # class_id -> {"name": str, "stream": str, "students": set}
 
         # Setup content
         self.setup_content()
@@ -102,6 +99,29 @@ class ClassManagementWindow(BaseFunctionWindow):
         name_layout.addWidget(self.class_name_input)
         add_layout.addLayout(name_layout)
 
+        # Class selection
+        class_layout = QVBoxLayout()
+        class_label = QLabel("Class:")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        class_layout.addWidget(class_label)
+
+        self.class_combo = QComboBox()
+        self.class_combo.addItem("-- Select Class --")
+        # Load classes from database
+        try:
+            classes = self.student_service.get_all_classes()
+            self.class_combo.addItems(classes)
+        except Exception as e:
+            logger.warning(f"Could not load classes: {e}")
+            # Fallback to standard classes
+            from school_system.gui.windows.book_window.utils.constants import STANDARD_CLASSES
+            self.class_combo.addItems(STANDARD_CLASSES)
+        self.class_combo.setEditable(True)
+        self.class_combo.setFixedHeight(44)
+        self.class_combo.currentTextChanged.connect(self._on_class_changed)
+        class_layout.addWidget(self.class_combo)
+        add_layout.addLayout(class_layout)
+
         # Stream selection
         stream_layout = QVBoxLayout()
         stream_label = QLabel("Stream:")
@@ -109,7 +129,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         stream_layout.addWidget(stream_label)
 
         self.class_stream_combo = QComboBox()
-        self.class_stream_combo.addItems(["Science", "Arts", "Commerce"])
+        self.class_stream_combo.addItem("-- Select Stream --")
         self.class_stream_combo.setEditable(True)
         self.class_stream_combo.setFixedHeight(44)
         stream_layout.addWidget(self.class_stream_combo)
@@ -288,19 +308,46 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         return panel
 
+    def _on_class_changed(self, class_name: str):
+        """Handle class selection change."""
+        if class_name and class_name != "-- Select Class --":
+            try:
+                # Load streams for the selected class
+                streams = self.student_service.get_streams_for_class(class_name)
+                self.class_stream_combo.clear()
+                if streams:
+                    self.class_stream_combo.addItem("-- Select Stream --")
+                    self.class_stream_combo.addItems(streams)
+                else:
+                    self.class_stream_combo.addItem("No streams available")
+            except Exception as e:
+                logger.warning(f"Could not load streams for class {class_name}: {e}")
+                # Fallback to standard streams
+                from school_system.gui.windows.book_window.utils.constants import STANDARD_STREAMS
+                self.class_stream_combo.clear()
+                self.class_stream_combo.addItem("-- Select Stream --")
+                self.class_stream_combo.addItems(STANDARD_STREAMS)
+        else:
+            # No class selected
+            self.class_stream_combo.clear()
+            self.class_stream_combo.addItem("-- Select Stream --")
+
     def _refresh_classes(self):
         """Refresh the classes list."""
         try:
             self.classes_list.clear()
 
-            # Get all classes from our simple storage
-            for class_id, class_info in self.classes.items():
-                item_text = f"{class_info['name']} ({class_info['stream']})"
-                item = QListWidgetItem(item_text)
-                item.setData(Qt.ItemDataRole.UserRole, class_id)
-                self.classes_list.addItem(item)
+            # Get all class/stream combinations from database
+            classes = self.student_service.get_all_classes()
+            for class_name in classes:
+                streams = self.student_service.get_streams_for_class(class_name)
+                for stream_name in streams:
+                    item_text = f"{class_name} - {stream_name}"
+                    item = QListWidgetItem(item_text)
+                    item.setData(Qt.ItemDataRole.UserRole, {"class": class_name, "stream": stream_name})
+                    self.classes_list.addItem(item)
 
-            logger.info(f"Refreshed classes list with {len(self.classes)} classes")
+            logger.info(f"Refreshed classes list with class/stream combinations from database")
         except Exception as e:
             logger.error(f"Error refreshing classes: {e}")
             show_error_message("Error", f"Failed to refresh classes: {str(e)}", self)
@@ -378,34 +425,26 @@ class ClassManagementWindow(BaseFunctionWindow):
             self.stats_label.setText("Error loading statistics")
 
     def _add_class(self):
-        """Add a new class."""
-        class_name = self.class_name_input.text().strip()
-        stream = self.class_stream_combo.currentText().strip()
-
-        if not class_name or not stream:
-            show_error_message("Validation Error", "Please fill in all fields.", self)
-            return
-
+        """Add a new class/stream combination (for reference only)."""
         try:
-            # Generate a simple class ID
-            class_id = f"{class_name.replace(' ', '_')}_{stream}"
+            selected_class = self.class_combo.currentText().strip()
+            selected_stream = self.class_stream_combo.currentText().strip()
 
-            # Check if class already exists
-            if class_id in self.classes:
-                show_error_message("Class Exists", f"Class '{class_name}' already exists.", self)
+            if selected_class == "-- Select Class --" or not selected_class:
+                show_error_message("Validation Error", "Please select a class.", self)
                 return
 
-            # Add to our simple storage
-            self.classes[class_id] = {
-                "name": class_name,
-                "stream": stream,
-                "students": set()
-            }
+            if selected_stream == "-- Select Stream --" or not selected_stream:
+                show_error_message("Validation Error", "Please select a stream.", self)
+                return
 
-            show_success_message("Success", f"Class '{class_name}' added successfully.", self)
+            # In the new system, class/stream combinations are automatically created
+            # when students are added with those combinations
+            show_success_message("Info", f"Class '{selected_class}' with stream '{selected_stream}' is ready for student enrollment.\n\nAdd students to this class/stream combination through the student management windows.", self)
 
-            # Clear inputs
-            self.class_name_input.clear()
+            # Clear selections
+            self.class_combo.setCurrentIndex(0)
+            self.class_stream_combo.setCurrentIndex(0)
 
             # Refresh classes list
             self._refresh_classes()

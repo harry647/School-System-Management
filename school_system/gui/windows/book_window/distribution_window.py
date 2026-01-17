@@ -113,8 +113,16 @@ class DistributionWindow(BaseFunctionWindow):
         self.class_combo = QComboBox()
         self.class_combo.setFixedHeight(44)
         self.class_combo.addItem("")
-        self.class_combo.addItems(STANDARD_CLASSES)
+        # Load classes dynamically from database
+        try:
+            classes = self.student_service.get_all_classes()
+            self.class_combo.addItems(classes)
+        except Exception as e:
+            logger.warning(f"Could not load classes: {e}")
+            # Fallback to standard classes
+            self.class_combo.addItems(STANDARD_CLASSES)
         self.class_combo.setEditable(True)
+        self.class_combo.currentTextChanged.connect(self._on_class_changed)
         class_layout.addWidget(self.class_combo)
         fields_layout.addLayout(class_layout)
         
@@ -127,7 +135,7 @@ class DistributionWindow(BaseFunctionWindow):
         self.stream_combo = QComboBox()
         self.stream_combo.setFixedHeight(44)
         self.stream_combo.addItem("")
-        self.stream_combo.addItems(STANDARD_STREAMS)
+        # Load streams dynamically when class is selected
         self.stream_combo.setEditable(True)
         stream_layout.addWidget(self.stream_combo)
         fields_layout.addLayout(stream_layout)
@@ -170,7 +178,31 @@ class DistributionWindow(BaseFunctionWindow):
         form_layout.addLayout(fields_layout)
         
         return form_card
-    
+
+    def _on_class_changed(self, class_name: str):
+        """Handle class selection change."""
+        if class_name and class_name != "":
+            try:
+                # Load streams for the selected class
+                streams = self.student_service.get_streams_for_class(class_name)
+                self.stream_combo.clear()
+                self.stream_combo.addItem("")
+                if streams:
+                    self.stream_combo.addItems(streams)
+                else:
+                    # Fallback to standard streams
+                    self.stream_combo.addItems(STANDARD_STREAMS)
+            except Exception as e:
+                logger.warning(f"Could not load streams for class {class_name}: {e}")
+                # Fallback to standard streams
+                self.stream_combo.clear()
+                self.stream_combo.addItem("")
+                self.stream_combo.addItems(STANDARD_STREAMS)
+        else:
+            # No class selected, clear streams
+            self.stream_combo.clear()
+            self.stream_combo.addItem("")
+
     def _create_sessions_table_card(self) -> QWidget:
         """Create the sessions table card."""
         theme_manager = self.get_theme_manager()

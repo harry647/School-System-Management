@@ -72,10 +72,10 @@ SESSION_STATUSES = ["DRAFT", "IMPORTED", "VERIFIED", "POSTED", "REJECTED"]
 STANDARD_SUBJECTS = ["Mathematics", "Science", "English", "History", "Geography"]
 
 # Standard classes
-STANDARD_CLASSES = ["Form 1", "Form 2", "Form 3", "Form 4"]
+STANDARD_CLASSES = ["Form 3", "Form 4", "Grade 10", "Grade 11", "Grade 12"]
 
-# Standard streams
-STANDARD_STREAMS = ["East", "West", "North", "South"]
+# Standard streams (can be expanded based on school needs)
+STANDARD_STREAMS = ["Red", "Blue", "Green", "Yellow", "Orange", "White"]
 
 # Standard terms
 STANDARD_TERMS = ["Term 1", "Term 2", "Term 3"]

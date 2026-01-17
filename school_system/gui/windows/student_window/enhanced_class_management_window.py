@@ -279,56 +279,55 @@ class EnhancedClassManagementWindow(BaseFunctionWindow):
     def _refresh_all_data(self):
         """Refresh all data including filters and student lists."""
         try:
-            # Refresh class levels
-            class_levels = self.student_service.get_all_class_levels()
+            # Refresh classes
+            classes = self.student_service.get_all_classes()
             current_class = self.class_level_combo.currentText()
-            
+
             self.class_level_combo.clear()
             self.class_level_combo.addItem("All Classes")
-            for level in class_levels:
-                display_name = self.class_management_service.format_class_display_name(level)
-                self.class_level_combo.addItem(display_name, level)
-            
+            for class_name in classes:
+                self.class_level_combo.addItem(class_name, class_name)
+
             # Restore selection if possible
             index = self.class_level_combo.findText(current_class)
             if index >= 0:
                 self.class_level_combo.setCurrentIndex(index)
             else:
                 self.class_level_combo.setCurrentIndex(0)
-            
+
             # Refresh streams
             self._refresh_streams()
-            
+
             # Refresh combinations
             self._refresh_combinations()
-            
+
             # Refresh students
             self._refresh_students()
-            
+
             # Refresh statistics
             self._refresh_statistics()
-            
+
             logger.info("Refreshed all class management data")
         except Exception as e:
             logger.error(f"Error refreshing data: {e}")
             show_error_message("Error", f"Failed to refresh data: {str(e)}", self)
 
     def _refresh_streams(self):
-        """Refresh the stream filter based on selected class level."""
+        """Refresh the stream filter based on selected class."""
         try:
             current_stream = self.stream_combo.currentText()
-            selected_class_item = self.class_level_combo.currentData()
-            
-            if selected_class_item:
-                streams = self.student_service.get_all_streams_for_class(selected_class_item)
+            selected_class = self.class_level_combo.currentData()
+
+            if selected_class:
+                streams = self.student_service.get_streams_for_class(selected_class)
             else:
-                streams = self.student_service.get_all_streams_for_class()
-            
+                streams = self.student_service.get_all_stream_names()
+
             self.stream_combo.clear()
             self.stream_combo.addItem("All Streams")
             for stream in streams:
                 self.stream_combo.addItem(stream)
-            
+
             # Restore selection if possible
             index = self.stream_combo.findText(current_stream)
             if index >= 0:

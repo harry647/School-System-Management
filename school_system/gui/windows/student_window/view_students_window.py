@@ -79,14 +79,22 @@ class ViewStudentsWindow(BaseFunctionWindow):
         self.search_box.search_text_changed.connect(self._on_search)
         action_layout.addWidget(self.search_box)
         
+        # Class filter
+        self.class_filter = QComboBox()
+        self.class_filter.addItem("All Classes")
+        self.class_filter.setMinimumWidth(150)
+        self.class_filter.currentTextChanged.connect(self._on_class_filter_changed)
+        action_layout.addWidget(self.class_filter)
+
         # Stream filter
         self.stream_filter = QComboBox()
         self.stream_filter.addItem("All Streams")
         self.stream_filter.setMinimumWidth(150)
         self.stream_filter.currentTextChanged.connect(self._on_filter_changed)
         action_layout.addWidget(self.stream_filter)
-        
-        # Populate stream filter
+
+        # Populate filters
+        self._populate_class_filter()
         self._populate_stream_filter()
         
         action_layout.addStretch()
@@ -142,7 +150,7 @@ class ViewStudentsWindow(BaseFunctionWindow):
         # Students table
         self.students_table = self.create_table(0, 4)
         self.students_table.setColumnCount(4)  # Ensure columns are set
-        self.students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream", "Actions"])
+        self.students_table.setHorizontalHeaderLabels(["Student ID", "Name", "Class", "Stream", "Legacy Stream", "Actions"])
         self.students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.students_table.setAlternatingRowColors(True)
         self.students_table.setMinimumHeight(150)
@@ -151,25 +159,71 @@ class ViewStudentsWindow(BaseFunctionWindow):
         
         return table_card
     
+    def _populate_class_filter(self):
+        """Populate the class filter with available classes."""
+        try:
+            classes = self.student_service.get_all_classes()
+            current_class = self.class_filter.currentText()
+
+            self.class_filter.clear()
+            self.class_filter.addItem("All Classes")
+            for class_name in classes:
+                self.class_filter.addItem(class_name)
+
+            # Restore selection if possible
+            index = self.class_filter.findText(current_class)
+            if index >= 0:
+                self.class_filter.setCurrentIndex(index)
+        except Exception as e:
+            logger.error(f"Error populating class filter: {e}")
+
     def _populate_stream_filter(self):
         """Populate the stream filter with available streams."""
         try:
-            streams = self.student_service.get_all_streams()
+            selected_class = self.class_filter.currentText()
+            if selected_class and selected_class != "All Classes":
+                streams = self.student_service.get_streams_for_class(selected_class)
+            else:
+                streams = self.student_service.get_all_stream_names()
+
+            current_stream = self.stream_filter.currentText()
+
+            self.stream_filter.clear()
+            self.stream_filter.addItem("All Streams")
             for stream in streams:
-                if stream and stream not in [self.stream_filter.itemText(i) for i in range(self.stream_filter.count())]:
-                    self.stream_filter.addItem(stream)
+                self.stream_filter.addItem(stream)
+
+            # Restore selection if possible
+            index = self.stream_filter.findText(current_stream)
+            if index >= 0:
+                self.stream_filter.setCurrentIndex(index)
         except Exception as e:
             logger.error(f"Error populating stream filter: {e}")
+
+    def _on_class_filter_changed(self):
+        """Handle class filter change - repopulate stream filter."""
+        self._populate_stream_filter()
+        self._on_filter_changed()
     
     def _refresh_students_table(self):
         """Refresh the students table with current data."""
         try:
-            # Get filter
+            # Get filters
+            class_filter = self.class_filter.currentText()
             stream_filter = self.stream_filter.currentText()
-            stream = None if stream_filter == "All Streams" else stream_filter
-            
-            # Get students
-            students = self.student_service.get_all_students(stream=stream)
+
+            class_name = None if class_filter == "All Classes" else class_filter
+            stream_name = None if stream_filter == "All Streams" else stream_filter
+
+            # Get students based on filters
+            if class_name and stream_name:
+                students = self.student_service.get_students_by_class_and_stream(class_name, stream_name)
+            elif class_name:
+                students = self.student_service.get_students_by_class(class_name)
+            elif stream_name:
+                students = self.student_service.get_students_by_stream_name(stream_name)
+            else:
+                students = self.student_service.get_all_students()
             
             # Clear table
             self.students_table.setRowCount(0)
@@ -181,7 +235,9 @@ class ViewStudentsWindow(BaseFunctionWindow):
                 
                 self.students_table.setItem(row, 0, QTableWidgetItem(student.student_id))
                 self.students_table.setItem(row, 1, QTableWidgetItem(student.name))
-                self.students_table.setItem(row, 2, QTableWidgetItem(student.stream))
+                self.students_table.setItem(row, 2, QTableWidgetItem(student.class_name or ""))
+                self.students_table.setItem(row, 3, QTableWidgetItem(student.stream_name or ""))
+                self.students_table.setItem(row, 4, QTableWidgetItem(student.stream))
                 
                 # Actions column (can add buttons here if needed)
                 self.students_table.setItem(row, 3, QTableWidgetItem(""))

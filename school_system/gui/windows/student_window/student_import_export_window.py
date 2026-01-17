@@ -293,6 +293,15 @@ class StudentImportExportWindow(BaseFunctionWindow):
         controls_layout = QHBoxLayout()
         controls_layout.setSpacing(12)
 
+        # Class filter
+        class_label = QLabel("Filter by Class:")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        controls_layout.addWidget(class_label)
+
+        self.export_class_combo = QComboBox()
+        self.export_class_combo.addItem("All Classes")
+        controls_layout.addWidget(self.export_class_combo)
+
         # Stream filter
         stream_label = QLabel("Filter by Stream:")
         stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
@@ -300,7 +309,6 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         self.export_stream_combo = QComboBox()
         self.export_stream_combo.addItem("All Streams")
-        self._populate_export_stream_filter()
         controls_layout.addWidget(self.export_stream_combo)
 
         # Format selector
