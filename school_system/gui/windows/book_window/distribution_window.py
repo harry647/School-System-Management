@@ -673,8 +673,20 @@ class DistributionWindow(BaseFunctionWindow):
         combinations = self.class_management_service.get_class_stream_combinations()
 
         for class_level, stream, count in combinations:
-            if selected_class != "All Classes" and str(class_level) != selected_class:
-                continue
+            # Filter by selected class
+            if selected_class != "All Classes":
+                # Extract the class level from the selected class name (e.g., "Form 4" -> 4)
+                import re
+                match = re.search(r'\d+', selected_class)
+                if match:
+                    selected_class_level = int(match.group())
+                    if class_level != selected_class_level:
+                        continue
+                else:
+                    # If we can't extract a number, skip this combination
+                    continue
+
+            # Filter by selected stream
             if selected_stream != "All Streams" and stream != selected_stream:
                 continue
 
