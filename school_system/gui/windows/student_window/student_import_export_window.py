@@ -18,6 +18,15 @@ from school_system.gui.dialogs.message_dialog import show_error_message, show_su
 from school_system.config.logging import logger
 from school_system.services.student_service import StudentService
 from school_system.gui.windows.student_window.student_validation import StudentValidator
+from school_system.gui.windows.book_window.utils.constants import (
+    EXCEL_STUDENT_IMPORT_COLUMNS,
+    EXCEL_STUDENT_EXPORT_COLUMNS
+)
+from school_system.gui.windows.book_window.utils.class_utils import (
+    normalize_class_name,
+    validate_class_name,
+    get_available_classes
+)
 
 
 class ImportWorker(QThread):
@@ -112,12 +121,17 @@ class ImportWorker(QThread):
         with open(self.file_path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                # Clean and normalize data
-                student_data = {
-                    'student_id': row.get('student_id', '').strip(),
-                    'name': row.get('name', '').strip(),
-                    'stream': row.get('stream', '').strip()
-                }
+                # Clean and normalize data using comprehensive columns
+                student_data = {}
+                for col in EXCEL_STUDENT_IMPORT_COLUMNS:
+                    csv_col = col.lower().replace('_', '_')
+                    value = row.get(csv_col, row.get(col, '')).strip()
+                    student_data[col.lower().replace('_', '_')] = value
+
+                # Normalize class name
+                if 'class_name' in student_data and student_data['class_name']:
+                    student_data['class_name'] = normalize_class_name(student_data['class_name'])
+
                 data.append(student_data)
         return data
 
@@ -126,11 +140,15 @@ class ImportWorker(QThread):
         df = pd.read_excel(self.file_path)
         data = []
         for _, row in df.iterrows():
-            student_data = {
-                'student_id': str(row.get('student_id', '')).strip(),
-                'name': str(row.get('name', '')).strip(),
-                'stream': str(row.get('stream', '')).strip()
-            }
+            student_data = {}
+            for col in EXCEL_STUDENT_IMPORT_COLUMNS:
+                value = str(row.get(col, '')).strip()
+                student_data[col.lower().replace('_', '_')] = value
+
+            # Normalize class name
+            if 'class_name' in student_data and student_data['class_name']:
+                student_data['class_name'] = normalize_class_name(student_data['class_name'])
+
             data.append(student_data)
         return data
 
@@ -145,6 +163,49 @@ class ImportWorker(QThread):
                 return data['students']
             else:
                 raise ValueError("Invalid JSON format. Expected list or object with 'students' key")
+
+    def _generate_import_template(self):
+        """Generate a student import Excel template."""
+        try:
+            from datetime import datetime
+            import pandas as pd
+
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save Template", "student_import_template.xlsx", "Excel Files (*.xlsx)"
+            )
+
+            if not file_path:
+                return
+
+            # Create sample data
+            sample_data = [
+                {
+                    'Student_ID': '2024001',
+                    'Admission_Number': '2024001',
+                    'Name': 'John Doe',
+                    'Class_Name': 'Form 3',
+                    'Stream_Name': 'Red',
+                    'Stream': '3 Red',
+                    'QR_Code': '',
+                    'QR_Generated_At': '',
+                    'Created_At': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+            ]
+
+            # Create template with sample data and empty rows
+            df = pd.DataFrame(sample_data)
+            empty_rows = pd.DataFrame([{col: '' for col in EXCEL_STUDENT_IMPORT_COLUMNS}] * 10)
+            template_df = pd.concat([df, empty_rows], ignore_index=True)
+
+            template_df.to_excel(file_path, index=False)
+
+            show_success_message("Template Generated",
+                               f"Student import template saved to:\n{file_path}", self)
+
+        except Exception as e:
+            logger.error(f"Error generating student template: {e}")
+            show_error_message("Template Generation Failed",
+                             f"Failed to generate template: {str(e)}", self)
 
 
 class StudentImportExportWindow(BaseFunctionWindow):
@@ -236,6 +297,11 @@ class StudentImportExportWindow(BaseFunctionWindow):
         self.import_btn.clicked.connect(self._start_import)
         self.import_btn.setEnabled(False)
         controls_layout.addWidget(self.import_btn)
+
+        # Template button
+        template_btn = self.create_button("📄 Generate Template", "outline")
+        template_btn.clicked.connect(self._generate_import_template)
+        controls_layout.addWidget(template_btn)
 
         layout.addLayout(controls_layout)
 
@@ -514,10 +580,20 @@ class StudentImportExportWindow(BaseFunctionWindow):
         if file_path:
             with open(file_path, 'w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(['student_id', 'name', 'stream'])
+                writer.writerow(EXCEL_STUDENT_EXPORT_COLUMNS)
 
                 for student in students:
-                    writer.writerow([student.student_id, student.name, student.stream])
+                    writer.writerow([
+                        student.student_id,
+                        student.admission_number,
+                        student.name,
+                        student.class_name,
+                        student.stream_name,
+                        student.stream,
+                        getattr(student, 'qr_code', ''),
+                        getattr(student, 'qr_generated_at', ''),
+                        getattr(student, 'created_at', '')
+                    ])
 
     def _export_excel(self, students):
         """Export students to Excel."""
@@ -526,11 +602,27 @@ class StudentImportExportWindow(BaseFunctionWindow):
         )
 
         if file_path:
-            data = {
-                'student_id': [s.student_id for s in students],
-                'name': [s.name for s in students],
-                'stream': [s.stream for s in students]
-            }
+            data = {}
+            for col in EXCEL_STUDENT_EXPORT_COLUMNS:
+                if col == 'Student_ID':
+                    data[col] = [s.student_id for s in students]
+                elif col == 'Admission_Number':
+                    data[col] = [s.admission_number for s in students]
+                elif col == 'Name':
+                    data[col] = [s.name for s in students]
+                elif col == 'Class_Name':
+                    data[col] = [s.class_name for s in students]
+                elif col == 'Stream_Name':
+                    data[col] = [s.stream_name for s in students]
+                elif col == 'Stream':
+                    data[col] = [s.stream for s in students]
+                elif col == 'QR_Code':
+                    data[col] = [getattr(s, 'qr_code', '') for s in students]
+                elif col == 'QR_Generated_At':
+                    data[col] = [getattr(s, 'qr_generated_at', '') for s in students]
+                elif col == 'Created_At':
+                    data[col] = [getattr(s, 'created_at', '') for s in students]
+
             df = pd.DataFrame(data)
             df.to_excel(file_path, index=False)
 
@@ -543,7 +635,17 @@ class StudentImportExportWindow(BaseFunctionWindow):
         if file_path:
             data = {
                 'students': [
-                    {'student_id': s.student_id, 'name': s.name, 'stream': s.stream}
+                    {
+                        'Student_ID': s.student_id,
+                        'Admission_Number': s.admission_number,
+                        'Name': s.name,
+                        'Class_Name': s.class_name,
+                        'Stream_Name': s.stream_name,
+                        'Stream': s.stream,
+                        'QR_Code': getattr(s, 'qr_code', ''),
+                        'QR_Generated_At': getattr(s, 'qr_generated_at', ''),
+                        'Created_At': getattr(s, 'created_at', '')
+                    }
                     for s in students
                 ]
             }

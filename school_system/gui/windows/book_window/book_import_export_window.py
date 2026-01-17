@@ -13,6 +13,15 @@ from school_system.gui.dialogs.message_dialog import show_error_message, show_su
 from school_system.config.logging import logger
 from school_system.services.book_service import BookService
 from school_system.gui.windows.book_window.utils import EXPORT_FORMATS
+from school_system.gui.windows.book_window.utils.constants import (
+    EXCEL_BOOK_IMPORT_COLUMNS,
+    EXCEL_BOOK_EXPORT_COLUMNS,
+    REQUIRED_FIELDS
+)
+from school_system.gui.windows.book_window.utils.class_utils import (
+    normalize_class_name,
+    validate_class_name
+)
 
 
 class BookImportExportWindow(BaseFunctionWindow):
@@ -82,31 +91,20 @@ class BookImportExportWindow(BaseFunctionWindow):
         desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 8px;")
         columns_info.addWidget(desc_label)
 
-        # Required columns
-        required_label = QLabel("Required Columns:")
-        required_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px;")
-        columns_info.addWidget(required_label)
+        # Column information
+        columns_label = QLabel("Excel File Columns:")
+        columns_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px;")
+        columns_info.addWidget(columns_label)
 
-        required_cols = QLabel("• Book Number (text, unique)")
-        required_cols.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
-        columns_info.addWidget(required_cols)
+        # Show all columns with required/optional status
+        for i, col in enumerate(EXCEL_BOOK_IMPORT_COLUMNS):
+            is_required = col in REQUIRED_FIELDS
+            status = "Required" if is_required else "Optional"
+            color = theme["error"] if is_required else theme["text_secondary"]
 
-        required_cols2 = QLabel("• Title (text)")
-        required_cols2.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
-        columns_info.addWidget(required_cols2)
-
-        required_cols3 = QLabel("• Author (text)")
-        required_cols3.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
-        columns_info.addWidget(required_cols3)
-
-        # Optional columns
-        optional_label = QLabel("Optional Columns:")
-        optional_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px; margin-top: 8px;")
-        columns_info.addWidget(optional_label)
-
-        optional_cols = QLabel("• Category, ISBN, Publication Date, Subject, Class, Condition")
-        optional_cols.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 11px; margin-left: 12px;")
-        columns_info.addWidget(optional_cols)
+            col_label = QLabel(f"• {col.replace('_', ' ')} ({status})")
+            col_label.setStyleSheet(f"color: {color}; font-size: 11px; margin-left: 12px;")
+            columns_info.addWidget(col_label)
 
         # Template generation button
         template_btn = self.create_button("📄 Generate Import Template", "outline")
