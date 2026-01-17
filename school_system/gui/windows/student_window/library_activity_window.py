@@ -450,7 +450,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
                         # Status
                         today = datetime.now().date()
-                        if record.due_date < today:
+                        if due_date < today:
                             status = "Overdue"
                             status_item = QTableWidgetItem(status)
                             status_item.setBackground(Qt.GlobalColor.red)
@@ -464,7 +464,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
                         self.current_borrows_table.setItem(row, 4, status_item)
 
                     except Exception as e:
-                        logger.error(f"Error processing borrow record {record.id}: {e}")
+                        logger.error(f"Error processing borrow record {record.student_id}: {e}")
 
         except Exception as e:
             logger.error(f"Error refreshing current borrows: {e}")

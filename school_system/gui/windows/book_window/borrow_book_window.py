@@ -221,10 +221,10 @@ class BorrowBookWindow(BaseFunctionWindow):
                 row = self.borrowed_books_table.rowCount()
                 self.borrowed_books_table.insertRow(row)
                 
-                self.borrowed_books_table.setItem(row, 0, QTableWidgetItem(borrow.user_id))
-                self.borrowed_books_table.setItem(row, 1, QTableWidgetItem(borrow.user_type))
-                self.borrowed_books_table.setItem(row, 2, QTableWidgetItem(borrow.book_id))
-                self.borrowed_books_table.setItem(row, 3, QTableWidgetItem(str(borrow.borrowed_date)))
+                self.borrowed_books_table.setItem(row, 0, QTableWidgetItem(str(borrow['user_id'])))
+                self.borrowed_books_table.setItem(row, 1, QTableWidgetItem(borrow['user_type']))
+                self.borrowed_books_table.setItem(row, 2, QTableWidgetItem(str(borrow['book_id'])))
+                self.borrowed_books_table.setItem(row, 3, QTableWidgetItem(str(borrow['borrowed_date'])))
                 self.borrowed_books_table.setItem(row, 4, QTableWidgetItem("Borrowed"))
             
             logger.info(f"Refreshed borrowed books table with {len(borrowed_books)} entries")
