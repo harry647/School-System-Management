@@ -18,11 +18,11 @@ from school_system.services.student_service import StudentService
 
 def test_qr_generation():
     """Test QR code generation for books and students."""
-    print("🧪 Testing QR Code Generation System")
+    print("Testing QR Code Generation System")
     print("=" * 50)
 
     # Test Book QR Generation
-    print("\n📚 Testing Book QR Code Generation:")
+    print("\nTesting Book QR Code Generation:")
     book = Book(
         book_number="TEST001",
         title="Test Book",
@@ -32,12 +32,12 @@ def test_qr_generation():
     )
 
     qr_code = book.generate_qr_code()
-    print(f"✓ Book QR Code Generated: {qr_code}")
-    print(f"✓ QR Code Length: {len(qr_code)} characters")
-    print(f"✓ QR Code Format: {'Valid' if qr_code.isalnum() and qr_code.isupper() else 'Invalid'}")
+    print(f"Book QR Code Generated: {qr_code}")
+    print(f"QR Code Length: {len(qr_code)} characters")
+    print(f"QR Code Format: {'Valid' if qr_code.isalnum() and qr_code.isupper() else 'Invalid'}")
 
     # Test Student QR Generation
-    print("\n👨‍🎓 Testing Student QR Code Generation:")
+    print("\nTesting Student QR Code Generation:")
     student = Student(
         admission_number="2024001",
         name="John Doe",
@@ -45,12 +45,12 @@ def test_qr_generation():
     )
 
     qr_code = student.generate_qr_code()
-    print(f"✓ Student QR Code Generated: {qr_code}")
-    print(f"✓ QR Code Length: {len(qr_code)} characters")
-    print(f"✓ QR Code Format: {'Valid' if qr_code.isalnum() and qr_code.isupper() else 'Invalid'}")
+    print(f"Student QR Code Generated: {qr_code}")
+    print(f"QR Code Length: {len(qr_code)} characters")
+    print(f"QR Code Format: {'Valid' if qr_code.isalnum() and qr_code.isupper() else 'Invalid'}")
 
     # Test QR Uniqueness
-    print("\n🔄 Testing QR Code Uniqueness:")
+    print("\nTesting QR Code Uniqueness:")
     book2 = Book(
         book_number="TEST002",
         title="Another Test Book",
@@ -60,48 +60,48 @@ def test_qr_generation():
     )
 
     qr_code2 = book2.generate_qr_code()
-    print(f"✓ First Book QR: {book.qr_code}")
-    print(f"✓ Second Book QR: {qr_code2}")
-    print(f"✓ QR Codes Unique: {'Yes' if book.qr_code != qr_code2 else 'No'}")
+    print(f"First Book QR: {book.qr_code}")
+    print(f"Second Book QR: {qr_code2}")
+    print(f"QR Codes Unique: {'Yes' if book.qr_code != qr_code2 else 'No'}")
 
     # Test Service Integration
-    print("\n🔧 Testing Service Integration:")
+    print("\nTesting Service Integration:")
     try:
         book_service = BookService()
         student_service = StudentService()
-        print("✓ Services initialized successfully")
+        print("Services initialized successfully")
     except Exception as e:
-        print(f"✗ Service initialization failed: {e}")
+        print(f"Service initialization failed: {e}")
         return False
 
-    print("\n✅ All QR Code Generation Tests Passed!")
+    print("\nAll QR Code Generation Tests Passed!")
     return True
 
 
 def test_qr_validation():
     """Test QR code validation."""
-    print("\n🔍 Testing QR Code Validation:")
+    print("\nTesting QR Code Validation:")
     print("-" * 30)
 
     # Test valid QR codes
     valid_codes = ["A1B2C3D4E5F6789A", "1234567890ABCDEF", "AAAAAAAAAAAAAAAA"]
     for code in valid_codes:
         is_valid = len(code) == 16 and code.isalnum() and code.isupper()
-        print(f"✓ {code}: {'Valid' if is_valid else 'Invalid'}")
+        print(f"{code}: {'Valid' if is_valid else 'Invalid'}")
 
     # Test invalid QR codes
     invalid_codes = ["short", "lowercase12345678", "special@chars!123", "toolongcode123456789"]
     for code in invalid_codes:
         is_valid = len(code) == 16 and code.isalnum() and code.isupper()
-        print(f"✓ {code}: {'Valid' if is_valid else 'Invalid'} (expected invalid)")
+        print(f"{code}: {'Valid' if is_valid else 'Invalid'} (expected invalid)")
 
-    print("\n✅ QR Code Validation Tests Completed!")
+    print("\nQR Code Validation Tests Completed!")
     return True
 
 
 def test_database_models():
     """Test database model operations."""
-    print("\n💾 Testing Database Model Operations:")
+    print("\nTesting Database Model Operations:")
     print("-" * 40)
 
     try:
@@ -116,7 +116,7 @@ def test_database_models():
 
         # Generate QR
         qr = book.generate_qr_code()
-        print(f"✓ Book model QR generation: {qr}")
+        print(f"Book model QR generation: {qr}")
 
         # Test Student model save (without actually saving to DB)
         student = Student(
@@ -126,19 +126,19 @@ def test_database_models():
         )
 
         qr = student.generate_qr_code()
-        print(f"✓ Student model QR generation: {qr}")
+        print(f"Student model QR generation: {qr}")
 
-        print("✅ Database Model Tests Passed!")
+        print("Database Model Tests Passed!")
         return True
 
     except Exception as e:
-        print(f"✗ Database model test failed: {e}")
+        print(f"Database model test failed: {e}")
         return False
 
 
 def main():
     """Run all QR system tests."""
-    print("🚀 QR Code Management System - Test Suite")
+    print("QR Code Management System - Test Suite")
     print("=" * 55)
 
     tests = [
@@ -154,20 +154,20 @@ def main():
         try:
             if test_func():
                 passed += 1
-                print(f"✅ {test_name}: PASSED")
+                print(f"{test_name}: PASSED")
             else:
-                print(f"❌ {test_name}: FAILED")
+                print(f"{test_name}: FAILED")
         except Exception as e:
-            print(f"❌ {test_name}: ERROR - {e}")
+            print(f"{test_name}: ERROR - {e}")
 
     print("\n" + "=" * 55)
-    print(f"📊 Test Results: {passed}/{total} tests passed")
+    print(f"Test Results: {passed}/{total} tests passed")
 
     if passed == total:
-        print("🎉 All tests passed! QR system is ready for use.")
+        print("All tests passed! QR system is ready for use.")
         return 0
     else:
-        print("⚠️  Some tests failed. Please check the implementation.")
+        print("Some tests failed. Please check the implementation.")
         return 1
 
 

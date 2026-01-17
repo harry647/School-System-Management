@@ -13,7 +13,10 @@ from school_system.models.student import Student, ReamEntry, TotalReams
 from school_system.models.book import DistributionStudent, BorrowedBookStudent
 from school_system.database.repositories.student_repo import StudentRepository, ReamEntryRepository, TotalReamsRepository
 from school_system.database.repositories.book_repo import DistributionStudentRepository, BorrowedBookStudentRepository
-from school_system.services.class_management_service import ClassManagementService
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from school_system.services.class_management_service import ClassManagementService
 
 
 class StudentService:
@@ -22,7 +25,7 @@ class StudentService:
     def __init__(self):
         self.student_repository = StudentRepository()
         self.import_export_service = ImportExportService()
-        self.class_management_service = ClassManagementService()
+        self.class_management_service: Optional[ClassManagementService] = None
 
     def get_all_students(self, stream: Optional[str] = None) -> List[Student]:
         """
@@ -604,65 +607,83 @@ class StudentService:
     def get_students_by_class_level(self, class_level: int) -> List[Student]:
         """
         Get all students in a specific class level.
-        
+         
         Args:
             class_level: The class level (e.g., 4 for Form 4)
-            
+             
         Returns:
             A list of students in that class level
         """
+        if self.class_management_service is None:
+            from school_system.services.class_management_service import ClassManagementService
+            self.class_management_service = ClassManagementService()
         return self.class_management_service.get_students_by_class_level(class_level)
     
     def get_students_by_class_and_stream(self, class_level: int, stream: str) -> List[Student]:
         """
         Get all students in a specific class level and stream combination.
-        
+         
         Args:
             class_level: The class level (e.g., 4)
             stream: The stream name (e.g., "Red")
-            
+             
         Returns:
             A list of students matching both criteria
         """
+        if self.class_management_service is None:
+            from school_system.services.class_management_service import ClassManagementService
+            self.class_management_service = ClassManagementService()
         return self.class_management_service.get_students_by_class_and_stream(class_level, stream)
     
     def get_all_class_levels(self) -> List[int]:
         """
         Get all unique class levels from the database.
-        
+         
         Returns:
             A sorted list of class levels
         """
+        if self.class_management_service is None:
+            from school_system.services.class_management_service import ClassManagementService
+            self.class_management_service = ClassManagementService()
         return self.class_management_service.get_all_class_levels()
     
     def get_all_streams_for_class(self, class_level: Optional[int] = None) -> List[str]:
         """
         Get all unique streams, optionally filtered by class level.
-        
+         
         Args:
             class_level: Optional class level filter
-            
+             
         Returns:
             A sorted list of unique stream names
         """
+        if self.class_management_service is None:
+            from school_system.services.class_management_service import ClassManagementService
+            self.class_management_service = ClassManagementService()
         return self.class_management_service.get_all_streams(class_level)
     
     def get_class_stream_combinations(self) -> List[Tuple[int, str, int]]:
         """
         Get all class-stream combinations with student counts.
-        
+         
         Returns:
             A list of tuples: (class_level, stream, student_count)
         """
+        if self.class_management_service is None:
+            from school_system.services.class_management_service import ClassManagementService
+            self.class_management_service = ClassManagementService()
         return self.class_management_service.get_class_stream_combinations()
     
     def get_class_statistics(self) -> dict:
         """
         Get comprehensive statistics about classes and streams.
-        
+         
         Returns:
             A dictionary with statistics
         """
+        if self.class_management_service is None:
+            from school_system.services.class_management_service import ClassManagementService
+            self.class_management_service = ClassManagementService()
         return self.class_management_service.get_class_statistics()
 
     def get_student_library_activity_summary(self, student_id: int) -> dict:

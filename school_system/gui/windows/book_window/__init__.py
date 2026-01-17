@@ -5,6 +5,7 @@ This package provides a complete book management interface including:
 - Book CRUD operations
 - Book borrowing and return workflows
 - Distribution session management
+- Borrowing template generation (Excel/PDF)
 - Import/export functionality
 - Reports and analytics
 - QR code management system
