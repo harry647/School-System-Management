@@ -32,7 +32,7 @@ def migrate_qr_codes():
 
         # Add QR code columns to books if they don't exist
         if 'qr_code' not in books_columns:
-            cursor.execute("ALTER TABLE books ADD COLUMN qr_code TEXT UNIQUE")
+            cursor.execute("ALTER TABLE books ADD COLUMN qr_code TEXT")
             logger.info("Added qr_code column to books table")
         else:
             logger.info("Books table already has qr_code column")
@@ -50,7 +50,7 @@ def migrate_qr_codes():
 
         # Add QR code columns to students if they don't exist
         if 'qr_code' not in students_columns:
-            cursor.execute("ALTER TABLE students ADD COLUMN qr_code TEXT UNIQUE")
+            cursor.execute("ALTER TABLE students ADD COLUMN qr_code TEXT")
             logger.info("Added qr_code column to students table")
         else:
             logger.info("Students table already has qr_code column")

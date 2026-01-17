@@ -50,7 +50,7 @@ def migrate_students_table():
 
         # Add QR code columns for students
         if 'qr_code' not in columns:
-            cursor.execute("ALTER TABLE students ADD COLUMN qr_code TEXT UNIQUE")
+            cursor.execute("ALTER TABLE students ADD COLUMN qr_code TEXT")
             logger.info("Added qr_code column to students table")
         else:
             logger.info("Students table already has qr_code column")

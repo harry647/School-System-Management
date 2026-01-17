@@ -45,7 +45,7 @@ def migrate_books_table():
 
         # Add QR code columns for books
         if 'qr_code' not in columns:
-            cursor.execute("ALTER TABLE books ADD COLUMN qr_code TEXT UNIQUE")
+            cursor.execute("ALTER TABLE books ADD COLUMN qr_code TEXT")
             logger.info("Added qr_code column to books table")
         else:
             logger.info("Books table already has qr_code column")
