@@ -4314,17 +4314,15 @@ class MainWindow(BaseApplicationWindow):
             # Open selection dialog
             selection_dialog = ClassStreamSelectionDialog(self, self.username, self.role)
             if selection_dialog.exec() == QDialog.DialogCode.Accepted:
-                class_level = selection_dialog.get_class_level()
-                stream = selection_dialog.get_stream()
-                subject = selection_dialog.get_subject()
-                
+                class_name = selection_dialog.get_class_level()
+                stream_name = selection_dialog.get_stream()
+
                 window = EnhancedBorrowWindow(
                     self,
                     self.username,
                     self.role,
-                    class_level=class_level,
-                    stream=stream,
-                    subject=subject
+                    class_name=class_name,
+                    stream_name=stream_name
                 )
                 window.borrow_completed.connect(self._on_book_data_changed)
                 window.show()
@@ -4336,9 +4334,8 @@ class MainWindow(BaseApplicationWindow):
                     self,
                     self.username,
                     self.role,
-                    class_level=None,
-                    stream=None,
-                    subject=None
+                    class_name=None,
+                    stream_name=None
                 )
                 window.borrow_completed.connect(self._on_book_data_changed)
                 window.show()
@@ -4359,17 +4356,15 @@ class MainWindow(BaseApplicationWindow):
             # Open selection dialog
             selection_dialog = ClassStreamSelectionDialog(self, self.username, self.role)
             if selection_dialog.exec() == QDialog.DialogCode.Accepted:
-                class_level = selection_dialog.get_class_level()
-                stream = selection_dialog.get_stream()
-                subject = selection_dialog.get_subject()
+                class_name = selection_dialog.get_class_level()
+                stream_name = selection_dialog.get_stream()
 
                 window = EnhancedReturnWindow(
                     self,
                     self.username,
                     self.role,
-                    class_level=class_level,
-                    stream=stream,
-                    subject=subject
+                    class_name=class_name,
+                    stream_name=stream_name
                 )
                 window.return_completed.connect(self._on_book_data_changed)
                 window.show()
@@ -4381,9 +4376,8 @@ class MainWindow(BaseApplicationWindow):
                     self,
                     self.username,
                     self.role,
-                    class_level=None,
-                    stream=None,
-                    subject=None
+                    class_name=None,
+                    stream_name=None
                 )
                 window.return_completed.connect(self._on_book_data_changed)
                 window.show()

@@ -6,24 +6,59 @@ class Student(BaseModel):
     __tablename__ = 'students'
     __pk__ = "student_id"
     
-    def __init__(self, admission_number, name, stream, student_id=None, created_at=None, qr_code=None, qr_generated_at=None):
+    def __init__(self, admission_number, name, stream=None, student_id=None, created_at=None, qr_code=None, qr_generated_at=None, class_name=None, stream_name=None):
         super().__init__()
         # In this schema, student_id should be the same as admission_number
         self.student_id = admission_number if student_id is None else student_id
         self.admission_number = admission_number
         self.name = name
-        self.stream = stream
+
+        # Handle class and stream - new separate fields
+        self.class_name = class_name
+        self.stream_name = stream_name
+
+        # For backward compatibility, keep the old stream field
+        # If new fields are provided, construct the old stream format
+        if class_name and stream_name:
+            # Extract class level from class_name (e.g., "Form 4" -> 4)
+            class_level = self._extract_class_level(class_name)
+            self.stream = f"{class_level} {stream_name}" if class_level else f"{class_name} {stream_name}"
+        else:
+            # Use provided stream or default
+            self.stream = stream or ""
+
         self.created_at = created_at if created_at is not None else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.qr_code = qr_code
         self.qr_generated_at = qr_generated_at
+
+    def _extract_class_level(self, class_name):
+        """Extract numeric class level from class name (e.g., 'Form 4' -> 4)."""
+        if not class_name:
+            return None
+
+        class_name = class_name.lower()
+        if 'form' in class_name:
+            parts = class_name.split()
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif 'grade' in class_name:
+            parts = class_name.split()
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif class_name.isdigit():
+            return int(class_name)
+
+        return None
     
     def save(self):
         """Save the student to the database."""
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO students (student_id, admission_number, name, stream, created_at, qr_code, qr_generated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (self.student_id, self.admission_number, self.name, self.stream, self.created_at, self.qr_code, self.qr_generated_at)
+            "INSERT INTO students (student_id, admission_number, name, stream, class, stream_name, created_at, qr_code, qr_generated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (self.student_id, self.admission_number, self.name, self.stream, self.class_name, self.stream_name, self.created_at, self.qr_code, self.qr_generated_at)
         )
         db.commit()
     
@@ -33,11 +68,11 @@ class Student(BaseModel):
         cursor = db.cursor()
         cursor.execute(
             """UPDATE students SET
-               admission_number = ?, name = ?, stream = ?, created_at = ?,
-               qr_code = ?, qr_generated_at = ?
+               admission_number = ?, name = ?, stream = ?, class = ?, stream_name = ?,
+               created_at = ?, qr_code = ?, qr_generated_at = ?
                WHERE student_id = ?""",
-            (self.admission_number, self.name, self.stream, self.created_at,
-             self.qr_code, self.qr_generated_at, self.student_id)
+            (self.admission_number, self.name, self.stream, self.class_name, self.stream_name,
+             self.created_at, self.qr_code, self.qr_generated_at, self.student_id)
         )
         db.commit()
 

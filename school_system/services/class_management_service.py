@@ -45,35 +45,83 @@ class ClassManagementService:
             logger.warning(f"Failed to parse stream identifier '{stream_identifier}': {e}")
             raise
     
-    def categorize_all_students(self) -> Dict[int, Dict[str, List[Student]]]:
+    def categorize_all_students(self) -> Dict[str, Dict[str, List[Student]]]:
         """
-        Categorize all students by class level and stream.
-        
+        Categorize all students by class and stream.
+
         Returns:
-            A nested dictionary: {class_level: {stream: [students]}}
-            Example: {4: {"Red": [student1, student2], "Blue": [student3]}}
+            A nested dictionary: {class_name: {stream_name: [students]}}
+            Example: {"Form 4": {"Red": [student1, student2], "Blue": [student3]}}
         """
         try:
             all_students = self.student_service.get_all_students()
             categorized = defaultdict(lambda: defaultdict(list))
-            
+
             for student in all_students:
-                if not student.stream:
-                    logger.warning(f"Student {student.student_id} has no stream identifier")
-                    continue
-                
-                try:
-                    class_level, stream = self.parse_student_stream(student.stream)
-                    categorized[class_level][stream or "Unassigned"].append(student)
-                except ClassParsingException:
-                    # Store students with invalid formats in a special category
-                    categorized[-1]["Invalid Format"].append(student)
-                    logger.warning(f"Student {student.student_id} has invalid stream format: {student.stream}")
-            
+                class_name = student.class_name or "Unassigned"
+                stream_name = student.stream_name or "Unassigned"
+
+                categorized[class_name][stream_name].append(student)
+
             return dict(categorized)
         except Exception as e:
             logger.error(f"Error categorizing students: {e}")
             return {}
+
+    def get_all_classes(self) -> List[str]:
+        """
+        Get all unique class names.
+
+        Returns:
+            List of unique class names.
+        """
+        return self.student_service.get_all_classes()
+
+    def get_all_stream_names(self) -> List[str]:
+        """
+        Get all unique stream names.
+
+        Returns:
+            List of unique stream names.
+        """
+        return self.student_service.get_all_stream_names()
+
+    def get_streams_for_class(self, class_name: str) -> List[str]:
+        """
+        Get all stream names for a specific class.
+
+        Args:
+            class_name: The class name to get streams for.
+
+        Returns:
+            List of stream names for the specified class.
+        """
+        return self.student_service.get_streams_for_class(class_name)
+
+    def get_students_by_class(self, class_name: str) -> List[Student]:
+        """
+        Get all students in a specific class.
+
+        Args:
+            class_name: The class name to filter by.
+
+        Returns:
+            List of students in the specified class.
+        """
+        return self.student_service.get_students_by_class(class_name)
+
+    def get_students_by_class_and_stream(self, class_name: str, stream_name: str) -> List[Student]:
+        """
+        Get all students in a specific class and stream.
+
+        Args:
+            class_name: The class name to filter by.
+            stream_name: The stream name to filter by.
+
+        Returns:
+            List of students in the specified class and stream.
+        """
+        return self.student_service.get_students_by_class_and_stream(class_name, stream_name)
     
     def get_all_class_levels(self) -> List[int]:
         """

@@ -34,8 +34,8 @@ class EnhancedReturnWindow(QDialog):
         parent=None,
         current_user: str = "",
         current_role: str = "",
-        class_level: Optional[int] = None,
-        stream: Optional[str] = None,
+        class_name: Optional[str] = None,
+        stream_name: Optional[str] = None,
         subject: Optional[str] = None
     ):
         """Initialize the enhanced return window."""
@@ -50,8 +50,8 @@ class EnhancedReturnWindow(QDialog):
         self.student_service = StudentService()
         self.borrowed_book_repo = BorrowedBookStudentRepository()
         
-        self.class_level = class_level
-        self.stream = stream
+        self.class_name = class_name
+        self.stream_name = stream_name
         self.subject = subject
         self.current_user = current_user
         
@@ -232,14 +232,14 @@ class EnhancedReturnWindow(QDialog):
         """Load borrowed books based on class level, stream, and subject."""
         try:
             # Get students based on filters
-            if self.class_level is not None and self.stream is not None:
+            if self.class_name is not None and self.stream_name is not None:
                 students = self.class_management_service.get_students_by_class_and_stream(
-                    self.class_level, self.stream
+                    self.class_name, self.stream_name
                 )
-            elif self.class_level is not None:
-                students = self.class_management_service.get_students_by_class_level(self.class_level)
-            elif self.stream is not None:
-                students = self.class_management_service.get_students_by_stream(self.stream)
+            elif self.class_name is not None:
+                students = self.class_management_service.get_students_by_class(self.class_name)
+            elif self.stream_name is not None:
+                students = self.student_service.get_students_by_stream_name(self.stream_name)
             else:
                 students = self.student_service.get_all_students()
             

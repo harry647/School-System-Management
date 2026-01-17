@@ -44,14 +44,50 @@ class StudentService:
 
     def get_all_streams(self) -> List[str]:
         """
-        Get all unique streams from existing students.
+        Get all unique streams from existing students (legacy method for backward compatibility).
 
         Returns:
-            A list of unique stream names.
+            A list of unique stream names (old format like "4 Red").
         """
         students = self.student_repository.get_all()
         streams = list(set(s.stream for s in students if s.stream))
         return sorted(streams)
+
+    def get_all_classes(self) -> List[str]:
+        """
+        Get all unique class names from existing students.
+
+        Returns:
+            A list of unique class names (e.g., "Form 3", "Form 4", "Grade 10").
+        """
+        students = self.student_repository.get_all()
+        classes = list(set(s.class_name for s in students if s.class_name))
+        return sorted(classes)
+
+    def get_all_stream_names(self) -> List[str]:
+        """
+        Get all unique stream names from existing students.
+
+        Returns:
+            A list of unique stream names (e.g., "Red", "Blue", "Orange").
+        """
+        students = self.student_repository.get_all()
+        stream_names = list(set(s.stream_name for s in students if s.stream_name))
+        return sorted(stream_names)
+
+    def get_streams_for_class(self, class_name: str) -> List[str]:
+        """
+        Get all unique stream names for a specific class.
+
+        Args:
+            class_name: The class name to get streams for
+
+        Returns:
+            A list of unique stream names for the specified class.
+        """
+        students = self.get_students_by_class(class_name)
+        stream_names = list(set(s.stream_name for s in students if s.stream_name))
+        return sorted(stream_names)
 
     def get_students_by_admission_number(self, admission_number: str) -> List[Student]:
         """
@@ -594,15 +630,55 @@ class StudentService:
 
     def get_students_by_stream(self, stream: str) -> List[Student]:
         """
-        Get students filtered by stream.
-        
+        Get students filtered by stream (legacy method for backward compatibility).
+
         Args:
-            stream: Stream to filter by
-                
+            stream: Stream to filter by (old format like "4 Red")
+
         Returns:
             List of students in the specified stream
         """
         return self.student_repository.find_by_field('stream', stream)
+
+    def get_students_by_class(self, class_name: str) -> List[Student]:
+        """
+        Get students filtered by class.
+
+        Args:
+            class_name: Class name to filter by (e.g., "Form 4", "Grade 10")
+
+        Returns:
+            List of students in the specified class
+        """
+        return self.student_repository.find_by_field('class', class_name)
+
+    def get_students_by_stream_name(self, stream_name: str) -> List[Student]:
+        """
+        Get students filtered by stream name.
+
+        Args:
+            stream_name: Stream name to filter by (e.g., "Red", "Blue")
+
+        Returns:
+            List of students in the specified stream
+        """
+        return self.student_repository.find_by_field('stream_name', stream_name)
+
+    def get_students_by_class_and_stream(self, class_name: str, stream_name: str) -> List[Student]:
+        """
+        Get students filtered by both class and stream.
+
+        Args:
+            class_name: Class name to filter by (e.g., "Form 4")
+            stream_name: Stream name to filter by (e.g., "Red")
+
+        Returns:
+            List of students in the specified class and stream
+        """
+        return self.student_repository.find_by_multiple_fields({
+            'class': class_name,
+            'stream_name': stream_name
+        })
     
     def get_students_by_class_level(self, class_level: int) -> List[Student]:
         """

@@ -32,23 +32,23 @@ class EnhancedBorrowWindow(QDialog):
         parent=None,
         current_user: str = "",
         current_role: str = "",
-        class_level: Optional[int] = None,
-        stream: Optional[str] = None,
+        class_name: Optional[str] = None,
+        stream_name: Optional[str] = None,
         subject: Optional[str] = None
     ):
         """Initialize the enhanced borrow window."""
         super().__init__(parent)
-        
+
         self.setWindowTitle("Borrow per Stream per Subject")
         self.setMinimumWidth(1000)
         self.setMinimumHeight(700)
-        
+
         self.book_service = BookService()
         self.class_management_service = ClassManagementService()
         self.student_service = StudentService()
-        
-        self.class_level = class_level
-        self.stream = stream
+
+        self.class_name = class_name
+        self.stream_name = stream_name
         self.subject = subject
         self.current_user = current_user
         
@@ -232,19 +232,19 @@ class EnhancedBorrowWindow(QDialog):
         layout.addLayout(button_layout)
 
     def load_students(self):
-        """Load students based on class level and stream."""
+        """Load students based on class and stream."""
         try:
-            if self.class_level is not None and self.stream is not None:
+            if self.class_name is not None and self.stream_name is not None:
                 self.students = self.class_management_service.get_students_by_class_and_stream(
-                    self.class_level, self.stream
+                    self.class_name, self.stream_name
                 )
-            elif self.class_level is not None:
-                self.students = self.class_management_service.get_students_by_class_level(self.class_level)
-            elif self.stream is not None:
-                self.students = self.class_management_service.get_students_by_stream(self.stream)
+            elif self.class_name is not None:
+                self.students = self.class_management_service.get_students_by_class(self.class_name)
+            elif self.stream_name is not None:
+                self.students = self.student_service.get_students_by_stream_name(self.stream_name)
             else:
                 self.students = self.student_service.get_all_students()
-            
+
             self.populate_table()
         except Exception as e:
             logger.error(f"Error loading students: {e}")
