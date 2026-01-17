@@ -5798,7 +5798,7 @@ For additional support, contact your system administrator.
                 "actions": [
                     ("➕ Add Student", self._add_student),
                     ("👁️ View Students", self._show_students),
-                    ("✏️ Edit Student", self._show_edit_student),
+                    ("✏️ Edit Student", self._show_edit_student_selection),
                     ("📤 Import Students", self._show_student_import_export),
                 ]
             },
@@ -6926,8 +6926,8 @@ For additional support, contact your system administrator.
         self._show_students()
     
     def _show_edit_student(self):
-        """Show edit student window."""
-        self._open_edit_student_window()
+        """Show edit student window (legacy method - redirects to selection)."""
+        self._show_edit_student_selection()
     
     def _show_teachers(self):
         """Show teacher management window."""
