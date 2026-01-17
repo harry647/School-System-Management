@@ -24,6 +24,9 @@ class ClassManagementWindow(BaseFunctionWindow):
 
         self.student_service = StudentService()
 
+        # Initialize classes storage for in-memory tracking
+        self.classes = {}  # {class_id: {'students': set(student_ids)}}
+
         # Setup content
         self.setup_content()
 
@@ -471,7 +474,8 @@ class ClassManagementWindow(BaseFunctionWindow):
             show_error_message("No Selection", "Please select a class first.", self)
             return
 
-        class_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        class_data = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        class_id = f"{class_data['class']}-{class_data['stream']}"  # Create a unique key
 
         # Show student selection dialog
         from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
@@ -484,11 +488,13 @@ class ClassManagementWindow(BaseFunctionWindow):
                 student_id = students_window.students_table.item(selected_rows[0].row(), 0).text()
                 try:
                     # Add to our simple storage
-                    if class_id in self.classes:
-                        self.classes[class_id]['students'].add(student_id)
+                    if class_id not in self.classes:
+                        self.classes[class_id] = {'students': set()}
+                    self.classes[class_id]['students'].add(student_id)
                     show_success_message("Success", f"Student {student_id} added to class.", self)
-                    self._refresh_class_students(class_id)
-                    self._update_class_statistics(class_id)
+                    # Refresh with the original class/stream data
+                    self._refresh_class_students(class_data['class'], class_data['stream'])
+                    self._update_class_statistics(class_data['class'], class_data['stream'])
                 except Exception as e:
                     show_error_message("Error", f"Failed to add student: {str(e)}", self)
             students_window.close()
@@ -513,7 +519,8 @@ class ClassManagementWindow(BaseFunctionWindow):
             show_error_message("No Selection", "Please select a student to remove.", self)
             return
 
-        class_id = selected_class_items[0].data(Qt.ItemDataRole.UserRole)
+        class_data = selected_class_items[0].data(Qt.ItemDataRole.UserRole)
+        class_id = f"{class_data['class']}-{class_data['stream']}"  # Create a unique key
         student_id = self.class_students_table.item(selected_student_rows[0].row(), 0).text()
 
         from school_system.gui.dialogs.confirm_dialog import ConfirmationDialog
@@ -531,8 +538,9 @@ class ClassManagementWindow(BaseFunctionWindow):
                 if class_id in self.classes and student_id in self.classes[class_id]['students']:
                     self.classes[class_id]['students'].remove(student_id)
                 show_success_message("Success", f"Student {student_id} removed from class.", self)
-                self._refresh_class_students(class_id)
-                self._update_class_statistics(class_id)
+                # Refresh with the original class/stream data
+                self._refresh_class_students(class_data['class'], class_data['stream'])
+                self._update_class_statistics(class_data['class'], class_data['stream'])
             except Exception as e:
                 logger.error(f"Error removing student from class: {e}")
                 show_error_message("Error", f"Failed to remove student: {str(e)}", self)

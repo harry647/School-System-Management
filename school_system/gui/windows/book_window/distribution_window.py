@@ -7,6 +7,7 @@ Dedicated window for managing book distribution sessions.
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem, QDateEdit, QTabWidget, QGroupBox, QProgressBar
 from PyQt6.QtCore import Qt, pyqtSignal, QDate, QTimer
 from PyQt6.QtGui import QFont
+from datetime import datetime
 
 from school_system.gui.windows.base_function_window import BaseFunctionWindow
 from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
@@ -340,7 +341,14 @@ class DistributionWindow(BaseFunctionWindow):
 
         self.template_class_combo = QComboBox()
         self.template_class_combo.addItem("All Classes")
-        self.template_class_combo.addItems([str(i) for i in range(1, 13)])
+        # Load classes dynamically from database
+        try:
+            classes = self.student_service.get_all_classes()
+            self.template_class_combo.addItems(classes)
+        except Exception as e:
+            logger.warning(f"Could not load classes for templates: {e}")
+            # Fallback to standard classes
+            self.template_class_combo.addItems(STANDARD_CLASSES)
         self.template_class_combo.setFixedHeight(40)
         self.template_class_combo.currentTextChanged.connect(self._update_template_subjects)
         class_layout.addWidget(self.template_class_combo)
@@ -356,7 +364,14 @@ class DistributionWindow(BaseFunctionWindow):
 
         self.template_stream_combo = QComboBox()
         self.template_stream_combo.addItem("All Streams")
-        self.template_stream_combo.addItems(STANDARD_STREAMS)
+        # Load streams dynamically from database
+        try:
+            streams = self.student_service.get_all_stream_names()
+            self.template_stream_combo.addItems(streams)
+        except Exception as e:
+            logger.warning(f"Could not load streams for templates: {e}")
+            # Fallback to standard streams
+            self.template_stream_combo.addItems(STANDARD_STREAMS)
         self.template_stream_combo.setFixedHeight(40)
         stream_layout.addWidget(self.template_stream_combo)
 
@@ -371,7 +386,14 @@ class DistributionWindow(BaseFunctionWindow):
 
         self.template_subject_combo = QComboBox()
         self.template_subject_combo.addItem("All Subjects")
-        self.template_subject_combo.addItems(STANDARD_SUBJECTS)
+        # Load subjects dynamically from database
+        try:
+            subjects = self.book_service.get_all_subjects()
+            self.template_subject_combo.addItems(subjects)
+        except Exception as e:
+            logger.warning(f"Could not load subjects for templates: {e}")
+            # Fallback to standard subjects
+            self.template_subject_combo.addItems(STANDARD_SUBJECTS)
         self.template_subject_combo.setFixedHeight(40)
         subject_layout.addWidget(self.template_subject_combo)
 
@@ -626,7 +648,17 @@ class DistributionWindow(BaseFunctionWindow):
             students = self.class_management_service.get_students_by_class_and_stream(class_level, stream)
             if students:
                 # Create templates for each subject
-                subjects = [selected_subject] if selected_subject != "All Subjects" else STANDARD_SUBJECTS
+                if selected_subject != "All Subjects":
+                    subjects = [selected_subject]
+                else:
+                    # Get subjects dynamically from database
+                    try:
+                        subjects = self.book_service.get_all_subjects()
+                        if not subjects:
+                            subjects = STANDARD_SUBJECTS  # Fallback
+                    except Exception as e:
+                        logger.warning(f"Could not get subjects from database: {e}")
+                        subjects = STANDARD_SUBJECTS  # Fallback
 
                 for subject in subjects:
                     template_key = f"Form_{class_level}_{stream}_{subject}"

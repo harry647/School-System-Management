@@ -1628,6 +1628,28 @@ class BookService:
             logger.error(f"Error getting books by subject: {e}")
             return []
 
+    def get_all_subjects(self) -> List[str]:
+        """
+        Get all unique subjects from the books database.
+
+        Returns:
+            List of unique subject names
+        """
+        try:
+            all_books = self.book_repository.get_all()
+            subjects = set()
+
+            for book in all_books:
+                # Check subject field first, then category as fallback
+                subject = getattr(book, 'subject', None) or getattr(book, 'category', None)
+                if subject:
+                    subjects.add(subject)
+
+            return sorted(list(subjects))
+        except Exception as e:
+            logger.error(f"Error getting all subjects: {e}")
+            return []
+
     def get_books_by_class(self, class_name: str) -> List[Book]:
         """
         Get all books for a specific class.
