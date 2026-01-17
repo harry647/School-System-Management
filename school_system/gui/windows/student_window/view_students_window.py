@@ -223,6 +223,10 @@ class ViewStudentsWindow(BaseFunctionWindow):
     
     def _refresh_students_table(self):
         """Refresh the students table with current data."""
+        # Ensure table is initialized
+        if self.students_table is None:
+            return
+
         try:
             # Get filters
             class_filter = self.class_filter.currentText()
