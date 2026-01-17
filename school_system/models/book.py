@@ -18,14 +18,34 @@ class Book(BaseModel):
         self.isbn = isbn
         self.publication_date = publication_date
         self.available = available
-        self.revision = revision
+
+        # Handle book_type from kwargs (for import) and convert to revision
+        if 'book_type' in kwargs:
+            book_type_value = kwargs['book_type'].lower() if kwargs['book_type'] else "course"
+            self.revision = 1 if book_type_value == "revision" else 0
+        else:
+            self.revision = revision
+
         self.book_condition = book_condition
         self.subject = subject
         # Handle both 'class_name' and 'class' (database column name)
         self.class_name = class_name or kwargs.get('class')
         self.qr_code = qr_code
         self.qr_generated_at = qr_generated_at
-    
+
+    @property
+    def book_type(self):
+        """Get book type as string ('course' or 'revision')."""
+        return "revision" if self.revision == 1 or self.revision == "1" else "course"
+
+    @book_type.setter
+    def book_type(self, value):
+        """Set book type from string ('course' or 'revision')."""
+        if isinstance(value, str):
+            self.revision = 1 if value.lower() == "revision" else 0
+        else:
+            self.revision = value
+
     def save(self):
         """Save the book to the database."""
         db = get_db_session()

@@ -32,7 +32,7 @@ EXCEL_BOOK_IMPORT_COLUMNS = [
     'Publication_Date', # Optional - publication date (YYYY-MM-DD)
     'Book_Condition',  # Optional - condition (New, Good, Torn, Damaged)
     'Available',       # Optional - availability (1=available, 0=borrowed)
-    'Revision',        # Optional - revision number
+    'Book_Type',       # Optional - book type ('course' or 'revision')
     'QR_Code',         # Optional - QR code data
     'QR_Generated_At'  # Optional - QR generation timestamp
 ]
@@ -48,7 +48,7 @@ EXCEL_BOOK_EXPORT_COLUMNS = [
     'Publication_Date',
     'Book_Condition',
     'Available',
-    'Revision',
+    'Book_Type',
     'QR_Code',
     'QR_Generated_At',
     'Created_At'
@@ -142,6 +142,9 @@ STANDARD_STREAMS = ["Red", "Blue", "Green", "Yellow", "Orange", "White"]
 
 # Standard terms
 STANDARD_TERMS = ["Term 1", "Term 2", "Term 3"]
+
+# Book types
+BOOK_TYPES = ["course", "revision"]
 
 # Export formats
 EXPORT_FORMATS = ["Excel", "PDF"]

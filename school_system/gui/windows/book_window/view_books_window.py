@@ -145,10 +145,10 @@ class ViewBooksWindow(BaseFunctionWindow):
         table_layout.addWidget(title_label)
         
         # Books table
-        self.books_table = self.create_table(0, 8)
-        self.books_table.setColumnCount(8)
+        self.books_table = self.create_table(0, 9)
+        self.books_table.setColumnCount(9)
         self.books_table.setHorizontalHeaderLabels([
-            "Book ID", "Title", "Author", "ISBN", "Category", "Class", "Condition", "Status"
+            "Book ID", "Title", "Author", "ISBN", "Category", "Class", "Type", "Condition", "Status"
         ])
         self.books_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.books_table.setAlternatingRowColors(True)
@@ -197,9 +197,10 @@ class ViewBooksWindow(BaseFunctionWindow):
                 self.books_table.setItem(row, 2, QTableWidgetItem(book.author or ""))
                 self.books_table.setItem(row, 3, QTableWidgetItem(book.isbn or ""))
                 self.books_table.setItem(row, 4, QTableWidgetItem(book.category or ""))
-                self.books_table.setItem(row, 5, QTableWidgetItem(""))
-                self.books_table.setItem(row, 6, QTableWidgetItem(book.book_condition or "Good"))
-                self.books_table.setItem(row, 7, QTableWidgetItem(status))
+                self.books_table.setItem(row, 5, QTableWidgetItem(book.class_name or ""))
+                self.books_table.setItem(row, 6, QTableWidgetItem(book.book_type.title()))
+                self.books_table.setItem(row, 7, QTableWidgetItem(book.book_condition or "Good"))
+                self.books_table.setItem(row, 8, QTableWidgetItem(status))
             
             logger.info(f"Refreshed books table with {len(books)} books")
         except Exception as e:
@@ -211,7 +212,7 @@ class ViewBooksWindow(BaseFunctionWindow):
         # Filter table based on search text
         for row in range(self.books_table.rowCount()):
             match = False
-            for col in range(7):  # Check first 7 columns
+            for col in range(8):  # Check first 8 columns (excluding status)
                 item = self.books_table.item(row, col)
                 if item and text.lower() in item.text().lower():
                     match = True

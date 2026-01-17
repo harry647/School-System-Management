@@ -239,7 +239,8 @@ class BookImportExportWindow(BaseFunctionWindow):
                         'publication_date': book_data.get('publication_date'),
                         'subject': book_data.get('subject'),
                         'class_name': book_data.get('class'),
-                        'book_condition': book_data.get('condition', 'New')
+                        'book_condition': book_data.get('book_condition', 'New'),
+                        'book_type': book_data.get('book_type', 'course')  # Handle book type field
                     }
 
                     # Create book using service

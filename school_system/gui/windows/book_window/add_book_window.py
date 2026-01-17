@@ -13,7 +13,7 @@ from school_system.gui.dialogs.message_dialog import show_error_message, show_su
 from school_system.config.logging import logger
 from school_system.services.book_service import BookService
 from school_system.gui.windows.book_window.utils import (
-    BOOK_CONDITIONS, STANDARD_SUBJECTS
+    BOOK_CONDITIONS, STANDARD_SUBJECTS, BOOK_TYPES
 )
 
 
@@ -129,7 +129,20 @@ class AddBookWindow(BaseFunctionWindow):
         self.subject_input.setEditable(True)
         subject_layout.addWidget(self.subject_input)
         form_layout.addLayout(subject_layout)
-        
+
+        # Book Type field
+        book_type_layout = QVBoxLayout()
+        book_type_label = QLabel("Book Type")
+        book_type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        book_type_layout.addWidget(book_type_label)
+
+        self.book_type_input = QComboBox()
+        self.book_type_input.setFixedHeight(44)
+        self.book_type_input.addItems(BOOK_TYPES)
+        self.book_type_input.setCurrentText("course")  # Default to course books
+        book_type_layout.addWidget(self.book_type_input)
+        form_layout.addLayout(book_type_layout)
+
         # Condition field
         condition_layout = QVBoxLayout()
         condition_label = QLabel("Condition *")
@@ -170,6 +183,7 @@ class AddBookWindow(BaseFunctionWindow):
         author = self.author_input.text().strip()
         isbn = self.isbn_input.text().strip()
         subject = self.subject_input.currentText().strip()
+        book_type = self.book_type_input.currentText().strip()
         condition = self.condition_input.currentText().strip()
         
         # Validate
@@ -180,15 +194,16 @@ class AddBookWindow(BaseFunctionWindow):
         try:
             # Create book
             book_data = {
-                "book_id": book_id,
+                "book_number": book_id,  # Use correct field name
                 "title": title,
                 "author": author if author else None,
                 "isbn": isbn if isbn else None,
                 "subject": subject if subject else None,
-                "condition": condition
+                "book_type": book_type,
+                "book_condition": condition
             }
             
-            self.book_service.add_book(book_data)
+            self.book_service.create_book(book_data)
             show_success_message("Success", f"Book {book_id} added successfully.", self)
             
             # Emit signal and close
