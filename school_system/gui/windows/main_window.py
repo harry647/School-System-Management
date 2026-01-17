@@ -52,6 +52,7 @@ from school_system.gui.windows.student_window.add_student_window import AddStude
 from school_system.gui.windows.student_window.edit_student_window import EditStudentWindow
 from school_system.gui.windows.student_window.view_students_window import ViewStudentsWindow
 from school_system.gui.windows.student_window.ream_management_window import ReamManagementWindow
+from school_system.gui.windows.student_window.student_promotion_window import StudentPromotionWindow
 from school_system.gui.windows.teacher_window.add_teacher_window import AddTeacherWindow
 from school_system.gui.windows.teacher_window.edit_teacher_window import EditTeacherWindow
 from school_system.gui.windows.teacher_window.view_teachers_window import ViewTeachersWindow
@@ -253,6 +254,7 @@ class MainWindow(BaseApplicationWindow):
                     ("📝 Class Management", "class_management"),
                     ("🔹 Enhanced Class Management", "enhanced_class_management"),
                     ("📚 Library Activity", "library_activity"),
+                    ("🎓 Student Promotion", "student_promotion"),
                     ("📤 Import/Export", "student_import_export"),
                     ("📄 Ream Management", "ream_management"),
                 ]
@@ -360,7 +362,7 @@ class MainWindow(BaseApplicationWindow):
                 action = QAction(text, self)
                 # Handle management actions differently - open separate windows
                 if action_id in ["view_students", "add_student", "edit_student", "class_management",
-                               "enhanced_class_management", "library_activity", "student_import_export", "ream_management",
+                               "enhanced_class_management", "library_activity", "student_promotion", "student_import_export", "ream_management",
                                "view_teachers", "add_teacher", "edit_teacher", "teacher_import_export",
                                "view_books", "add_book", "borrow_book", "return_book", "enhanced_borrow_book",
                                "enhanced_return_book", "qr_management", "distribution", "book_import_export",
@@ -378,6 +380,8 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._open_enhanced_class_management_window())
                     elif action_id == "library_activity":
                         action.triggered.connect(lambda checked: self._open_library_activity_window())
+                    elif action_id == "student_promotion":
+                        action.triggered.connect(lambda checked: self._open_student_promotion_window())
                     elif action_id == "student_import_export":
                         action.triggered.connect(lambda checked: self._open_student_import_export_window())
                     elif action_id == "ream_management":
@@ -4170,6 +4174,16 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             logger.error(f"Error opening edit student window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open edit student window: {str(e)}")
+
+    def _open_student_promotion_window(self):
+        """Open the student promotion window."""
+        try:
+            window = StudentPromotionWindow(self, self.username, self.role)
+            window.show()
+            logger.info("Student promotion window opened")
+        except Exception as e:
+            logger.error(f"Error opening student promotion window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open student promotion window: {str(e)}")
 
     def _open_student_import_export_window(self):
         """Open the student import/export window."""

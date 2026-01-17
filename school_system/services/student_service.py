@@ -1175,3 +1175,187 @@ class StudentService:
         
         logger.info(f"Successfully adjusted student {student_id} ream balance by {adjustment}")
         return created_entry
+
+    # ============================================================================
+    # STUDENT PROMOTION METHODS
+    # ============================================================================
+
+    def get_next_class(self, current_class: str) -> Optional[str]:
+        """
+        Get the next class for promotion based on current class.
+
+        Args:
+            current_class: Current class name (e.g., "Form 1", "Grade 10")
+
+        Returns:
+            Next class name or None if no promotion available
+        """
+        class_progression = {
+            "Form 1": "Form 2",
+            "Form 2": "Form 3",
+            "Form 3": "Form 4",
+            "Grade 10": "Grade 11",
+            "Grade 11": "Grade 12"
+        }
+
+        return class_progression.get(current_class)
+
+    def promote_student(self, admission_number: str, target_class: Optional[str] = None) -> bool:
+        """
+        Promote a single student to the next class or specified class.
+
+        Args:
+            admission_number: The admission number of the student to promote
+            target_class: Optional target class. If None, promotes to next class
+
+        Returns:
+            True if promotion was successful, False otherwise
+        """
+        try:
+            # Find student
+            students = self.student_repository.find_by_field('admission_number', admission_number)
+            if not students:
+                logger.warning(f"Student with admission number {admission_number} not found")
+                return False
+
+            student = students[0]
+
+            # Determine target class
+            if target_class is None:
+                target_class = self.get_next_class(student.class_name)
+                if target_class is None:
+                    logger.warning(f"No promotion available for class {student.class_name}")
+                    return False
+
+            # Update student's class
+            student_data = {
+                'class_name': target_class,
+                'stream': f"{self._extract_class_level(target_class)} {student.stream_name}" if student.stream_name else ""
+            }
+
+            success = self.update_student(admission_number, student_data)
+            if success:
+                logger.info(f"Successfully promoted student {admission_number} from {student.class_name} to {target_class}")
+                return True
+            else:
+                logger.error(f"Failed to update student {admission_number} during promotion")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error promoting student {admission_number}: {e}")
+            return False
+
+    def promote_students_by_class(self, current_class: str, target_class: Optional[str] = None) -> tuple[int, int]:
+        """
+        Promote all students in a specific class.
+
+        Args:
+            current_class: The class to promote students from
+            target_class: Optional target class. If None, promotes to next class
+
+        Returns:
+            tuple: (successful_promotions, total_students)
+        """
+        try:
+            # Get all students in the current class
+            students = self.get_students_by_class(current_class)
+            if not students:
+                logger.info(f"No students found in class {current_class}")
+                return 0, 0
+
+            # Determine target class
+            if target_class is None:
+                target_class = self.get_next_class(current_class)
+                if target_class is None:
+                    logger.warning(f"No promotion available for class {current_class}")
+                    return 0, 0
+
+            successful_promotions = 0
+
+            for student in students:
+                try:
+                    success = self.promote_student(student.admission_number, target_class)
+                    if success:
+                        successful_promotions += 1
+                except Exception as e:
+                    logger.error(f"Error promoting student {student.admission_number}: {e}")
+
+            logger.info(f"Promoted {successful_promotions} out of {len(students)} students from {current_class} to {target_class}")
+            return successful_promotions, len(students)
+
+        except Exception as e:
+            logger.error(f"Error promoting students by class {current_class}: {e}")
+            return 0, 0
+
+    def promote_all_students_yearly(self) -> dict:
+        """
+        Perform yearly promotion for all eligible students.
+
+        Returns:
+            dict: Summary of promotions by class
+        """
+        try:
+            promotion_summary = {}
+            total_promoted = 0
+            total_processed = 0
+
+            # Classes that can be promoted
+            promotable_classes = ["Form 1", "Form 2", "Form 3", "Grade 10", "Grade 11"]
+
+            for current_class in promotable_classes:
+                promoted, total = self.promote_students_by_class(current_class)
+                if total > 0:
+                    promotion_summary[current_class] = {
+                        'promoted': promoted,
+                        'total': total,
+                        'target_class': self.get_next_class(current_class)
+                    }
+                    total_promoted += promoted
+                    total_processed += total
+
+            logger.info(f"Yearly promotion completed: {total_promoted} out of {total_processed} students promoted")
+            return {
+                'summary': promotion_summary,
+                'total_promoted': total_promoted,
+                'total_processed': total_processed,
+                'success_rate': (total_promoted / total_processed * 100) if total_processed > 0 else 0
+            }
+
+        except Exception as e:
+            logger.error(f"Error performing yearly promotion: {e}")
+            return {
+                'summary': {},
+                'total_promoted': 0,
+                'total_processed': 0,
+                'success_rate': 0,
+                'error': str(e)
+            }
+
+    def _extract_class_level(self, class_name: str) -> Optional[int]:
+        """
+        Extract numeric class level from class name (e.g., 'Form 4' -> 4).
+
+        Args:
+            class_name: The class name
+
+        Returns:
+            The numeric level, or None if extraction fails
+        """
+        if not class_name:
+            return None
+
+        class_name = class_name.lower()
+        if 'form' in class_name:
+            parts = class_name.split()
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif 'grade' in class_name:
+            parts = class_name.split()
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif class_name.isdigit():
+            return int(class_name)
+
+        return None
