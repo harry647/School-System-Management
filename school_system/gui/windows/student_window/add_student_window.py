@@ -132,27 +132,28 @@ class AddStudentWindow(BaseFunctionWindow):
         student_id = self.student_id_input.text().strip()
         name = self.name_input.text().strip()
         stream = self.stream_input.currentText().strip()
-        
+         
         # Validate
         if not student_id or not name or not stream:
             show_error_message("Validation Error", "Please fill in all required fields.", self)
             return
-        
+         
         try:
             # Create student
             student_data = {
                 "student_id": student_id,
+                "admission_number": student_id,
                 "name": name,
                 "stream": stream
             }
-            
+             
             self.student_service.create_student(student_data)
             show_success_message("Success", f"Student {student_id} added successfully.", self)
-            
+             
             # Emit signal and close
             self.student_added.emit()
             self.close()
-            
+             
         except Exception as e:
             logger.error(f"Error adding student: {e}")
             show_error_message("Error", f"Failed to add student: {str(e)}", self)

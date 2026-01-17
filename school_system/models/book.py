@@ -7,7 +7,7 @@ class Book(BaseModel):
     
     def __init__(self, book_number, title, author, category=None,
                  isbn=None, publication_date=None, available=1,
-                 revision=0, book_condition="New", id=None):
+                 revision=0, book_condition="New", id=None, subject=None, class_name=None):
         super().__init__()
         self.id = id
         self.book_number = book_number
@@ -19,14 +19,16 @@ class Book(BaseModel):
         self.available = available
         self.revision = revision
         self.book_condition = book_condition
+        self.subject = subject
+        self.class_name = class_name
     
     def save(self):
         """Save the book to the database."""
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO books (book_number, available, revision, book_condition) VALUES (?, ?, ?, ?)",
-            (self.book_number, self.available, self.revision, self.book_condition)
+            "INSERT INTO books (book_number, available, revision, book_condition, subject, class) VALUES (?, ?, ?, ?, ?, ?)",
+            (self.book_number, self.available, self.revision, self.book_condition, self.subject, self.class_name)
         )
         db.commit()
     

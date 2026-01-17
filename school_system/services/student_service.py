@@ -81,12 +81,19 @@ class StudentService:
         ValidationUtils.validate_input(student_data.get('name'), "Student name cannot be empty")
         ValidationUtils.validate_input(student_data.get('admission_number'), "Admission number cannot be empty")
         
+        # Ensure admission_number is provided
+        admission_number = student_data.get('admission_number')
+        if not admission_number:
+            admission_number = student_data.get('student_id')
+            if not admission_number:
+                raise ValueError("Admission number cannot be empty")
+        
         # Remove 'created_at' from student_data if it exists to avoid passing it to the Student constructor
         # Keep student_id if provided, otherwise it will be set to admission_number in Student model
         student_data_copy = student_data.copy()
         student_data_copy.pop('created_at', None)
         # Don't remove student_id - let the Student model handle it
-         
+          
         student = Student(**student_data_copy)
         created_student = self.student_repository.create(student)
         logger.info(f"Student created successfully with ID: {created_student.student_id}")

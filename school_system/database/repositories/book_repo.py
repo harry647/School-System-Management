@@ -131,6 +131,19 @@ class BorrowedBookStudentRepository(BaseRepository):
         except Exception as e:
             raise DatabaseException(f"Error retrieving overdue books: {e}")
     
+    def has_student_borrowed_book(self, student_id: str, book_id: int) -> bool:
+        """Check if a student has already borrowed a specific book."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) FROM borrowed_books_student
+                WHERE student_id = ? AND book_id = ? AND returned_on IS NULL
+            """, (student_id, book_id))
+            count = cursor.fetchone()[0]
+            return count > 0
+        except Exception as e:
+            raise DatabaseException(f"Error checking borrowed book: {e}")
+
     def return_book(self, student_id: str, book_id: int, return_condition: str = "Good",
                    fine_amount: float = 0, returned_by: str = None) -> bool:
         """Mark a book as returned by a student."""

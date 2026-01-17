@@ -30,6 +30,17 @@ class ReamEntryRepository(BaseRepository):
     def __init__(self):
         super().__init__(ReamEntry)
 
+    def add_ream_entry(self, student_id: str, reams_count: int):
+        """Add a ream entry for a student."""
+        from datetime import datetime
+        ream_entry = ReamEntry(
+            student_id=student_id,
+            reams_count=reams_count,
+            date_added=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
+        return self.create(ream_entry)
+
 
 class TotalReamsRepository(BaseRepository):
     """Repository for total reams operations."""
