@@ -251,6 +251,7 @@ class MainWindow(BaseApplicationWindow):
                     ("➕ Add Student", "add_student"),
                     ("✏️ Edit Student", "edit_student"),
                     ("📝 Class Management", "class_management"),
+                    ("🔹 Enhanced Class Management", "enhanced_class_management"),
                     ("📚 Library Activity", "library_activity"),
                     ("📤 Import/Export", "student_import_export"),
                     ("📄 Ream Management", "ream_management"),
@@ -359,7 +360,7 @@ class MainWindow(BaseApplicationWindow):
                 action = QAction(text, self)
                 # Handle management actions differently - open separate windows
                 if action_id in ["view_students", "add_student", "edit_student", "class_management",
-                               "library_activity", "student_import_export", "ream_management",
+                               "enhanced_class_management", "library_activity", "student_import_export", "ream_management",
                                "view_teachers", "add_teacher", "edit_teacher", "teacher_import_export",
                                "view_books", "add_book", "borrow_book", "return_book", "enhanced_borrow_book",
                                "enhanced_return_book", "qr_management", "distribution", "book_import_export",
@@ -373,6 +374,8 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._show_edit_student_selection())
                     elif action_id == "class_management":
                         action.triggered.connect(lambda checked: self._open_class_management_window())
+                    elif action_id == "enhanced_class_management":
+                        action.triggered.connect(lambda checked: self._open_enhanced_class_management_window())
                     elif action_id == "library_activity":
                         action.triggered.connect(lambda checked: self._open_library_activity_window())
                     elif action_id == "student_import_export":
@@ -4187,6 +4190,16 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             logger.error(f"Error opening class management window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open class management window: {str(e)}")
+
+    def _open_enhanced_class_management_window(self):
+        """Open the enhanced class management window."""
+        try:
+            from school_system.gui.windows.student_window.enhanced_class_management_window import EnhancedClassManagementWindow
+            window = EnhancedClassManagementWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening enhanced class management window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open enhanced class management window: {str(e)}")
 
     def _open_library_activity_window(self):
         """Open the library activity window."""

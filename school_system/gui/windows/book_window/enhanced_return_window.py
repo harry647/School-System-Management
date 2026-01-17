@@ -7,7 +7,7 @@ Comprehensive window for returning books per stream and subject with table-based
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox,
     QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog,
-    QGroupBox, QCheckBox, QAbstractItemView, QLineEdit
+    QGroupBox, QCheckBox, QAbstractItemView, QLineEdit, QTextEdit
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont

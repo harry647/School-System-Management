@@ -4,7 +4,7 @@ Book Reports Window
 Dedicated window for generating book reports.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QTableWidget, QTableWidgetItem, QFileDialog
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QTableWidget, QTableWidgetItem, QFileDialog, QTextEdit
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 

@@ -341,15 +341,17 @@ class EnhancedClassManagementWindow(BaseFunctionWindow):
         """Refresh the class-stream combinations list."""
         try:
             self.combinations_list.clear()
-            
-            combinations = self.student_service.get_class_stream_combinations()
-            
-            for class_level, stream, count in combinations:
-                display_name = self.class_management_service.format_class_display_name(class_level, stream)
-                item_text = f"{display_name} ({count} students)"
-                item = QListWidgetItem(item_text)
-                item.setData(Qt.ItemDataRole.UserRole, (class_level, stream))
-                self.combinations_list.addItem(item)
+
+            # Get categorized students from class management service
+            categorized = self.class_management_service.categorize_all_students()
+
+            for class_name, streams_dict in categorized.items():
+                for stream_name, students_list in streams_dict.items():
+                    count = len(students_list)
+                    item_text = f"{class_name} - {stream_name} ({count} students)"
+                    item = QListWidgetItem(item_text)
+                    item.setData(Qt.ItemDataRole.UserRole, (class_name, stream_name))
+                    self.combinations_list.addItem(item)
         except Exception as e:
             logger.error(f"Error refreshing combinations: {e}")
 
@@ -359,22 +361,22 @@ class EnhancedClassManagementWindow(BaseFunctionWindow):
             self.students_table.setRowCount(0)
             
             # Get filter values
-            selected_class_item = self.class_level_combo.currentData()
+            selected_class = self.class_level_combo.currentText()
             selected_stream = self.stream_combo.currentText()
-            
-            class_level = selected_class_item if selected_class_item else None
-            stream = selected_stream if selected_stream != "All Streams" else None
-            
+
+            class_name = selected_class if selected_class != "All Classes" else None
+            stream_name = selected_stream if selected_stream != "All Streams" else None
+
             # Get students
-            if class_level is not None and stream is not None:
-                students = self.student_service.get_students_by_class_and_stream(class_level, stream)
-                filter_text = f"{self.class_management_service.format_class_display_name(class_level, stream)}"
-            elif class_level is not None:
-                students = self.student_service.get_students_by_class_level(class_level)
-                filter_text = f"{self.class_management_service.format_class_display_name(class_level)}"
-            elif stream is not None:
-                students = self.student_service.get_students_by_stream(stream)
-                filter_text = f"Stream: {stream}"
+            if class_name is not None and stream_name is not None:
+                students = self.student_service.get_students_by_class_and_stream(class_name, stream_name)
+                filter_text = f"{class_name} - {stream_name}"
+            elif class_name is not None:
+                students = self.student_service.get_students_by_class(class_name)
+                filter_text = f"Class: {class_name}"
+            elif stream_name is not None:
+                students = self.student_service.get_students_by_stream_name(stream_name)
+                filter_text = f"Stream: {stream_name}"
             else:
                 students = self.student_service.get_all_students()
                 filter_text = "All Students"
@@ -409,19 +411,23 @@ class EnhancedClassManagementWindow(BaseFunctionWindow):
     def _refresh_statistics(self):
         """Refresh the statistics display."""
         try:
-            stats = self.student_service.get_class_statistics()
-            
+            # Get basic statistics using the new class/stream system
+            all_students = self.student_service.get_all_students()
+            classes = self.student_service.get_all_classes()
+            streams = self.student_service.get_all_stream_names()
+
+            # Calculate combinations from categorized data
+            categorized = self.class_management_service.categorize_all_students()
+            combinations = sum(len(streams_dict) for streams_dict in categorized.values())
+
             stats_text = (
                 f"📊 Statistics: "
-                f"Total Students: {stats['total_students']} | "
-                f"Class Levels: {stats['total_class_levels']} | "
-                f"Streams: {stats['total_streams']} | "
-                f"Combinations: {stats['total_combinations']}"
+                f"Total Students: {len(all_students)} | "
+                f"Classes: {len(classes)} | "
+                f"Streams: {len(streams)} | "
+                f"Combinations: {combinations}"
             )
-            
-            if stats['invalid_format_count'] > 0:
-                stats_text += f" | ⚠️ Invalid Formats: {stats['invalid_format_count']}"
-            
+
             self.stats_label.setText(stats_text)
         except Exception as e:
             logger.error(f"Error refreshing statistics: {e}")
@@ -441,19 +447,18 @@ class EnhancedClassManagementWindow(BaseFunctionWindow):
         selected_items = self.combinations_list.selectedItems()
         if not selected_items:
             return
-        
-        class_level, stream = selected_items[0].data(Qt.ItemDataRole.UserRole)
-        
+
+        class_name, stream_name = selected_items[0].data(Qt.ItemDataRole.UserRole)
+
         # Set filters to match selection
-        display_name = self.class_management_service.format_class_display_name(class_level)
-        index = self.class_level_combo.findText(display_name)
+        index = self.class_level_combo.findText(class_name)
         if index >= 0:
             self.class_level_combo.setCurrentIndex(index)
-        
-        index = self.stream_combo.findText(stream)
+
+        index = self.stream_combo.findText(stream_name)
         if index >= 0:
             self.stream_combo.setCurrentIndex(index)
-        
+
         # Refresh students
         self._refresh_students()
 
