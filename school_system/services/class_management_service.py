@@ -165,20 +165,27 @@ class ClassManagementService:
     def get_students_by_class_level(self, class_level: int) -> List[Student]:
         """
         Get all students in a specific class level.
-        
+
         Args:
             class_level: The class level (e.g., 4 for Form 4)
-            
+
         Returns:
             A list of students in that class level
         """
         categorized = self.categorize_all_students()
         students = []
-        
-        if class_level in categorized:
-            for stream_students in categorized[class_level].values():
+
+        # Find the class name that corresponds to this level
+        target_class_name = None
+        for class_name in categorized.keys():
+            if self._extract_class_level_from_name(class_name) == class_level:
+                target_class_name = class_name
+                break
+
+        if target_class_name and target_class_name in categorized:
+            for stream_students in categorized[target_class_name].values():
                 students.extend(stream_students)
-        
+
         return students
     
     def get_students_by_stream(self, stream: str, class_level: Optional[int] = None) -> List[Student]:
@@ -209,19 +216,26 @@ class ClassManagementService:
     def get_students_by_class_and_stream(self, class_level: int, stream: str) -> List[Student]:
         """
         Get all students in a specific class level and stream combination.
-        
+
         Args:
             class_level: The class level (e.g., 4)
             stream: The stream name (e.g., "Red")
-            
+
         Returns:
             A list of students matching both criteria
         """
         categorized = self.categorize_all_students()
-        
-        if class_level in categorized and stream in categorized[class_level]:
-            return categorized[class_level][stream]
-        
+
+        # Find the class name that corresponds to this level
+        target_class_name = None
+        for class_name in categorized.keys():
+            if self._extract_class_level_from_name(class_name) == class_level:
+                target_class_name = class_name
+                break
+
+        if target_class_name and target_class_name in categorized and stream in categorized[target_class_name]:
+            return categorized[target_class_name][stream]
+
         return []
     
     def get_class_stream_combinations(self) -> List[Tuple[int, str, int]]:
