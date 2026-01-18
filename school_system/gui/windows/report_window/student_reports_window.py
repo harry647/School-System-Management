@@ -247,7 +247,7 @@ class StudentReportsWindow(BaseFunctionWindow):
         """Create the report results card."""
         theme_manager = self.get_theme_manager()
         theme = theme_manager._themes[self.get_theme()]
-        
+         
         card = QWidget()
         card.setProperty("card", "true")
         card.setStyleSheet(f"""
@@ -258,26 +258,27 @@ class StudentReportsWindow(BaseFunctionWindow):
                 padding: 24px;
             }}
         """)
-        
+         
         layout = QVBoxLayout(card)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(12)
-        
+         
         # Title
         title_label = QLabel("Report Results")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
         layout.addWidget(title_label)
-        
+         
         # Results table
         self.results_table = self.create_table(0, 5)
         self.results_table.setColumnCount(5)
         self.results_table.setHorizontalHeaderLabels(["Student ID", "Name", "Stream", "Books Borrowed", "Card Generated"])
         self.results_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.results_table.setAlternatingRowColors(True)
+        self.results_table.setCornerButtonEnabled(False)
         layout.addWidget(self.results_table)
-
+        
         return card
 
     def _populate_students_table(self, report_data: list):

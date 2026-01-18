@@ -538,6 +538,7 @@ class MainWindow(BaseApplicationWindow):
 
         # Create main content frame
         content_frame = QFrame()
+        content_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         content_frame.setProperty("contentArea", "true")
         content_frame.setStyleSheet(f"""
             QFrame[contentArea="true"] {{
@@ -606,6 +607,7 @@ class MainWindow(BaseApplicationWindow):
         role_color = self._get_role_color()
 
         self.top_bar = QFrame()
+        self.top_bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.top_bar.setFixedHeight(80)
         self.top_bar.setProperty("topBar", "true")
         self.top_bar.setStyleSheet(f"""
@@ -638,7 +640,6 @@ class MainWindow(BaseApplicationWindow):
                 border: 1px solid {theme["border"]};
                 border-radius: 20px;
                 padding: 8px 16px;
-                padding-left: 40px;
                 font-size: 14px;
                 color: {theme["text"]};
             }}
@@ -690,27 +691,23 @@ class MainWindow(BaseApplicationWindow):
 
         top_layout.addWidget(branding_frame)
 
-        # Search bar
+        # Spacer
+        top_layout.addStretch()
+
+        # Search bar (moved to top right)
         search_frame = QFrame()
         search_layout = QHBoxLayout(search_frame)
         search_layout.setContentsMargins(0, 0, 0, 0)
         search_layout.setSpacing(0)
 
-        search_icon = QLabel("🔍")
-        search_icon.setStyleSheet("font-size: 16px; margin-left: 12px;")
-
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search students, books, users...")
+        self.search_input.setPlaceholderText("🔍 Search students, books, users...")
         self.search_input.setMinimumWidth(300)
         self.search_input.textChanged.connect(self._on_search_text_changed)
 
-        search_layout.addWidget(search_icon)
         search_layout.addWidget(self.search_input)
 
         top_layout.addWidget(search_frame)
-
-        # Spacer
-        top_layout.addStretch()
 
         # Quick action buttons
         quick_actions_layout = QHBoxLayout()

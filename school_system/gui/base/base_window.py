@@ -85,8 +85,8 @@ class BaseWindow(QMainWindow):
         logger.info(f"Content layout initialized: {self._content_layout}")
         logger.info(f"Content widget: {self._content_area.content_widget}")
         logger.info(f"Content widget layout: {self._content_area.content_widget.layout()}")
-        self._content_layout.setContentsMargins(10, 10, 10, 10)
-        self._content_layout.setSpacing(10)
+        self._content_layout.setContentsMargins(0, 0, 0, 0)
+        self._content_layout.setSpacing(0)
         self._content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         # Status bar
