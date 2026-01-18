@@ -5896,7 +5896,6 @@ For additional support, contact your system administrator.
                         border-radius: 8px;
                         font-size: 12px;
                         font-weight: 500;
-                        min-width: 80px;
                     }}
                     QPushButton:hover {{
                         background-color: {role_color};

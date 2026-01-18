@@ -107,7 +107,6 @@ class ThemeManager(QObject):
                 padding: 10px 20px;
                 font-size: 14px;
                 font-weight: 500;
-                min-width: 100px;
                 min-height: 36px;
             }}
             QPushButton:hover {{

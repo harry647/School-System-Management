@@ -99,4 +99,9 @@ class ModernButton(QPushButton):
     
     def sizeHint(self):
         """Override size hint for better default sizing."""
-        return QSize(100, 40)
+        # Calculate size based on text content, but ensure minimum height
+        hint = super().sizeHint()
+        if hint.width() < 50:  # Ensure minimum width for very short text
+            hint.setWidth(50)
+        hint.setHeight(max(40, hint.height()))  # Ensure minimum height
+        return hint
