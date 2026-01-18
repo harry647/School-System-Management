@@ -79,12 +79,25 @@ class Book(BaseModel):
 
     def generate_qr_code(self):
         """Generate a unique QR code for this book."""
-        import hashlib
-        import datetime
-        unique_string = f"{self.book_number}_{self.title}_{datetime.datetime.now().isoformat()}"
-        self.qr_code = hashlib.sha256(unique_string.encode()).hexdigest()[:16].upper()
-        self.qr_generated_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        return self.qr_code
+        try:
+            from school_system.services.qr_service import QRService
+            qr_service = QRService()
+
+            # Generate QR code containing book information
+            qr_data = f"BOOK:{self.book_number}|{self.title}|{self.author}"
+            self.qr_code = qr_service.generate_qr_code(qr_data)
+
+            import datetime
+            self.qr_generated_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            return self.qr_code
+        except Exception as e:
+            # Fallback to simple hash if QR generation fails
+            import hashlib
+            import datetime
+            unique_string = f"{self.book_number}_{self.title}_{datetime.datetime.now().isoformat()}"
+            self.qr_code = hashlib.sha256(unique_string.encode()).hexdigest()[:16].upper()
+            self.qr_generated_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            return self.qr_code
 
     def __repr__(self):
         return f"<Book(book_number={self.book_number}, title={self.title}, qr_code={self.qr_code}, available={self.available})>"

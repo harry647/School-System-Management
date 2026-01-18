@@ -10,6 +10,7 @@ from school_system.core.exceptions import DatabaseException
 from school_system.core.utils import ValidationUtils
 from school_system.models.book import QRBook, QRBorrowLog
 from school_system.database.repositories.book_repo import QRBookRepository, QRBorrowLogRepository
+from school_system.utils.qr_generator import QRGenerator
 
 
 class QRService:
@@ -17,6 +18,7 @@ class QRService:
  
     def __init__(self):
         self.qr_book_repository = QRBookRepository()
+        self.qr_generator = QRGenerator()
 
     def generate_qr_code(self, data: str) -> str:
         """
@@ -44,10 +46,21 @@ class QRService:
             data: The data to encode.
 
         Returns:
-            The generated QR code.
+            The generated QR code as a base64 string.
         """
-        # Placeholder for QR generation logic
-        return f"QR_CODE_{data}"
+        try:
+            # Generate QR code as BytesIO
+            qr_bytes = self.qr_generator.generate_qr_code(data)
+
+            # Convert to base64 string for storage
+            import base64
+            qr_base64 = base64.b64encode(qr_bytes.getvalue()).decode('utf-8')
+
+            return f"data:image/png;base64,{qr_base64}"
+        except Exception as e:
+            logger.error(f"Failed to generate QR code for data '{data}': {e}")
+            # Fallback to placeholder
+            return f"QR_CODE_{data}"
 
     def save_qr_book(self, qr_book: str, metadata: dict) -> QRBook:
         """
@@ -261,10 +274,24 @@ class QRService:
             format: The output format.
 
         Returns:
-            The generated QR code.
+            The generated QR code as base64 string.
         """
-        # Placeholder for enhanced QR generation logic
-        return f"QR_CODE_{format}_{size}_{data}"
+        try:
+            # Create custom QR generator with specified size
+            custom_generator = QRGenerator(box_size=size // 20)  # Approximate box_size from total size
+
+            # Generate QR code
+            qr_bytes = custom_generator.generate_qr_code(data)
+
+            # Convert to base64 string for storage
+            import base64
+            qr_base64 = base64.b64encode(qr_bytes.getvalue()).decode('utf-8')
+
+            return f"data:image/{format};base64,{qr_base64}"
+        except Exception as e:
+            logger.error(f"Failed to generate QR code with options for data '{data}': {e}")
+            # Fallback to placeholder
+            return f"QR_CODE_{format}_{size}_{data}"
 
     def validate_qr_code(self, qr_code: str) -> bool:
         """
