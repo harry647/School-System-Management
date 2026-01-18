@@ -7,7 +7,7 @@ Generates book numbers following the pattern: PUBLISHER_SHORT/SUBJECT_SHORT/CLAS
 
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                              QLineEdit, QComboBox, QSpinBox, QGroupBox, QTextEdit,
-                             QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QFileDialog)
+                             QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QFileDialog, QGridLayout)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -535,7 +535,7 @@ class BookIntakeWindow(BaseFunctionWindow):
                         "author": publisher,
                         "category": subject,  # Subject as category
                         "subject": subject,
-                        "class_name": class_level,
+                        "class": class_level,  # Use 'class' instead of 'class_name'
                         "book_type": book_type,
                         "available": True,
                         "book_condition": "new"

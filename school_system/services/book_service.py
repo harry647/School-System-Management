@@ -107,9 +107,10 @@ class BookService:
         ValidationUtils.validate_input(book_data.get('book_number'), "Book number cannot be empty")
         
         book = Book(**book_data)
-        created_book = self.book_repository.create(book)
-        logger.info(f"Book created successfully with book_number: {created_book.book_number}")
-        return created_book
+        # Use the book's save method instead of repository create to ensure proper column mapping
+        book.save()
+        logger.info(f"Book created successfully with book_number: {book.book_number}")
+        return book
 
     def update_book(self, book_id: int, book_data: dict) -> Optional[Book]:
         """

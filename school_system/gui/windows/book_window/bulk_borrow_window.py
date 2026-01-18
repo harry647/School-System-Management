@@ -362,7 +362,7 @@ class BulkBorrowWindow(QDialog):
             elif self.class_level is not None:
                 students = self.class_management_service.get_students_by_class_level(self.class_level)
             elif self.stream is not None:
-                students = self.class_management_service.get_students_by_stream_name(self.stream)
+                students = self.class_management_service.get_students_by_stream(self.stream)
             else:
                 students = self.class_management_service.get_all_students()
 

@@ -386,7 +386,20 @@ class ClassManagementService:
             return self.get_students_by_stream(stream)
         else:
             return self.student_service.get_all_students()
-    
+
+    def get_all_students(self) -> List[Student]:
+        """
+        Get all students from the system.
+
+        Returns:
+            List of all Student objects
+        """
+        try:
+            return self.student_service.get_all_students()
+        except Exception as e:
+            logger.error(f"Error getting all students: {e}")
+            return []
+
     def invalidate_cache(self):
         """Invalidate the class categorization cache."""
         self._cache_valid = False

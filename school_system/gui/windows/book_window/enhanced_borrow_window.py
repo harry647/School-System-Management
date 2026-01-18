@@ -140,13 +140,14 @@ class EnhancedBorrowWindow(QDialog):
 
         self.stream_combo = QComboBox()
         self.stream_combo.addItem("All Streams")
-        # Load available streams for this class
-        if self.class_name:
-            try:
-                from school_system.gui.windows.book_window.utils.constants import STANDARD_STREAMS
-                self.stream_combo.addItems(STANDARD_STREAMS)
-            except:
-                self.stream_combo.addItems(["Red", "Blue", "Green", "Yellow"])
+        # Load available streams dynamically
+        try:
+            available_streams = self.class_management_service.get_all_stream_names()
+            self.stream_combo.addItems(available_streams)
+        except Exception as e:
+            logger.warning(f"Could not load streams dynamically: {e}")
+            # Fallback to default streams
+            self.stream_combo.addItems(["Red", "Blue", "Green", "Yellow", "Orange"])
         self.stream_combo.setFixedHeight(40)
         self.stream_combo.currentTextChanged.connect(self._on_criteria_changed)
         stream_layout.addWidget(self.stream_combo)
@@ -162,11 +163,17 @@ class EnhancedBorrowWindow(QDialog):
 
         self.subject_combo = QComboBox()
         self.subject_combo.addItem("All Subjects")
-        # Load available subjects
+        # Load available subjects dynamically from database
         try:
-            from school_system.gui.windows.book_window.utils.constants import STANDARD_SUBJECTS
-            self.subject_combo.addItems(STANDARD_SUBJECTS)
-        except:
+            available_subjects = self.book_service.get_all_subjects()
+            if available_subjects:
+                self.subject_combo.addItems(available_subjects)
+            else:
+                # Fallback if no subjects found
+                self.subject_combo.addItems(["Mathematics", "Science", "English", "History", "Geography"])
+        except Exception as e:
+            logger.warning(f"Could not load subjects dynamically: {e}")
+            # Fallback to default subjects
             self.subject_combo.addItems(["Mathematics", "Science", "English", "History", "Geography"])
         self.subject_combo.setFixedHeight(40)
         self.subject_combo.currentTextChanged.connect(self._on_criteria_changed)
@@ -199,14 +206,14 @@ class EnhancedBorrowWindow(QDialog):
         self.students_table = QTableWidget()
         self.students_table.setColumnCount(6)
         self.students_table.setHorizontalHeaderLabels([
-            "Student Name", "Admission Number", "Book Number", "Borrow", "Status"
+            "Student Name", "Admission Number", "Subject", "Book Number", "Borrow", "Status"
         ])
-        
+
         # Set header properties
         header = self.students_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
@@ -313,11 +320,15 @@ class EnhancedBorrowWindow(QDialog):
             if self.selected_stream != "All Streams":
                 base_students = [s for s in base_students if s.stream_name == self.selected_stream]
 
-            # Apply subject filter (for now, just store the filter - will be used during borrowing)
-            # The subject filter affects which books can be borrowed, not which students are shown
+            # Store base students
             self.students = base_students
 
-            self.populate_table()
+            # If a specific subject is selected, populate table with students for that subject
+            if self.selected_subject != "All Subjects":
+                self.populate_table_for_subject(self.selected_subject)
+            else:
+                self.populate_table()
+
         except Exception as e:
             logger.error(f"Error loading students: {e}")
             show_error_message("Error", f"Failed to load students: {str(e)}", self)
@@ -329,13 +340,13 @@ class EnhancedBorrowWindow(QDialog):
         self.load_students()
 
     def populate_table(self):
-        """Populate the table with students."""
+        """Populate the table with students (when no specific subject selected)."""
         self.students_table.setRowCount(0)
-        
+
         for student in self.students:
             row = self.students_table.rowCount()
             self.students_table.insertRow(row)
-            
+
             # Student Name
             name_item = QTableWidgetItem(student.name)
             name_item.setData(Qt.ItemDataRole.UserRole, student.student_id)
@@ -345,21 +356,17 @@ class EnhancedBorrowWindow(QDialog):
             admission_number = getattr(student, 'admission_number', None) or str(student.student_id)
             admission_item = QTableWidgetItem(admission_number)
             self.students_table.setItem(row, 1, admission_item)
-            
+
+            # Subject (display only when specific subject selected)
+            subject_item = QTableWidgetItem("")
+            self.students_table.setItem(row, 2, subject_item)
+
             # Book Number Input
             book_input = QLineEdit()
             book_input.setPlaceholderText("Enter book number")
             book_input.setFixedHeight(32)
-            self.students_table.setCellWidget(row, 2, book_input)
-            
-            # Subject Input
-            subject_input = QLineEdit()
-            subject_input.setPlaceholderText("Enter subject")
-            if self.subject:
-                subject_input.setText(self.subject)
-            subject_input.setFixedHeight(32)
-            self.students_table.setCellWidget(row, 3, subject_input)
-            
+            self.students_table.setCellWidget(row, 3, book_input)
+
             # Save Button
             save_btn = QPushButton("Save")
             save_btn.setFixedHeight(32)
@@ -372,6 +379,46 @@ class EnhancedBorrowWindow(QDialog):
             status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.students_table.setItem(row, 5, status_item)
 
+    def populate_table_for_subject(self, subject: str):
+        """Populate the table with students for a specific subject."""
+        self.students_table.setRowCount(0)
+
+        for student in self.students:
+            row = self.students_table.rowCount()
+            self.students_table.insertRow(row)
+
+            # Student Name
+            name_item = QTableWidgetItem(student.name)
+            name_item.setData(Qt.ItemDataRole.UserRole, student.student_id)
+            self.students_table.setItem(row, 0, name_item)
+
+            # Admission Number
+            admission_number = getattr(student, 'admission_number', None) or str(student.student_id)
+            admission_item = QTableWidgetItem(admission_number)
+            self.students_table.setItem(row, 1, admission_item)
+
+            # Subject (automatically filled)
+            subject_item = QTableWidgetItem(subject)
+            self.students_table.setItem(row, 2, subject_item)
+
+            # Book Number Input (only field user needs to fill)
+            book_input = QLineEdit()
+            book_input.setPlaceholderText("Enter book number")
+            book_input.setFixedHeight(32)
+            self.students_table.setCellWidget(row, 3, book_input)
+
+            # Save Button
+            save_btn = QPushButton("Save")
+            save_btn.setFixedHeight(32)
+            save_btn.setFixedWidth(80)
+            save_btn.clicked.connect(lambda checked, r=row: self._save_individual_borrow(r))
+            self.students_table.setCellWidget(row, 4, save_btn)
+
+            # Status
+            status_item = QTableWidgetItem("Ready")
+            status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.students_table.setItem(row, 5, status_item)
+
     def _save_individual_borrow(self, row: int):
         """Save individual borrow for a specific student."""
         try:
@@ -380,11 +427,10 @@ class EnhancedBorrowWindow(QDialog):
                 return
             
             student_id = student_item.data(Qt.ItemDataRole.UserRole)
-            book_input = self.students_table.cellWidget(row, 2)
-            subject_input = self.students_table.cellWidget(row, 3)
+            book_input = self.students_table.cellWidget(row, 3)  # Book input is now at column 3
+            subject = self.students_table.item(row, 2).text() if self.students_table.item(row, 2) else ""
             
             book_id_str = book_input.text().strip() if book_input else ""
-            subject = subject_input.text().strip() if subject_input else self.subject or ""
             
             if not book_id_str:
                 show_error_message("Validation Error", "Please enter a book number.", self)

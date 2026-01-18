@@ -367,9 +367,10 @@ class MainWindow(BaseApplicationWindow):
                                "enhanced_class_management", "library_activity", "student_promotion", "student_import_export", "ream_management",
                                "view_teachers", "add_teacher", "edit_teacher", "teacher_import_export",
                                "view_books", "add_book", "borrow_book", "return_book", "enhanced_borrow_book",
-                               "enhanced_return_book", "qr_management", "distribution", "book_import_export",
+                               "enhanced_return_book", "qr_management", "distribution", "book_intake", "book_import_export",
                                "manage_furniture", "furniture_assignments", "furniture_maintenance", "enhanced_furniture_management",
-                               "manage_users", "view_users", "add_user", "edit_user", "delete_user"]:
+                               "manage_users", "view_users", "add_user", "edit_user", "delete_user",
+                               "user_settings", "short_form_mappings", "user_sessions", "user_activity"]:
                     if action_id == "view_students":
                         action.triggered.connect(lambda checked: self._open_view_students_window())
                     elif action_id == "add_student":
@@ -434,6 +435,14 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._open_edit_user_window())
                     elif action_id == "delete_user":
                         action.triggered.connect(lambda checked: self._open_delete_user_window())
+                    elif action_id == "user_settings":
+                        action.triggered.connect(lambda checked: self._open_user_settings_window())
+                    elif action_id == "short_form_mappings":
+                        action.triggered.connect(lambda checked: self._open_short_form_mappings_window())
+                    elif action_id == "user_sessions":
+                        action.triggered.connect(lambda checked: self._open_user_sessions_window())
+                    elif action_id == "user_activity":
+                        action.triggered.connect(lambda checked: self._open_user_activity_window())
                 else:
                     action.triggered.connect(lambda checked, aid=action_id: self._load_content(aid))
                 menu.addAction(action)

@@ -142,13 +142,14 @@ class EnhancedReturnWindow(QDialog):
 
         self.stream_combo = QComboBox()
         self.stream_combo.addItem("All Streams")
-        # Load available streams for this class
-        if self.class_name:
-            try:
-                from school_system.gui.windows.book_window.utils.constants import STANDARD_STREAMS
-                self.stream_combo.addItems(STANDARD_STREAMS)
-            except:
-                self.stream_combo.addItems(["Red", "Blue", "Green", "Yellow"])
+        # Load available streams dynamically
+        try:
+            available_streams = self.class_management_service.get_all_stream_names()
+            self.stream_combo.addItems(available_streams)
+        except Exception as e:
+            logger.warning(f"Could not load streams dynamically: {e}")
+            # Fallback to default streams
+            self.stream_combo.addItems(["Red", "Blue", "Green", "Yellow", "Orange"])
         self.stream_combo.setFixedHeight(40)
         self.stream_combo.currentTextChanged.connect(self._on_criteria_changed)
         stream_layout.addWidget(self.stream_combo)
@@ -164,11 +165,17 @@ class EnhancedReturnWindow(QDialog):
 
         self.subject_combo = QComboBox()
         self.subject_combo.addItem("All Subjects")
-        # Load available subjects
+        # Load available subjects dynamically from database
         try:
-            from school_system.gui.windows.book_window.utils.constants import STANDARD_SUBJECTS
-            self.subject_combo.addItems(STANDARD_SUBJECTS)
-        except:
+            available_subjects = self.book_service.get_all_subjects()
+            if available_subjects:
+                self.subject_combo.addItems(available_subjects)
+            else:
+                # Fallback if no subjects found
+                self.subject_combo.addItems(["Mathematics", "Science", "English", "History", "Geography"])
+        except Exception as e:
+            logger.warning(f"Could not load subjects dynamically: {e}")
+            # Fallback to default subjects
             self.subject_combo.addItems(["Mathematics", "Science", "English", "History", "Geography"])
         self.subject_combo.setFixedHeight(40)
         self.subject_combo.currentTextChanged.connect(self._on_criteria_changed)
