@@ -19,6 +19,7 @@ from school_system.gui.windows.user_window.edit_user_window import EditUserWindo
 from school_system.gui.windows.user_window.delete_user_window import DeleteUserWindow
 from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
 from school_system.gui.windows.user_window.user_settings_window import UserSettingsWindow
+from school_system.gui.windows.user_window.global_settings_window import GlobalSettingsWindow
 from school_system.gui.windows.user_window.short_form_mappings_window import ShortFormMappingsWindow
 from school_system.gui.windows.user_window.user_sessions_window import UserSessionsWindow
 from school_system.gui.windows.user_window.user_activity_window import UserActivityWindow
@@ -316,9 +317,14 @@ class UserWindow(BaseWindow):
         ), 1, 0)
 
         grid_layout.addWidget(self._create_function_card(
+            "🌐 Global Settings", "Configure system-wide application settings",
+            self._open_global_settings_window, theme
+        ), 1, 1)
+
+        grid_layout.addWidget(self._create_function_card(
             "🔤 Short Forms", "Manage short form mappings",
             self._open_short_form_mappings_window, theme
-        ), 1, 1)
+        ), 1, 2)
 
         grid_layout.addWidget(self._create_function_card(
             "🔐 Sessions", "Manage user login sessions",
@@ -326,9 +332,15 @@ class UserWindow(BaseWindow):
         ), 1, 2)
 
         grid_layout.addWidget(self._create_function_card(
+            "🔐 Sessions", "Manage user login sessions",
+            self._open_user_sessions_window, theme
+        ), 1, 3)
+
+        # Row 3: Additional functions
+        grid_layout.addWidget(self._create_function_card(
             "📊 Activity Logs", "Track user actions and activities",
             self._open_user_activity_window, theme
-        ), 1, 3)
+        ), 2, 0)
 
         return container
 
@@ -426,6 +438,15 @@ class UserWindow(BaseWindow):
         except Exception as e:
             logger.error(f"Error opening user settings window: {str(e)}")
             show_error_message("Error", f"Failed to open user settings: {str(e)}", self)
+
+    def _open_global_settings_window(self):
+        """Open the global settings window."""
+        try:
+            window = GlobalSettingsWindow(self, self.current_user, self.current_role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening global settings window: {str(e)}")
+            show_error_message("Error", f"Failed to open global settings: {str(e)}", self)
 
     def _open_short_form_mappings_window(self):
         """Open the short form mappings window."""

@@ -4,7 +4,7 @@ View Books Window
 Dedicated window for viewing and managing books list.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QComboBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QComboBox, QFileDialog
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
@@ -12,6 +12,7 @@ from school_system.gui.windows.base_function_window import BaseFunctionWindow
 from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
 from school_system.config.logging import logger
 from school_system.services.book_service import BookService
+from school_system.services.import_export_service import ImportExportService
 from school_system.gui.windows.book_window.utils import (
     BOOK_CONDITIONS, STANDARD_SUBJECTS, STANDARD_CLASSES, STANDARD_STREAMS
 )
@@ -27,7 +28,9 @@ class ViewBooksWindow(BaseFunctionWindow):
         super().__init__("View Books", parent, current_user, current_role)
         
         self.book_service = BookService()
+        self.import_export_service = ImportExportService()
         self.books_table = None
+        self.current_books_data = []  # Store current filtered books data
         
         # Setup content
         self.setup_content()
@@ -95,7 +98,18 @@ class ViewBooksWindow(BaseFunctionWindow):
         self.class_filter.setMinimumWidth(120)
         self.class_filter.currentTextChanged.connect(self._on_filter_changed)
         action_layout.addWidget(self.class_filter)
-        
+
+        # Sort controls
+        sort_label = QLabel("Sort by Book Number:")
+        sort_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500; margin-left: 16px;")
+        action_layout.addWidget(sort_label)
+
+        self.sort_combo = QComboBox()
+        self.sort_combo.addItems(["None", "Ascending", "Descending"])
+        self.sort_combo.setMinimumWidth(120)
+        self.sort_combo.currentTextChanged.connect(self._on_sort_changed)
+        action_layout.addWidget(self.sort_combo)
+
         action_layout.addStretch()
         
         # Action buttons
@@ -111,10 +125,25 @@ class ViewBooksWindow(BaseFunctionWindow):
         delete_btn.clicked.connect(self._on_delete_book)
         action_layout.addWidget(delete_btn)
         
+        # Export section
+        export_label = QLabel("Export:")
+        export_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500; margin-left: 16px;")
+        action_layout.addWidget(export_label)
+
+        excel_btn = self.create_button("📊 Excel", "secondary")
+        excel_btn.clicked.connect(self._on_export_excel)
+        excel_btn.setToolTip("Export books list to Excel")
+        action_layout.addWidget(excel_btn)
+
+        pdf_btn = self.create_button("📄 PDF", "secondary")
+        pdf_btn.clicked.connect(self._on_export_pdf)
+        pdf_btn.setToolTip("Export books list to PDF")
+        action_layout.addWidget(pdf_btn)
+
         refresh_btn = self.create_button("🔄 Refresh", "outline")
         refresh_btn.clicked.connect(self._refresh_books_table)
         action_layout.addWidget(refresh_btn)
-        
+
         return action_card
     
     def _create_books_table(self) -> QWidget:
@@ -148,7 +177,7 @@ class ViewBooksWindow(BaseFunctionWindow):
         self.books_table = self.create_table(0, 9)
         self.books_table.setColumnCount(9)
         self.books_table.setHorizontalHeaderLabels([
-            "Book ID", "Title", "Author", "ISBN", "Category", "Class", "Type", "Condition", "Status"
+            "Book Number", "Title", "Author", "ISBN", "Subject", "Class", "Type", "Condition", "Status"
         ])
         self.books_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.books_table.setAlternatingRowColors(True)
@@ -168,12 +197,22 @@ class ViewBooksWindow(BaseFunctionWindow):
             
             # Get books
             books = self.book_service.get_all_books()
-            
+
             # Apply filters
             if subject:
                 books = [b for b in books if b.subject == subject]
             if class_name:
                 books = [b for b in books if b.class_name == class_name]
+
+            # Store current filtered data
+            self.current_books_data = books
+
+            # Apply sorting
+            sort_order = self.sort_combo.currentText()
+            if sort_order == "Ascending":
+                books = sorted(books, key=lambda x: x.book_number or "")
+            elif sort_order == "Descending":
+                books = sorted(books, key=lambda x: x.book_number or "", reverse=True)
             
             # Clear table
             self.books_table.setRowCount(0)
@@ -212,7 +251,7 @@ class ViewBooksWindow(BaseFunctionWindow):
         # Filter table based on search text
         for row in range(self.books_table.rowCount()):
             match = False
-            for col in range(8):  # Check first 8 columns (excluding status)
+            for col in range(9):  # Check all columns
                 item = self.books_table.item(row, col)
                 if item and text.lower() in item.text().lower():
                     match = True
@@ -221,6 +260,10 @@ class ViewBooksWindow(BaseFunctionWindow):
     
     def _on_filter_changed(self, text: str):
         """Handle filter change."""
+        self._refresh_books_table()
+
+    def _on_sort_changed(self, sort_order: str):
+        """Handle sort order change."""
         self._refresh_books_table()
     
     def _on_add_book(self):
@@ -267,3 +310,105 @@ class ViewBooksWindow(BaseFunctionWindow):
                 self._refresh_books_table()
             except Exception as e:
                 show_error_message("Error", f"Failed to delete book: {str(e)}", self)
+
+    def _on_export_excel(self):
+        """Handle Excel export button click."""
+        try:
+            if not self.current_books_data:
+                show_error_message("No Data", "No books data to export. Please refresh the table first.", self)
+                return
+
+            # Convert books data to export format
+            export_data = self._prepare_books_export_data()
+
+            # Get file path from user
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Export Books List - Excel",
+                f"books_list_{self.subject_filter.currentText().replace(' ', '_')}_{self.class_filter.currentText().replace(' ', '_')}.xlsx",
+                "Excel Files (*.xlsx);;All Files (*)"
+            )
+
+            if not file_path:
+                return
+
+            # Export to Excel
+            success = self.import_export_service.export_to_excel(export_data, file_path)
+
+            if success:
+                show_success_message("Export Successful", f"Books list exported to Excel:\n{file_path}", self)
+            else:
+                show_error_message("Export Failed", "Failed to export books list to Excel.", self)
+
+        except Exception as e:
+            logger.error(f"Error exporting to Excel: {str(e)}")
+            show_error_message("Export Error", f"An error occurred: {str(e)}", self)
+
+    def _on_export_pdf(self):
+        """Handle PDF export button click."""
+        try:
+            if not self.current_books_data:
+                show_error_message("No Data", "No books data to export. Please refresh the table first.", self)
+                return
+
+            # Convert books data to export format
+            export_data = self._prepare_books_export_data()
+
+            # Get file path from user
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Export Books List - PDF",
+                f"books_list_{self.subject_filter.currentText().replace(' ', '_')}_{self.class_filter.currentText().replace(' ', '_')}.pdf",
+                "PDF Files (*.pdf);;All Files (*)"
+            )
+
+            if not file_path:
+                return
+
+            # Export to PDF
+            success = self.import_export_service.export_to_pdf(export_data, file_path)
+
+            if success:
+                show_success_message("Export Successful", f"Books list exported to PDF:\n{file_path}", self)
+            else:
+                show_error_message("Export Failed", "Failed to export books list to PDF.", self)
+
+        except Exception as e:
+            logger.error(f"Error exporting to PDF: {str(e)}")
+            show_error_message("Export Error", f"An error occurred: {str(e)}", self)
+
+    def _prepare_books_export_data(self) -> list:
+        """Prepare books data for export."""
+        export_data = []
+
+        try:
+            for book in self.current_books_data:
+                # Get status
+                status = "Available"
+                try:
+                    borrowed = self.book_service.get_borrowed_books()
+                    if any(b.book_number == book.book_number for b in borrowed):
+                        status = "Borrowed"
+                except:
+                    pass
+
+                book_info = {
+                    "Book_Number": book.book_number,
+                    "Title": book.title,
+                    "Author": book.author or "",
+                    "ISBN": book.isbn or "",
+                    "Subject": book.subject or book.category or "",
+                    "Class_Level": book.class_name or "",
+                    "Book_Type": book.book_type.title() if hasattr(book, 'book_type') and book.book_type else "course",
+                    "Book_Condition": book.book_condition or "Good",
+                    "Status": status,
+                    "Publisher": getattr(book, 'publisher', ''),
+                    "Publication_Year": getattr(book, 'publication_date', ''),
+                    "Date_Added": getattr(book, 'created_at', ''),
+                }
+                export_data.append(book_info)
+
+        except Exception as e:
+            logger.error(f"Error preparing books export data: {str(e)}")
+
+        return export_data

@@ -24,6 +24,7 @@ from .view_books_window import ViewBooksWindow as BookWindow
 from .enhanced_borrow_window import EnhancedBorrowWindow
 from .enhanced_return_window import EnhancedReturnWindow
 from .qr_management_window import QRManagementWindow
+from .book_intake_window import BookIntakeWindow
 
 # UI Components
 from .components import (
@@ -79,6 +80,7 @@ __all__ = [
     'EnhancedBorrowWindow',
     'EnhancedReturnWindow',
     'QRManagementWindow',
+    'BookIntakeWindow',
 
     # UI Components
     'FlexLayout',

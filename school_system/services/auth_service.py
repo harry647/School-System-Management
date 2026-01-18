@@ -14,6 +14,8 @@ from school_system.models.user import User, UserSetting, ShortFormMapping
 from school_system.database.repositories.user_repo import UserRepository
 from school_system.database.repositories.user_repo import UserSettingRepository
 from school_system.database.repositories.user_repo import ShortFormMappingRepository
+from school_system.database.repositories.user_repo import GlobalSettingRepository
+from school_system.services.settings_service import SettingsService
 from school_system.models.session import UserSession
 from school_system.database.repositories.session_repo import UserSessionRepository
 from school_system.models.audit_log import AuditLog
@@ -30,9 +32,11 @@ class AuthService:
         self.user_repository = UserRepository()
         self.user_setting_repository = UserSettingRepository()
         self.short_form_mapping_repository = ShortFormMappingRepository()
+        self.global_setting_repository = GlobalSettingRepository()
         self.user_session_repository = UserSessionRepository()
         self.audit_log_repository = AuditLogRepository()
         self.user_activity_repository = UserActivityRepository()
+        self.settings_service = SettingsService()
     
     def authenticate_user(self, username: str, password: str) -> User:
         """
@@ -186,51 +190,95 @@ class AuthService:
         """
         logger.info(f"Retrieving user setting for user ID: {user_id}")
         return self.user_setting_repository.get_by_id(user_id)
+
+    def get_user_settings_dict(self, user_id: int, category: str = None) -> dict:
+        """
+        Get user settings as a dictionary (new method using SettingsService).
+
+        Args:
+            user_id: The ID of the user.
+            category: Optional category filter.
+
+        Returns:
+            Dictionary containing user settings.
+        """
+        return self.settings_service.get_user_settings(user_id, category)
     
     def create_user_setting(self, user_id: int, reminder_frequency: str = "daily", sound_enabled: bool = True) -> UserSetting:
         """
-        Create a new user setting.
-        
+        Create a new user setting (legacy method for backward compatibility).
+
         Args:
             user_id: The ID of the user.
             reminder_frequency: The frequency of reminders.
             sound_enabled: Whether sound is enabled.
-            
+
         Returns:
             The created UserSetting object.
         """
-        logger.info(f"Creating user setting for user ID: {user_id}")
+        logger.info(f"Creating user setting for user ID: {user_id} (legacy method)")
         ValidationUtils.validate_input(user_id, "User ID cannot be empty")
-        
+
+        # Use the new settings service
+        settings_data = {
+            "reminder_frequency": reminder_frequency,
+            "sound_enabled": sound_enabled
+        }
+
+        success = self.settings_service.update_user_settings(user_id, settings_data, "notifications")
+        if success:
+            user_setting = self.user_setting_repository.get_by_id(user_id)
+            if user_setting:
+                logger.info(f"User setting created successfully for user ID: {user_id}")
+                return user_setting
+
+        # Fallback to old method if new service fails
         user_setting = UserSetting(user_id=user_id, reminder_frequency=reminder_frequency, sound_enabled=sound_enabled)
         created_setting = self.user_setting_repository.create(user_setting)
-        logger.info(f"User setting created successfully for user ID: {user_id}")
+        logger.info(f"User setting created successfully for user ID: {user_id} (fallback)")
         return created_setting
     
     def update_user_setting(self, user_id: int, reminder_frequency: str = None, sound_enabled: bool = None) -> Optional[UserSetting]:
         """
-        Update an existing user setting.
-        
+        Update an existing user setting (legacy method for backward compatibility).
+
         Args:
             user_id: The ID of the user.
             reminder_frequency: The frequency of reminders.
             sound_enabled: Whether sound is enabled.
-            
+
         Returns:
             The updated UserSetting object if successful, otherwise None.
         """
-        logger.info(f"Updating user setting for user ID: {user_id}")
+        logger.info(f"Updating user setting for user ID: {user_id} (legacy method)")
+
+        # Use the new settings service
+        settings_data = {}
+        if reminder_frequency:
+            settings_data["reminder_frequency"] = reminder_frequency
+        if sound_enabled is not None:
+            settings_data["sound_enabled"] = sound_enabled
+
+        if settings_data:
+            success = self.settings_service.update_user_settings(user_id, settings_data, "notifications")
+            if success:
+                user_setting = self.user_setting_repository.get_by_id(user_id)
+                if user_setting:
+                    logger.info(f"User setting updated successfully for user ID: {user_id}")
+                    return user_setting
+
+        # Fallback to old method if new service fails
         user_setting = self.user_setting_repository.get_by_id(user_id)
         if not user_setting:
             return None
-        
+
         if reminder_frequency:
             user_setting.reminder_frequency = reminder_frequency
         if sound_enabled is not None:
             user_setting.sound_enabled = sound_enabled
-        
+
         updated_setting = self.user_setting_repository.update(user_setting)
-        logger.info(f"User setting updated successfully for user ID: {user_id}")
+        logger.info(f"User setting updated successfully for user ID: {user_id} (fallback)")
         return updated_setting
     
     def get_short_form_mapping(self, short_form: str) -> Optional[ShortFormMapping]:

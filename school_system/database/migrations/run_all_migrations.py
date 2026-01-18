@@ -16,6 +16,7 @@ def run_all_migrations():
         ('ensure_all_student_columns_migration', 'migrate_students_table'),
         ('add_qr_codes_migration', 'migrate_qr_codes'),
         ('add_class_stream_to_students_migration', 'migrate_students_table'),
+        ('add_global_settings_migration', 'migrate_global_settings'),
     ]
     
     results = []

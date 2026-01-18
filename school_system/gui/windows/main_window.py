@@ -42,6 +42,7 @@ from school_system.gui.windows.book_window import (
 )
 from school_system.gui.windows.book_window.book_import_export_window import BookImportExportWindow
 from school_system.gui.windows.book_window.distribution_window import DistributionWindow
+from school_system.gui.windows.book_window.book_intake_window import BookIntakeWindow
 from school_system.gui.windows.furniture_window.manage_furniture_window import ManageFurnitureWindow
 from school_system.gui.windows.furniture_window.furniture_assignments_window import FurnitureAssignmentsWindow
 from school_system.gui.windows.furniture_window.furniture_maintenance_window import FurnitureMaintenanceWindow
@@ -264,6 +265,7 @@ class MainWindow(BaseApplicationWindow):
                 "title": "Library Management",
                 "menu_items": [
                     ("👁️ View Books", "view_books"),
+                    ("📚 Book Intake Registration", "book_intake"),
                     ("➕ Add Book", "add_book"),
                     ("📖 Borrow Book", "borrow_book"),
                     ("↩️ Return Book", "return_book"),
@@ -410,6 +412,8 @@ class MainWindow(BaseApplicationWindow):
                         action.triggered.connect(lambda checked: self._open_qr_management_window())
                     elif action_id == "distribution":
                         action.triggered.connect(lambda checked: self._open_distribution_window())
+                    elif action_id == "book_intake":
+                        action.triggered.connect(lambda checked: self._open_book_intake_window())
                     elif action_id == "book_import_export":
                         action.triggered.connect(lambda checked: self._open_book_import_export_window())
                     elif action_id == "manage_furniture":
@@ -4450,6 +4454,15 @@ class MainWindow(BaseApplicationWindow):
         except Exception as e:
             logger.error(f"Error opening book import/export window: {str(e)}")
             QMessageBox.critical(self, "Error", f"Failed to open book import/export window: {str(e)}")
+
+    def _open_book_intake_window(self):
+        """Open the book intake window."""
+        try:
+            window = BookIntakeWindow(self, self.username, self.role)
+            window.show()
+        except Exception as e:
+            logger.error(f"Error opening book intake window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to open book intake window: {str(e)}")
 
     def _open_manage_furniture_window(self):
         """Open the manage furniture window."""

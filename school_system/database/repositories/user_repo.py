@@ -3,7 +3,7 @@ Repository for user operations.
 """
 
 from .base import BaseRepository
-from ...models.user import User, UserSetting, ShortFormMapping
+from ...models.user import User, UserSetting, ShortFormMapping, GlobalSetting
 
 
 class UserRepository(BaseRepository):
@@ -39,3 +39,14 @@ class ShortFormMappingRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(ShortFormMapping)
+
+
+class GlobalSettingRepository(BaseRepository):
+    """Repository for global setting operations."""
+
+    def __init__(self):
+        super().__init__(GlobalSetting)
+
+    def get_by_key(self, key: str):
+        """Get global setting by key."""
+        return self.get_by_fields(key=key)

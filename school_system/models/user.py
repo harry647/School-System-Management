@@ -35,24 +35,29 @@ class User(BaseModel):
 class UserSetting(BaseModel):
     __tablename__ = 'settings'
     __pk__ = "user_id"
-    def __init__(self, user_id, reminder_frequency="daily", sound_enabled=1):
+
+    def __init__(self, user_id, settings_json=None, reminder_frequency="daily", sound_enabled=1, created_at=None, updated_at=None):
         super().__init__()
         self.user_id = user_id
+        self.settings_json = settings_json
+        # Backward compatibility fields
         self.reminder_frequency = reminder_frequency
         self.sound_enabled = sound_enabled
-    
+        self.created_at = created_at or datetime.datetime.now()
+        self.updated_at = updated_at or created_at or datetime.datetime.now()
+
     def save(self):
         """Save the user setting to the database."""
         db = get_db_session()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO settings (user_id, reminder_frequency, sound_enabled) VALUES (?, ?, ?)",
-            (self.user_id, self.reminder_frequency, self.sound_enabled)
+            "INSERT INTO settings (user_id, settings_json, reminder_frequency, sound_enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (self.user_id, self.settings_json, self.reminder_frequency, self.sound_enabled, self.created_at, self.updated_at)
         )
         db.commit()
-    
+
     def __repr__(self):
-        return f"<UserSetting(user_id={self.user_id}, reminder_frequency={self.reminder_frequency})>"
+        return f"<UserSetting(user_id={self.user_id}, has_settings_json={self.settings_json is not None})>"
 
 class ShortFormMapping(BaseModel):
     __tablename__ = 'short_form_mappings'
@@ -75,3 +80,28 @@ class ShortFormMapping(BaseModel):
     
     def __repr__(self):
         return f"<ShortFormMapping(short_form={self.short_form}, full_name={self.full_name})>"
+
+
+class GlobalSetting(BaseModel):
+    __tablename__ = 'global_settings'
+    __pk__ = "key"
+
+    def __init__(self, key, value_json, created_at=None, updated_at=None):
+        super().__init__()
+        self.key = key
+        self.value_json = value_json
+        self.created_at = created_at or datetime.datetime.now()
+        self.updated_at = updated_at or created_at or datetime.datetime.now()
+
+    def save(self):
+        """Save the global setting to the database."""
+        db = get_db_session()
+        cursor = db.cursor()
+        cursor.execute(
+            "INSERT INTO global_settings (key, value_json, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            (self.key, self.value_json, self.created_at, self.updated_at)
+        )
+        db.commit()
+
+    def __repr__(self):
+        return f"<GlobalSetting(key={self.key}, value_json_length={len(self.value_json) if self.value_json else 0})>"
