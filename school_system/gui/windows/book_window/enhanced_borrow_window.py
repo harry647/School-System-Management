@@ -75,7 +75,11 @@ class EnhancedBorrowWindow(QDialog):
 
         self.students = []
         self.borrow_preview_data = {}  # Store preview data: {student_id: {book_id, subject}}
-        
+
+        # Initialize filter criteria
+        self.selected_stream = "All Streams"
+        self.selected_subject = "All Subjects"
+
         self.setup_ui()
         self.load_students()
 
@@ -113,20 +117,63 @@ class EnhancedBorrowWindow(QDialog):
             }}
         """)
         info_layout = QVBoxLayout(info_group)
-        
-        criteria_text = []
-        if self.class_level is not None:
-            display_name = self.class_management_service.format_class_display_name(self.class_level, self.stream)
-            criteria_text.append(f"Class-Stream: {display_name}")
-        if self.subject:
-            criteria_text.append(f"Subject: {self.subject}")
-        
-        if not criteria_text:
-            criteria_text.append("All Students")
-        
-        criteria_label = QLabel("\n".join(criteria_text))
-        criteria_label.setStyleSheet(f"color: {theme['text_secondary']}; padding: 8px;")
-        info_layout.addWidget(criteria_label)
+
+        # Class display (read-only)
+        if self.class_name:
+            class_layout = QHBoxLayout()
+            class_label = QLabel("Class:")
+            class_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+            class_layout.addWidget(class_label)
+
+            self.class_display = QLabel(self.class_name)
+            self.class_display.setStyleSheet(f"color: {theme['text_secondary']}; padding: 4px; background-color: {theme['surface']}; border-radius: 4px;")
+            class_layout.addWidget(self.class_display)
+
+            class_layout.addStretch()
+            info_layout.addLayout(class_layout)
+
+        # Stream selection
+        stream_layout = QHBoxLayout()
+        stream_label = QLabel("Stream:")
+        stream_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        stream_layout.addWidget(stream_label)
+
+        self.stream_combo = QComboBox()
+        self.stream_combo.addItem("All Streams")
+        # Load available streams for this class
+        if self.class_name:
+            try:
+                from school_system.gui.windows.book_window.utils.constants import STANDARD_STREAMS
+                self.stream_combo.addItems(STANDARD_STREAMS)
+            except:
+                self.stream_combo.addItems(["Red", "Blue", "Green", "Yellow"])
+        self.stream_combo.setFixedHeight(40)
+        self.stream_combo.currentTextChanged.connect(self._on_criteria_changed)
+        stream_layout.addWidget(self.stream_combo)
+
+        stream_layout.addStretch()
+        info_layout.addLayout(stream_layout)
+
+        # Subject selection
+        subject_layout = QHBoxLayout()
+        subject_label = QLabel("Subject:")
+        subject_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
+        subject_layout.addWidget(subject_label)
+
+        self.subject_combo = QComboBox()
+        self.subject_combo.addItem("All Subjects")
+        # Load available subjects
+        try:
+            from school_system.gui.windows.book_window.utils.constants import STANDARD_SUBJECTS
+            self.subject_combo.addItems(STANDARD_SUBJECTS)
+        except:
+            self.subject_combo.addItems(["Mathematics", "Science", "English", "History", "Geography"])
+        self.subject_combo.setFixedHeight(40)
+        self.subject_combo.currentTextChanged.connect(self._on_criteria_changed)
+        subject_layout.addWidget(self.subject_combo)
+
+        subject_layout.addStretch()
+        info_layout.addLayout(subject_layout)
         
         layout.addWidget(info_group)
         
@@ -152,7 +199,7 @@ class EnhancedBorrowWindow(QDialog):
         self.students_table = QTableWidget()
         self.students_table.setColumnCount(6)
         self.students_table.setHorizontalHeaderLabels([
-            "Student Name", "Admission Number", "Book Number", "Subject", "Save", "Status"
+            "Student Name", "Admission Number", "Book Number", "Borrow", "Status"
         ])
         
         # Set header properties
@@ -253,23 +300,33 @@ class EnhancedBorrowWindow(QDialog):
         layout.addLayout(button_layout)
 
     def load_students(self):
-        """Load students based on class and stream."""
+        """Load students based on class and current filter criteria."""
         try:
-            if self.class_name is not None and self.stream_name is not None:
-                self.students = self.class_management_service.get_students_by_class_and_stream(
-                    self.class_name, self.stream_name
-                )
-            elif self.class_name is not None:
-                self.students = self.class_management_service.get_students_by_class(self.class_name)
-            elif self.stream_name is not None:
-                self.students = self.student_service.get_students_by_stream_name(self.stream_name)
+            # Start with students from the specified class
+            base_students = []
+            if self.class_name is not None:
+                base_students = self.class_management_service.get_students_by_class(self.class_name)
             else:
-                self.students = self.student_service.get_all_students()
+                base_students = self.student_service.get_all_students()
+
+            # Apply stream filter
+            if self.selected_stream != "All Streams":
+                base_students = [s for s in base_students if s.stream_name == self.selected_stream]
+
+            # Apply subject filter (for now, just store the filter - will be used during borrowing)
+            # The subject filter affects which books can be borrowed, not which students are shown
+            self.students = base_students
 
             self.populate_table()
         except Exception as e:
             logger.error(f"Error loading students: {e}")
             show_error_message("Error", f"Failed to load students: {str(e)}", self)
+
+    def _on_criteria_changed(self):
+        """Handle changes in filter criteria."""
+        self.selected_stream = self.stream_combo.currentText()
+        self.selected_subject = self.subject_combo.currentText()
+        self.load_students()
 
     def populate_table(self):
         """Populate the table with students."""
