@@ -370,7 +370,12 @@ class StudentReportsWindow(BaseFunctionWindow):
             self.student_combo.addItem("Select Student...", "")
 
             for student in students:
-                display_text = f"{student.admission_number} - {student.first_name} {student.last_name} ({student.current_class})"
+                # Split the name into first and last name
+                name_parts = student.name.split()
+                first_name = name_parts[0] if name_parts else ""
+                last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+                # Use class_name instead of current_class
+                display_text = f"{student.admission_number} - {first_name} {last_name} ({student.class_name})"
                 self.student_combo.addItem(display_text, student.admission_number)
 
         except Exception as e:
@@ -500,10 +505,15 @@ class StudentReportsWindow(BaseFunctionWindow):
                     if len(borrowed_books) > 10:
                         books_text += f"; ... and {len(borrowed_books) - 10} more"
 
+                # Split the name into first and last name
+                name_parts = student.name.split()
+                first_name = name_parts[0] if name_parts else ""
+                last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+                
                 card_data = {
                     "Student_ID": student.admission_number,
-                    "Student_Name": f"{student.first_name} {student.last_name}",
-                    "Class": student.current_class or "Unknown",
+                    "Student_Name": f"{first_name} {last_name}",
+                    "Class": student.class_name or "Unknown",
                     "Stream": getattr(student, 'stream', 'Unknown'),
                     "Contact": getattr(student, 'phone', 'N/A'),
                     "Books_Borrowed": books_text,

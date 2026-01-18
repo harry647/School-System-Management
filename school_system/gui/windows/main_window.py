@@ -150,7 +150,8 @@ class MainWindow(BaseApplicationWindow):
                 color: {theme["text"]};
                 text-align: left;
                 padding: 12px 20px;
-                border: none;
+                border: 1px solid {theme["border"]};
+                background-color: {theme["surface"]};
                 font-size: 13px;
                 font-weight: 500;
                 border-radius: 10px;
@@ -181,6 +182,36 @@ class MainWindow(BaseApplicationWindow):
             QLabel[sectionIcon="true"] {{
                 font-size: 14px;
                 margin-right: 8px;
+            }}
+            
+            /* Dropdown Menu Styling */
+            QMenu {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 8px;
+                padding: 8px 0px;
+                margin: 0px;
+                color: {theme["text"]};
+            }}
+            
+            QMenu::item {{
+                background-color: transparent;
+                padding: 12px 24px;
+                margin: 0px 8px;
+                border-radius: 6px;
+                color: {theme["text"]};
+                font-size: 13px;
+                font-weight: 500;
+            }}
+            
+            QMenu::item:selected {{
+                background-color: {theme["surface_hover"]};
+                color: {theme["text"]};
+            }}
+            
+            QMenu::item:hover {{
+                background-color: {theme["primary"]};
+                color: white;
             }}
         """)
 
@@ -456,13 +487,6 @@ class MainWindow(BaseApplicationWindow):
         bottom_layout = QVBoxLayout(bottom_section)
         bottom_layout.setContentsMargins(10, 10, 10, 10)
         bottom_layout.setSpacing(8)
-
-        # Settings button
-        settings_btn = QToolButton()
-        settings_btn.setText("⚙️ Settings")
-        settings_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        settings_btn.clicked.connect(lambda: self._load_content("settings"))
-        bottom_layout.addWidget(settings_btn)
 
         # Help button
         help_btn = QToolButton()

@@ -20,6 +20,7 @@ from school_system.config.logging import logger
 from school_system.services.book_service import BookService
 from school_system.services.class_management_service import ClassManagementService
 from school_system.services.student_service import StudentService
+from school_system.services.import_export_service import ImportExportService
 
 
 class EnhancedBorrowWindow(QDialog):
@@ -46,6 +47,7 @@ class EnhancedBorrowWindow(QDialog):
         self.book_service = BookService()
         self.class_management_service = ClassManagementService()
         self.student_service = StudentService()
+        self.import_export_service = ImportExportService()
 
         self.class_name = class_name
         self.stream_name = stream_name
@@ -285,6 +287,45 @@ class EnhancedBorrowWindow(QDialog):
             }}
         """)
         button_layout.addWidget(borrow_all_btn)
+        
+        # Export Buttons
+        excel_button = QPushButton("📊 Excel")
+        excel_button.setFixedHeight(44)
+        excel_button.setFixedWidth(120)
+        excel_button.clicked.connect(self._on_export_excel)
+        excel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme['surface']};
+                color: {theme['text']};
+                border: 1px solid {theme['border']};
+                border-radius: 6px;
+                padding: 8px;
+                font-weight: 600;
+            }}
+            QPushButton:hover {{
+                background-color: {theme['border']};
+            }}
+        """)
+        button_layout.addWidget(excel_button)
+        
+        pdf_button = QPushButton("📄 PDF")
+        pdf_button.setFixedHeight(44)
+        pdf_button.setFixedWidth(120)
+        pdf_button.clicked.connect(self._on_export_pdf)
+        pdf_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme['surface']};
+                color: {theme['text']};
+                border: 1px solid {theme['border']};
+                border-radius: 6px;
+                padding: 8px;
+                font-weight: 600;
+            }}
+            QPushButton:hover {{
+                background-color: {theme['border']};
+            }}
+        """)
+        button_layout.addWidget(pdf_button)
         
         cancel_btn = QPushButton("Close")
         cancel_btn.setFixedHeight(44)
@@ -581,3 +622,115 @@ class EnhancedBorrowWindow(QDialog):
     def _borrow_all(self):
         """Borrow books for all students with entered book numbers."""
         self._preview_all()  # Reuse preview functionality which shows confirmation
+    
+    def _on_export_excel(self):
+        """Handle Excel export button click."""
+        try:
+            # Prepare data for export
+            export_data = []
+            
+            for row in range(self.students_table.rowCount()):
+                student_item = self.students_table.item(row, 0)
+                if not student_item:
+                    continue
+                
+                student_name = student_item.text()
+                admission_item = self.students_table.item(row, 1)
+                admission_number = admission_item.text() if admission_item else ""
+                subject_item = self.students_table.item(row, 2)
+                subject = subject_item.text() if subject_item else ""
+                book_input = self.students_table.cellWidget(row, 3)
+                book_number = book_input.text().strip() if book_input else ""
+                status_item = self.students_table.item(row, 5)
+                status = status_item.text() if status_item else "Pending"
+                
+                export_data.append({
+                    'Student Name': student_name,
+                    'Admission Number': admission_number,
+                    'Subject': subject,
+                    'Book Number': book_number,
+                    'Status': status
+                })
+            
+            if not export_data:
+                show_error_message("Export Error", "No data to export.", self)
+                return
+            
+            # Prompt user for save location
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Borrow Data - Excel",
+                f"borrow_data_{self.class_name}_{self.selected_stream}_{self.selected_subject}.xlsx",
+                "Excel Files (*.xlsx);;All Files (*)"
+            )
+            
+            if not file_path:
+                return  # User cancelled
+            
+            # Export to Excel
+            success = self.import_export_service.export_to_excel(export_data, file_path)
+            
+            if success:
+                show_success_message("Export Success", f"Data exported successfully to {file_path}", self)
+            else:
+                show_error_message("Export Failed", "Failed to export data to Excel.", self)
+                
+        except Exception as e:
+            logger.error(f"Error exporting to Excel: {e}")
+            show_error_message("Error", f"Failed to export to Excel: {str(e)}", self)
+    
+    def _on_export_pdf(self):
+        """Handle PDF export button click."""
+        try:
+            # Prepare data for export
+            export_data = []
+            
+            for row in range(self.students_table.rowCount()):
+                student_item = self.students_table.item(row, 0)
+                if not student_item:
+                    continue
+                
+                student_name = student_item.text()
+                admission_item = self.students_table.item(row, 1)
+                admission_number = admission_item.text() if admission_item else ""
+                subject_item = self.students_table.item(row, 2)
+                subject = subject_item.text() if subject_item else ""
+                book_input = self.students_table.cellWidget(row, 3)
+                book_number = book_input.text().strip() if book_input else ""
+                status_item = self.students_table.item(row, 5)
+                status = status_item.text() if status_item else "Pending"
+                
+                export_data.append({
+                    'Student Name': student_name,
+                    'Admission Number': admission_number,
+                    'Subject': subject,
+                    'Book Number': book_number,
+                    'Status': status
+                })
+            
+            if not export_data:
+                show_error_message("Export Error", "No data to export.", self)
+                return
+            
+            # Prompt user for save location
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Borrow Data - PDF",
+                f"borrow_data_{self.class_name}_{self.selected_stream}_{self.selected_subject}.pdf",
+                "PDF Files (*.pdf);;All Files (*)"
+            )
+            
+            if not file_path:
+                return  # User cancelled
+            
+            # Export to PDF
+            success = self.import_export_service.export_to_pdf(export_data, file_path)
+            
+            if success:
+                show_success_message("Export Success", f"Data exported successfully to {file_path}", self)
+            else:
+                show_error_message("Export Failed", "Failed to export data to PDF.", self)
+                
+        except Exception as e:
+            logger.error(f"Error exporting to PDF: {e}")
+            show_error_message("Error", f"Failed to export to PDF: {str(e)}", self)
