@@ -139,7 +139,8 @@ def initialize_database():
                 admission_number TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 qr_code TEXT UNIQUE,
-                qr_generated_at TIMESTAMP
+                qr_generated_at TIMESTAMP,
+                FOREIGN KEY (stream) REFERENCES short_form_mappings(short_form)
             )
         """)
         
@@ -158,7 +159,9 @@ def initialize_database():
                 subject TEXT,
                 class TEXT,
                 qr_code TEXT UNIQUE,
-                qr_generated_at TIMESTAMP
+                qr_generated_at TIMESTAMP,
+                FOREIGN KEY (subject) REFERENCES short_form_mappings(short_form),
+                FOREIGN KEY (class) REFERENCES short_form_mappings(short_form)
             )
         """)
         
@@ -195,10 +198,17 @@ def initialize_database():
             )
         """)
         
+        # Add index on student_id for faster lookups
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_borrowed_books_student_id ON borrowed_books_student(student_id)")
+        
+        # Add index on book_id for faster lookups
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_borrowed_books_book_id ON borrowed_books_student(book_id)")
+        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS teachers (
                 teacher_id TEXT PRIMARY KEY,
-                teacher_name TEXT
+                teacher_name TEXT,
+                department TEXT DEFAULT NULL
             )
         """)
         
@@ -222,6 +232,12 @@ def initialize_database():
                 FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
             )
         """)
+        
+        # Add index on teacher_id for faster lookups
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_borrowed_books_teacher_id ON borrowed_books_teacher(teacher_id)")
+        
+        # Add index on book_id for faster lookups
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_borrowed_books_teacher_book_id ON borrowed_books_teacher(book_id)")
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS chairs (

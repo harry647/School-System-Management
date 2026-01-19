@@ -69,9 +69,9 @@ class BookValidator:
         if not book_number or len(book_number.strip()) == 0:
             raise ValidationError("Book number cannot be empty")
         
-        # Book number should be alphanumeric
-        if not re.match(r'^[a-zA-Z0-9\-\.]+$', book_number):
-            raise ValidationError("Book number can only contain letters, numbers, hyphens, and periods")
+        # Book number should be alphanumeric and allow forward slashes
+        if not re.match(r'^[a-zA-Z0-9\-\./]+$', book_number):
+            raise ValidationError("Book number can only contain letters, numbers, hyphens, periods, and forward slashes")
         
         return True
 

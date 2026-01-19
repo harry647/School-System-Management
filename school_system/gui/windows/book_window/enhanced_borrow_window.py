@@ -477,11 +477,19 @@ class EnhancedBorrowWindow(QDialog):
                 show_error_message("Validation Error", "Please enter a book number.", self)
                 return
             
+            # Validate book number format
+            try:
+                from school_system.core.validators import BookValidator
+                BookValidator.validate_book_number(book_id_str)
+            except Exception as e:
+                show_error_message("Validation Error", str(e), self)
+                return
+            
+            # Convert book_id_str to int if it's a numeric string, otherwise use as-is
             try:
                 book_id = int(book_id_str)
             except ValueError:
-                show_error_message("Validation Error", "Book number must be a valid number.", self)
-                return
+                book_id = book_id_str
             
             # Borrow the book
             success = self.book_service.borrow_book(book_id, str(student_id), 'student')
