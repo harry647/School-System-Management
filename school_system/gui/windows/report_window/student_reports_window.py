@@ -6,7 +6,7 @@ Dedicated window for generating student reports.
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QTableWidget, QTableWidgetItem, QFileDialog, QGroupBox, QRadioButton, QButtonGroup
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QColor
 
 from school_system.gui.windows.base_function_window import BaseFunctionWindow
 from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
@@ -285,23 +285,113 @@ class StudentReportsWindow(BaseFunctionWindow):
         """Populate the results table with student report data."""
         try:
             self.results_table.setRowCount(0)  # Clear existing data
+            
+            if not report_data:
+                return
 
-            for row_idx, student_data in enumerate(report_data):
+            report_type = self.report_type_combo.currentText()
+            
+            # Determine columns based on report type
+            if report_type == "Students by Stream":
+                self.results_table.setColumnCount(6)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Student ID", "Name", "Stream", "Class", "Admission Number", "Books Borrowed"
+                ])
+            elif report_type == "Students by Class":
+                self.results_table.setColumnCount(6)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Student ID", "Name", "Class", "Stream", "Admission Number", "Books Borrowed"
+                ])
+            elif report_type == "Library Activity":
+                self.results_table.setColumnCount(9)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Student ID", "Name", "Stream", "Class", "Total Borrowed", "Currently Borrowed", "Returned", "Overdue", "Status"
+                ])
+            elif report_type == "Borrowing History":
+                self.results_table.setColumnCount(7)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Student ID", "Name", "Stream", "Class", "Total Borrowings", "First Borrowing", "Last Borrowing"
+                ])
+            else:  # All Students
+                self.results_table.setColumnCount(5)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Student ID", "Name", "Stream", "Class", "Admission Number"
+                ])
+
+            for row_idx, data in enumerate(report_data):
                 self.results_table.insertRow(row_idx)
+                
+                # Handle header rows
+                if data.get('is_header', False):
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(data.get('student_id', '')))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('name', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('stream', '')))
+                    if self.results_table.columnCount() > 3:
+                        self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('class_name', '')))
+                    # Make header rows visually distinct
+                    for col in range(self.results_table.columnCount()):
+                        item = self.results_table.item(row_idx, col)
+                        if item:
+                            item.setBackground(Qt.GlobalColor.lightGray)
+                            item.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+                    continue
 
-                student = student_data.get('student', {})
-
-                # Extract student information
-                student_id = student.get('id', '')
-                name = student.get('name', '')
-                stream = student.get('stream', 'Unknown')
-                details = student.get('class', '') or student.get('grade', '') or 'N/A'
-
-                # Set table items
-                self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(student_id)))
-                self.results_table.setItem(row_idx, 1, QTableWidgetItem(name))
-                self.results_table.setItem(row_idx, 2, QTableWidgetItem(stream))
-                self.results_table.setItem(row_idx, 3, QTableWidgetItem(details))
+                # Extract data based on report type
+                if report_type == "Students by Stream":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('student_id', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('name', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('stream', 'Unknown')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('class_name', 'Unknown')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(data.get('admission_number', ''))))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(str(data.get('books_borrowed', 0))))
+                    
+                elif report_type == "Students by Class":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('student_id', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('name', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('class_name', 'Unknown')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('stream', 'Unknown')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(data.get('admission_number', ''))))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(str(data.get('books_borrowed', 0))))
+                    
+                elif report_type == "Library Activity":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('student_id', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('name', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('stream', 'Unknown')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('class_name', 'Unknown')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(data.get('total_borrowed', 0))))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(str(data.get('currently_borrowed', 0))))
+                    self.results_table.setItem(row_idx, 6, QTableWidgetItem(str(data.get('total_returned', 0))))
+                    overdue_count = data.get('overdue_count', 0)
+                    overdue_item = QTableWidgetItem(str(overdue_count))
+                    if overdue_count > 0:
+                        overdue_item.setForeground(Qt.GlobalColor.red)
+                    self.results_table.setItem(row_idx, 7, overdue_item)
+                    status = data.get('activity_status', 'Unknown')
+                    status_item = QTableWidgetItem(status)
+                    if status == 'Active':
+                        status_item.setForeground(Qt.GlobalColor.green)
+                    elif status == 'Inactive':
+                        status_item.setForeground(Qt.GlobalColor.gray)
+                    self.results_table.setItem(row_idx, 8, status_item)
+                    
+                elif report_type == "Borrowing History":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('student_id', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('name', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('stream', 'Unknown')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('class_name', 'Unknown')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(data.get('total_borrowings', 0))))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(str(data.get('first_borrowing', 'N/A'))))
+                    self.results_table.setItem(row_idx, 6, QTableWidgetItem(str(data.get('last_borrowing', 'N/A'))))
+                    
+                else:  # All Students
+                    student = data.get('student')
+                    if student:
+                        self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(getattr(student, 'student_id', ''))))
+                        self.results_table.setItem(row_idx, 1, QTableWidgetItem(getattr(student, 'name', '')))
+                        self.results_table.setItem(row_idx, 2, QTableWidgetItem(getattr(student, 'stream', '') or 'Unknown'))
+                        self.results_table.setItem(row_idx, 3, QTableWidgetItem(getattr(student, 'class_name', '') or 'Unknown'))
+                        admission = getattr(student, 'admission_number', getattr(student, 'student_id', ''))
+                        self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(admission)))
 
         except Exception as e:
             logger.error(f"Error populating students table: {e}")

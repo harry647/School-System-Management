@@ -6,7 +6,7 @@ Dedicated window for generating book reports.
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QTableWidget, QTableWidgetItem, QFileDialog, QTextEdit
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QColor
 
 from school_system.gui.windows.base_function_window import BaseFunctionWindow
 from school_system.gui.dialogs.message_dialog import show_error_message, show_success_message
@@ -365,27 +365,117 @@ class BookReportsWindow(BaseFunctionWindow):
         try:
             self.analytics_summary.setVisible(False)  # Hide analytics summary for regular reports
             self.results_table.setRowCount(0)  # Clear existing data
+            
+            if not report_data:
+                return
 
-            # Reset to default headers for regular book reports
-            self.results_table.setHorizontalHeaderLabels(["Book ID", "Title", "Status", "Details"])
-            self.results_table.setColumnCount(4)
+            report_type = self.report_type_combo.currentText()
+            
+            # Determine columns based on report type
+            if report_type == "Borrowed Books":
+                self.results_table.setColumnCount(7)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Book Number", "Title", "Author", "Student Name", "Student ID", "Borrowed On", "Days Borrowed"
+                ])
+            elif report_type == "Available Books":
+                self.results_table.setColumnCount(8)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Book Number", "Title", "Author", "ISBN", "Subject", "Class", "Type", "Condition"
+                ])
+            elif report_type == "Overdue Books":
+                self.results_table.setColumnCount(8)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Book Number", "Title", "Author", "Student Name", "Student ID", "Borrowed On", "Due Date", "Days Overdue"
+                ])
+            elif report_type == "Book Inventory":
+                self.results_table.setColumnCount(9)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Book Number", "Title", "Author", "Subject", "Class", "Type", "Condition", "Status", "ISBN"
+                ])
+            else:  # All Books
+                self.results_table.setColumnCount(8)
+                self.results_table.setHorizontalHeaderLabels([
+                    "Book Number", "Title", "Author", "ISBN", "Subject", "Class", "Type", "Status"
+                ])
 
-            for row_idx, book_data in enumerate(report_data):
+            for row_idx, data in enumerate(report_data):
                 self.results_table.insertRow(row_idx)
+                
+                # Handle summary rows in inventory report
+                if data.get('is_summary', False):
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(data.get('book_number', '')))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('title', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('author', '')))
+                    # Make summary rows visually distinct
+                    for col in range(self.results_table.columnCount()):
+                        item = self.results_table.item(row_idx, col)
+                        if item:
+                            item.setBackground(Qt.GlobalColor.lightGray)
+                    continue
 
-                book = book_data.get('book', {})
-
-                # Extract book information
-                book_id = book.get('id', '') if isinstance(book, dict) else getattr(book, 'id', '')
-                title = book.get('title', '') if isinstance(book, dict) else getattr(book, 'title', '')
-                status = book.get('status', 'Unknown') if isinstance(book, dict) else getattr(book, 'available', True) and 'Available' or 'Borrowed'
-                details = book.get('author', '') if isinstance(book, dict) else getattr(book, 'author', '')
-
-                # Set table items
-                self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(book_id)))
-                self.results_table.setItem(row_idx, 1, QTableWidgetItem(title))
-                self.results_table.setItem(row_idx, 2, QTableWidgetItem(status))
-                self.results_table.setItem(row_idx, 3, QTableWidgetItem(details))
+                # Extract data based on report type
+                if report_type == "Borrowed Books":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('book_number', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('title', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('author', 'N/A')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('student_name', 'N/A')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(data.get('student_id', ''))))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(str(data.get('borrowed_on', ''))))
+                    self.results_table.setItem(row_idx, 6, QTableWidgetItem(str(data.get('days_borrowed', 0))))
+                    
+                elif report_type == "Available Books":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('book_number', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('title', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('author', 'N/A')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('isbn', 'N/A')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(data.get('subject', 'N/A')))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(data.get('class_name', 'N/A')))
+                    self.results_table.setItem(row_idx, 6, QTableWidgetItem(data.get('book_type', 'N/A')))
+                    self.results_table.setItem(row_idx, 7, QTableWidgetItem(data.get('condition', 'Good')))
+                    
+                elif report_type == "Overdue Books":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('book_number', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('title', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('author', 'N/A')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('student_name', 'N/A')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(str(data.get('student_id', ''))))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(str(data.get('borrowed_on', ''))))
+                    self.results_table.setItem(row_idx, 6, QTableWidgetItem(str(data.get('due_date', ''))))
+                    days_overdue = data.get('days_overdue', 0)
+                    overdue_item = QTableWidgetItem(str(days_overdue))
+                    if days_overdue > 0:
+                        overdue_item.setForeground(Qt.GlobalColor.red)
+                    self.results_table.setItem(row_idx, 7, overdue_item)
+                    
+                elif report_type == "Book Inventory":
+                    self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(data.get('book_number', ''))))
+                    self.results_table.setItem(row_idx, 1, QTableWidgetItem(data.get('title', '')))
+                    self.results_table.setItem(row_idx, 2, QTableWidgetItem(data.get('author', 'N/A')))
+                    self.results_table.setItem(row_idx, 3, QTableWidgetItem(data.get('subject', 'N/A')))
+                    self.results_table.setItem(row_idx, 4, QTableWidgetItem(data.get('class_name', 'N/A')))
+                    self.results_table.setItem(row_idx, 5, QTableWidgetItem(data.get('book_type', 'N/A')))
+                    self.results_table.setItem(row_idx, 6, QTableWidgetItem(data.get('condition', 'Good')))
+                    status = data.get('status', 'Unknown')
+                    status_item = QTableWidgetItem(status)
+                    if status == 'Borrowed':
+                        status_item.setForeground(Qt.GlobalColor.orange)
+                    self.results_table.setItem(row_idx, 7, status_item)
+                    self.results_table.setItem(row_idx, 8, QTableWidgetItem(data.get('isbn', 'N/A')))
+                    
+                else:  # All Books
+                    book = data.get('book')
+                    if book:
+                        self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(getattr(book, 'book_number', ''))))
+                        self.results_table.setItem(row_idx, 1, QTableWidgetItem(getattr(book, 'title', '')))
+                        self.results_table.setItem(row_idx, 2, QTableWidgetItem(getattr(book, 'author', '') or 'N/A'))
+                        self.results_table.setItem(row_idx, 3, QTableWidgetItem(getattr(book, 'isbn', '') or 'N/A'))
+                        subject = getattr(book, 'subject', None) or getattr(book, 'category', None) or 'N/A'
+                        self.results_table.setItem(row_idx, 4, QTableWidgetItem(subject))
+                        self.results_table.setItem(row_idx, 5, QTableWidgetItem(getattr(book, 'class_name', '') or 'N/A'))
+                        book_type = 'Revision' if getattr(book, 'revision', 0) == 1 else 'Course'
+                        self.results_table.setItem(row_idx, 6, QTableWidgetItem(book_type))
+                        status = 'Borrowed' if not getattr(book, 'available', True) else 'Available'
+                        self.results_table.setItem(row_idx, 7, QTableWidgetItem(status))
 
         except Exception as e:
             logger.error(f"Error populating books table: {e}")

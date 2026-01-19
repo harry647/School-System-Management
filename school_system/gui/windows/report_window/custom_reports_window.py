@@ -149,29 +149,59 @@ class CustomReportsWindow(BaseFunctionWindow):
 
                 # Handle different data types based on the data source
                 if data_source == "Books" or "book" in item_data:
-                    item = item_data.get('book', {})
-                    item_id = item.get('id', '')
-                    name = item.get('title', '')
-                    item_type = "Book"
-                    status = item.get('status', 'Unknown')
-                    details = item.get('author', '') or item.get('genre', '') or 'N/A'
+                    # item_data is like {"book": <Book object>}
+                    book = item_data.get('book')
+                    if book:
+                        item_id = getattr(book, 'id', '')
+                        name = getattr(book, 'title', '')
+                        item_type = "Book"
+                        # Determine status based on availability
+                        status = "Available" if getattr(book, 'available', True) else "Borrowed"
+                        details = getattr(book, 'author', '') or 'N/A'
+                    else:
+                        item_id = name = details = ''
+                        item_type = "Book"
+                        status = "Unknown"
 
                 elif data_source == "Students" or "student" in item_data:
-                    item = item_data.get('student', {})
-                    item_id = item.get('id', '')
-                    name = item.get('name', '')
-                    item_type = "Student"
-                    status = "Active"
-                    details = item.get('stream', '') or item.get('class', '') or 'N/A'
+                    # item_data is like {"student": <Student object>}
+                    student = item_data.get('student')
+                    if student:
+                        item_id = getattr(student, 'student_id', '')
+                        name = getattr(student, 'name', '')
+                        item_type = "Student"
+                        status = "Active"
+                        details = getattr(student, 'stream', '') or getattr(student, 'class_name', '') or 'N/A'
+                    else:
+                        item_id = name = details = ''
+                        item_type = "Student"
+                        status = "Unknown"
 
                 else:
-                    # Generic handling for other data types
-                    item = list(item_data.values())[0] if item_data else {}
-                    item_id = item.get('id', '')
-                    name = item.get('name', '') or item.get('title', '')
-                    item_type = data_source
-                    status = item.get('status', 'Unknown')
-                    details = 'N/A'
+                    # Generic handling for other data types (Teachers, Furniture, etc.)
+                    if item_data and isinstance(item_data, dict):
+                        # For placeholder data like {"teacher": {"id": "N/A", "name": "Feature not implemented"}}
+                        item_key = list(item_data.keys())[0] if item_data else None
+                        item = item_data.get(item_key, {}) if item_key else {}
+
+                        if isinstance(item, dict):
+                            # Dictionary-based item
+                            item_id = item.get('id', '')
+                            name = item.get('name', '') or item.get('title', '')
+                            item_type = item_key.title() if item_key else data_source
+                            status = item.get('status', 'Unknown')
+                            details = item.get('subject', '') or item.get('type', '') or 'N/A'
+                        else:
+                            # Object-based item (fallback)
+                            item_id = getattr(item, 'id', '') if hasattr(item, 'id') else ''
+                            name = getattr(item, 'name', '') if hasattr(item, 'name') else getattr(item, 'title', '') if hasattr(item, 'title') else ''
+                            item_type = data_source
+                            status = getattr(item, 'status', 'Unknown') if hasattr(item, 'status') else 'Unknown'
+                            details = 'N/A'
+                    else:
+                        item_id = name = details = ''
+                        item_type = data_source
+                        status = "Unknown"
 
                 # Set table items
                 self.results_table.setItem(row_idx, 0, QTableWidgetItem(str(item_id)))
@@ -222,17 +252,62 @@ class CustomReportsWindow(BaseFunctionWindow):
     
     def _on_export_report(self):
         """Handle export report."""
-        file_path, _ = QFileDialog.getSaveFileName(
+        if self.results_table.rowCount() == 0:
+            show_error_message("Error", "No report data to export. Generate a report first.", self)
+            return
+
+        file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
             "Save Report",
             "custom_report.xlsx",
             "Excel Files (*.xlsx);;CSV Files (*.csv)"
         )
-        
+
         if file_path:
             try:
-                # Export report
-                show_success_message("Success", f"Report exported to {file_path}.", self)
+                # Collect table data
+                headers = []
+                for col in range(self.results_table.columnCount()):
+                    header_item = self.results_table.horizontalHeaderItem(col)
+                    headers.append(header_item.text() if header_item else f"Column {col+1}")
+
+                data = [headers]  # Start with headers
+
+                # Add all rows
+                for row in range(self.results_table.rowCount()):
+                    row_data = []
+                    for col in range(self.results_table.columnCount()):
+                        item = self.results_table.item(row, col)
+                        row_data.append(item.text() if item else "")
+                    data.append(row_data)
+
+                # Determine file type and export
+                if selected_filter == "Excel Files (*.xlsx)" or file_path.lower().endswith('.xlsx'):
+                    success = self.report_service.export_report_to_excel(data, file_path)
+                elif selected_filter == "CSV Files (*.csv)" or file_path.lower().endswith('.csv'):
+                    success = self._export_to_csv(data, file_path)
+                else:
+                    # Default to Excel
+                    success = self.report_service.export_report_to_excel(data, file_path)
+
+                if success:
+                    show_success_message("Success", f"Report exported to {file_path}.", self)
+                else:
+                    show_error_message("Error", "Failed to export report.", self)
+
             except Exception as e:
                 logger.error(f"Error exporting report: {e}")
                 show_error_message("Error", f"Failed to export report: {str(e)}", self)
+
+    def _export_to_csv(self, data: list, filename: str) -> bool:
+        """Export data to CSV file."""
+        try:
+            import csv
+            with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                for row in data:
+                    writer.writerow(row)
+            return True
+        except Exception as e:
+            logger.error(f"Error exporting to CSV: {e}")
+            return False

@@ -12,6 +12,8 @@ from school_system.services.student_service import StudentService
 from school_system.services.class_management_service import ClassManagementService
 from school_system.database.repositories.book_repo import BookRepository, BorrowedBookStudentRepository
 from school_system.database.repositories.student_repo import StudentRepository
+from school_system.database.repositories.teacher_repo import TeacherRepository
+from school_system.database.repositories.furniture_repo import ChairRepository, LockerRepository
 
 
 class ReportService:
@@ -21,6 +23,9 @@ class ReportService:
         self.book_repository = BookRepository()
         self.student_repository = StudentRepository()
         self.borrowed_book_repo = BorrowedBookStudentRepository()
+        self.teacher_repository = TeacherRepository()
+        self.chair_repository = ChairRepository()
+        self.locker_repository = LockerRepository()
         self.import_export_service = ImportExportService()
         self.student_service = StudentService()
         self.class_management_service = ClassManagementService()
@@ -88,9 +93,59 @@ class ReportService:
         Returns:
             A list of borrowed books report data.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all borrowed books (not returned)
+            all_borrowed = []
+            try:
+                # Get all students and their borrowings
+                all_students = self.student_service.get_all_students()
+                for student in all_students:
+                    borrowings = self.borrowed_book_repo.get_borrowed_books_by_student(str(student.student_id))
+                    all_borrowed.extend(borrowings)
+            except Exception as e:
+                logger.warning(f"Error getting all borrowed books: {e}")
+            
+            # Process each borrowing
+            for borrowing in all_borrowed:
+                if borrowing.returned_on is None:  # Only currently borrowed
+                    book = self.book_repository.get_by_id(borrowing.book_id)
+                    if book:
+                        # Get student info
+                        student = self.student_service.get_student_by_id(str(borrowing.student_id))
+                        student_name = student.name if student else f"Student {borrowing.student_id}"
+                        
+                        # Calculate days borrowed
+                        from datetime import datetime, date
+                        if isinstance(borrowing.borrowed_on, str):
+                            borrowed_date = datetime.strptime(borrowing.borrowed_on, '%Y-%m-%d').date()
+                        elif isinstance(borrowing.borrowed_on, date):
+                            borrowed_date = borrowing.borrowed_on
+                        else:
+                            borrowed_date = date.today()
+                        
+                        days_borrowed = (date.today() - borrowed_date).days
+                        
+                        report_data.append({
+                            'book': book,
+                            'book_number': book.book_number,
+                            'title': book.title,
+                            'author': book.author or 'N/A',
+                            'student_id': borrowing.student_id,
+                            'student_name': student_name,
+                            'borrowed_on': borrowing.borrowed_on,
+                            'days_borrowed': days_borrowed,
+                            'reminder_days': borrowing.reminder_days or 7,
+                            'status': 'Borrowed'
+                        })
+            
+            logger.info(f"Generated borrowed books report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating borrowed books report: {e}")
+            return []
 
     def get_available_books_report(self) -> List[Dict]:
         """
@@ -99,9 +154,48 @@ class ReportService:
         Returns:
             A list of available books report data.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all available books
+            available_books = self.book_repository.get_available_books()
+            
+            for book in available_books:
+                # Double-check that book is not currently borrowed
+                is_actually_available = True
+                try:
+                    # Check if book is borrowed by any student
+                    student_borrowings = self.borrowed_book_repo.find_by_field('book_id', book.id)
+                    for borrowing in student_borrowings:
+                        if borrowing.returned_on is None:
+                            is_actually_available = False
+                            break
+                except:
+                    pass
+                
+                if is_actually_available:
+                    subject = getattr(book, 'subject', None) or getattr(book, 'category', None) or 'N/A'
+                    class_name = getattr(book, 'class_name', None) or 'N/A'
+                    
+                    report_data.append({
+                        'book': book,
+                        'book_number': book.book_number,
+                        'title': book.title,
+                        'author': book.author or 'N/A',
+                        'isbn': book.isbn or 'N/A',
+                        'subject': subject,
+                        'class_name': class_name,
+                        'book_type': 'Revision' if getattr(book, 'revision', 0) == 1 else 'Course',
+                        'condition': getattr(book, 'book_condition', 'Good') or 'Good',
+                        'status': 'Available'
+                    })
+            
+            logger.info(f"Generated available books report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating available books report: {e}")
+            return []
 
     def get_overdue_books_report(self) -> List[Dict]:
         """
@@ -110,20 +204,152 @@ class ReportService:
         Returns:
             A list of overdue books report data.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+        try:
+            from datetime import datetime, date, timedelta
+            report_data = []
+            
+            # Get all overdue books (default 14 days, but check reminder_days)
+            overdue_borrowings = self.borrowed_book_repo.get_overdue_books(days_overdue=14)
+            
+            for borrowing in overdue_borrowings:
+                if borrowing.returned_on is None:  # Only currently borrowed
+                    book = self.book_repository.get_by_id(borrowing.book_id)
+                    if book:
+                        # Get student info
+                        student = self.student_service.get_student_by_id(str(borrowing.student_id))
+                        student_name = student.name if student else f"Student {borrowing.student_id}"
+                        
+                        # Calculate overdue days
+                        if isinstance(borrowing.borrowed_on, str):
+                            borrowed_date = datetime.strptime(borrowing.borrowed_on, '%Y-%m-%d').date()
+                        elif isinstance(borrowing.borrowed_on, date):
+                            borrowed_date = borrowing.borrowed_on
+                        else:
+                            borrowed_date = date.today()
+                        
+                        # Use reminder_days if available, otherwise default to 14
+                        due_days = borrowing.reminder_days if borrowing.reminder_days else 14
+                        due_date = borrowed_date + timedelta(days=due_days)
+                        days_overdue = (date.today() - due_date).days
+                        
+                        # Only include if actually overdue
+                        if days_overdue > 0:
+                            report_data.append({
+                                'book': book,
+                                'book_number': book.book_number,
+                                'title': book.title,
+                                'author': book.author or 'N/A',
+                                'student_id': borrowing.student_id,
+                                'student_name': student_name,
+                                'borrowed_on': borrowing.borrowed_on,
+                                'due_date': due_date,
+                                'days_overdue': days_overdue,
+                                'reminder_days': due_days,
+                                'status': f'Overdue ({days_overdue} days)'
+                            })
+            
+            logger.info(f"Generated overdue books report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating overdue books report: {e}")
+            return []
 
     def get_book_inventory_report(self) -> List[Dict]:
         """
         Retrieve book inventory report.
 
         Returns:
-            A list of book inventory report data.
+            A list of book inventory report data with comprehensive inventory information.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"book": {"id": "N/A", "title": "Feature not implemented", "status": "N/A", "author": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all books
+            all_books = self.book_repository.get_all()
+            
+            # Get all borrowed books to check status
+            borrowed_book_ids = set()
+            try:
+                all_students = self.student_service.get_all_students()
+                for student in all_students:
+                    borrowings = self.borrowed_book_repo.get_borrowed_books_by_student(str(student.student_id))
+                    for borrowing in borrowings:
+                        if borrowing.returned_on is None:
+                            borrowed_book_ids.add(borrowing.book_id)
+            except Exception as e:
+                logger.warning(f"Error checking borrowed status: {e}")
+            
+            # Group by subject and class for summary
+            inventory_summary = {}
+            
+            for book in all_books:
+                subject = getattr(book, 'subject', None) or getattr(book, 'category', None) or 'Unknown'
+                class_name = getattr(book, 'class_name', None) or 'Unknown'
+                
+                # Determine actual status
+                is_borrowed = book.id in borrowed_book_ids or not book.available
+                status = 'Borrowed' if is_borrowed else 'Available'
+                
+                # Create inventory entry
+                report_data.append({
+                    'book': book,
+                    'book_number': book.book_number,
+                    'title': book.title,
+                    'author': book.author or 'N/A',
+                    'isbn': book.isbn or 'N/A',
+                    'subject': subject,
+                    'class_name': class_name,
+                    'book_type': 'Revision' if getattr(book, 'revision', 0) == 1 else 'Course',
+                    'condition': getattr(book, 'book_condition', 'Good') or 'Good',
+                    'status': status,
+                    'available': not is_borrowed
+                })
+                
+                # Update summary
+                key = (subject, class_name)
+                if key not in inventory_summary:
+                    inventory_summary[key] = {
+                        'subject': subject,
+                        'class_name': class_name,
+                        'total': 0,
+                        'available': 0,
+                        'borrowed': 0
+                    }
+                
+                inventory_summary[key]['total'] += 1
+                if is_borrowed:
+                    inventory_summary[key]['borrowed'] += 1
+                else:
+                    inventory_summary[key]['available'] += 1
+            
+            # Add summary entries at the beginning
+            summary_entries = []
+            for key, summary in sorted(inventory_summary.items()):
+                summary_entries.append({
+                    'book': None,  # Mark as summary entry
+                    'book_number': 'SUMMARY',
+                    'title': f"{summary['subject']} - {summary['class_name']}",
+                    'author': f"Total: {summary['total']} | Available: {summary['available']} | Borrowed: {summary['borrowed']}",
+                    'isbn': '',
+                    'subject': summary['subject'],
+                    'class_name': summary['class_name'],
+                    'book_type': '',
+                    'condition': '',
+                    'status': f"{summary['available']}/{summary['total']} Available",
+                    'available': summary['available'] > 0,
+                    'is_summary': True
+                })
+            
+            # Combine summary and detailed entries
+            final_report = summary_entries + report_data
+            
+            logger.info(f"Generated book inventory report with {len(final_report)} entries ({len(summary_entries)} summaries, {len(report_data)} books)")
+            return final_report
+            
+        except Exception as e:
+            logger.error(f"Error generating book inventory report: {e}")
+            return []
 
     def export_report_to_excel(self, report_data: List[Dict], filename: str) -> bool:
         """
@@ -181,9 +407,51 @@ class ReportService:
         Returns:
             A list of students grouped by stream.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all streams
+            all_streams = self.class_management_service.get_all_stream_names()
+            
+            for stream in all_streams:
+                # Get students in this stream
+                students = self.class_management_service.get_students_by_stream(stream)
+                
+                # Add stream header
+                report_data.append({
+                    'student': None,  # Mark as header
+                    'student_id': 'STREAM_HEADER',
+                    'name': f"Stream: {stream}",
+                    'stream': stream,
+                    'class_name': f"Total: {len(students)} students",
+                    'admission_number': '',
+                    'books_borrowed': 0,
+                    'is_header': True
+                })
+                
+                # Add students in this stream
+                for student in students:
+                    # Get borrowing count
+                    borrowings = self.borrowed_book_repo.get_borrowed_books_by_student(str(student.student_id))
+                    current_borrowings = [b for b in borrowings if b.returned_on is None]
+                    
+                    report_data.append({
+                        'student': student,
+                        'student_id': student.student_id,
+                        'name': student.name,
+                        'stream': stream,
+                        'class_name': getattr(student, 'class_name', 'Unknown') or 'Unknown',
+                        'admission_number': getattr(student, 'admission_number', student.student_id) or student.student_id,
+                        'books_borrowed': len(current_borrowings),
+                        'is_header': False
+                    })
+            
+            logger.info(f"Generated students by stream report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating students by stream report: {e}")
+            return []
 
     def get_students_by_class_report(self) -> List[Dict]:
         """
@@ -192,31 +460,202 @@ class ReportService:
         Returns:
             A list of students grouped by class.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all class levels
+            class_levels = self.class_management_service.get_all_class_levels()
+            
+            for class_level in sorted(class_levels):
+                # Get students in this class
+                students = self.class_management_service.get_students_by_class_level(class_level)
+                
+                # Add class header
+                report_data.append({
+                    'student': None,  # Mark as header
+                    'student_id': 'CLASS_HEADER',
+                    'name': f"Form {class_level}",
+                    'stream': f"Total: {len(students)} students",
+                    'class_name': f"Form {class_level}",
+                    'admission_number': '',
+                    'books_borrowed': 0,
+                    'is_header': True
+                })
+                
+                # Add students in this class
+                for student in students:
+                    # Get borrowing count
+                    borrowings = self.borrowed_book_repo.get_borrowed_books_by_student(str(student.student_id))
+                    current_borrowings = [b for b in borrowings if b.returned_on is None]
+                    
+                    report_data.append({
+                        'student': student,
+                        'student_id': student.student_id,
+                        'name': student.name,
+                        'stream': getattr(student, 'stream', 'Unknown') or 'Unknown',
+                        'class_name': f"Form {class_level}",
+                        'admission_number': getattr(student, 'admission_number', student.student_id) or student.student_id,
+                        'books_borrowed': len(current_borrowings),
+                        'is_header': False
+                    })
+            
+            logger.info(f"Generated students by class report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating students by class report: {e}")
+            return []
 
     def get_student_library_activity_report(self) -> List[Dict]:
         """
         Retrieve student library activity report.
 
         Returns:
-            A list of student library activity data.
+            A list of student library activity data with borrowing statistics.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all students
+            all_students = self.student_service.get_all_students()
+            
+            for student in all_students:
+                # Get all borrowings (current and returned)
+                all_borrowings = self.borrowed_book_repo.find_by_field('student_id', str(student.student_id))
+                current_borrowings = [b for b in all_borrowings if b.returned_on is None]
+                returned_borrowings = [b for b in all_borrowings if b.returned_on is not None]
+                
+                # Calculate statistics
+                total_borrowed = len(all_borrowings)
+                currently_borrowed = len(current_borrowings)
+                total_returned = len(returned_borrowings)
+                
+                # Get most recent borrowing date
+                most_recent_borrowing = None
+                if all_borrowings:
+                    most_recent_borrowing = max(all_borrowings, key=lambda x: x.borrowed_on if x.borrowed_on else '')
+                
+                # Get overdue count
+                overdue_count = 0
+                for borrowing in current_borrowings:
+                    if borrowing.reminder_days:
+                        from datetime import datetime, date, timedelta
+                        if isinstance(borrowing.borrowed_on, str):
+                            borrowed_date = datetime.strptime(borrowing.borrowed_on, '%Y-%m-%d').date()
+                        elif isinstance(borrowing.borrowed_on, date):
+                            borrowed_date = borrowing.borrowed_on
+                        else:
+                            continue
+                        
+                        due_date = borrowed_date + timedelta(days=borrowing.reminder_days)
+                        if date.today() > due_date:
+                            overdue_count += 1
+                
+                report_data.append({
+                    'student': student,
+                    'student_id': student.student_id,
+                    'name': student.name,
+                    'stream': getattr(student, 'stream', 'Unknown') or 'Unknown',
+                    'class_name': getattr(student, 'class_name', 'Unknown') or 'Unknown',
+                    'admission_number': getattr(student, 'admission_number', student.student_id) or student.student_id,
+                    'total_borrowed': total_borrowed,
+                    'currently_borrowed': currently_borrowed,
+                    'total_returned': total_returned,
+                    'overdue_count': overdue_count,
+                    'most_recent_borrowing': most_recent_borrowing.borrowed_on if most_recent_borrowing else None,
+                    'activity_status': 'Active' if currently_borrowed > 0 else ('Inactive' if total_borrowed == 0 else 'Dormant')
+                })
+            
+            # Sort by activity status and total borrowed (most active first)
+            report_data.sort(key=lambda x: (
+                0 if x['activity_status'] == 'Active' else (1 if x['activity_status'] == 'Dormant' else 2),
+                -x['total_borrowed']
+            ))
+            
+            logger.info(f"Generated student library activity report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating student library activity report: {e}")
+            return []
 
     def get_student_borrowing_history_report(self) -> List[Dict]:
         """
         Retrieve student borrowing history report.
 
         Returns:
-            A list of student borrowing history data.
+            A list of student borrowing history data with detailed borrowing records.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"student": {"id": "N/A", "name": "Feature not implemented", "stream": "N/A", "class": "N/A"}}]
+        try:
+            report_data = []
+            
+            # Get all students
+            all_students = self.student_service.get_all_students()
+            
+            for student in all_students:
+                # Get all borrowings (both current and returned)
+                all_borrowings = self.borrowed_book_repo.find_by_field('student_id', str(student.student_id))
+                
+                if not all_borrowings:
+                    # Student with no borrowing history
+                    report_data.append({
+                        'student': student,
+                        'student_id': student.student_id,
+                        'name': student.name,
+                        'stream': getattr(student, 'stream', 'Unknown') or 'Unknown',
+                        'class_name': getattr(student, 'class_name', 'Unknown') or 'Unknown',
+                        'admission_number': getattr(student, 'admission_number', student.student_id) or student.student_id,
+                        'total_borrowings': 0,
+                        'books_borrowed': 'None',
+                        'first_borrowing': None,
+                        'last_borrowing': None,
+                        'has_history': False
+                    })
+                    continue
+                
+                # Sort borrowings by date (most recent first)
+                sorted_borrowings = sorted(all_borrowings, key=lambda x: x.borrowed_on if x.borrowed_on else '', reverse=True)
+                
+                # Get book details for each borrowing
+                borrowing_details = []
+                for borrowing in sorted_borrowings[:10]:  # Limit to 10 most recent
+                    book = self.book_repository.get_by_id(borrowing.book_id)
+                    if book:
+                        status = 'Returned' if borrowing.returned_on else 'Borrowed'
+                        return_info = f"Returned: {borrowing.returned_on}" if borrowing.returned_on else "Not returned"
+                        borrowing_details.append(f"{book.book_number} ({book.title}) - {status} - {return_info}")
+                
+                books_text = "; ".join(borrowing_details) if borrowing_details else "None"
+                if len(all_borrowings) > 10:
+                    books_text += f"; ... and {len(all_borrowings) - 10} more"
+                
+                # Get first and last borrowing dates
+                first_borrowing = sorted_borrowings[-1] if sorted_borrowings else None
+                last_borrowing = sorted_borrowings[0] if sorted_borrowings else None
+                
+                report_data.append({
+                    'student': student,
+                    'student_id': student.student_id,
+                    'name': student.name,
+                    'stream': getattr(student, 'stream', 'Unknown') or 'Unknown',
+                    'class_name': getattr(student, 'class_name', 'Unknown') or 'Unknown',
+                    'admission_number': getattr(student, 'admission_number', student.student_id) or student.student_id,
+                    'total_borrowings': len(all_borrowings),
+                    'books_borrowed': books_text,
+                    'first_borrowing': first_borrowing.borrowed_on if first_borrowing else None,
+                    'last_borrowing': last_borrowing.borrowed_on if last_borrowing else None,
+                    'has_history': True
+                })
+            
+            # Sort by total borrowings (most active first)
+            report_data.sort(key=lambda x: -x['total_borrowings'])
+            
+            logger.info(f"Generated student borrowing history report with {len(report_data)} entries")
+            return report_data
+            
+        except Exception as e:
+            logger.error(f"Error generating student borrowing history report: {e}")
+            return []
 
     def get_all_teachers_report(self) -> List[Dict]:
         """
@@ -225,9 +664,8 @@ class ReportService:
         Returns:
             A list of all teachers report data.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"teacher": {"id": "N/A", "name": "Feature not implemented", "subject": "N/A", "status": "N/A"}}]
+        teachers = self.teacher_repository.get_all()
+        return [{"teacher": teacher} for teacher in teachers]
 
     def get_all_furniture_report(self) -> List[Dict]:
         """
@@ -236,9 +674,40 @@ class ReportService:
         Returns:
             A list of all furniture report data.
         """
-        # This would need to be implemented based on your data model
-        # For now, return a placeholder
-        return [{"furniture": {"id": "N/A", "name": "Feature not implemented", "type": "N/A", "status": "N/A"}}]
+        # Get all chairs and lockers
+        chairs = self.chair_repository.get_all()
+        lockers = self.locker_repository.get_all()
+
+        # Convert to unified format
+        furniture_data = []
+
+        # Add chairs
+        for chair in chairs:
+            furniture_data.append({
+                "furniture": chair,
+                "type": "Chair",
+                "id": getattr(chair, 'chair_id', ''),
+                "location": getattr(chair, 'location', 'Unknown'),
+                "form": getattr(chair, 'form', 'Unknown'),
+                "condition": getattr(chair, 'cond', 'Good'),
+                "assigned": getattr(chair, 'assigned', 0) == 1,
+                "status": "Assigned" if getattr(chair, 'assigned', 0) else "Available"
+            })
+
+        # Add lockers
+        for locker in lockers:
+            furniture_data.append({
+                "furniture": locker,
+                "type": "Locker",
+                "id": getattr(locker, 'locker_id', ''),
+                "location": getattr(locker, 'location', 'Unknown'),
+                "form": getattr(locker, 'form', 'Unknown'),
+                "condition": getattr(locker, 'cond', 'Good'),
+                "assigned": getattr(locker, 'assigned', 0) == 1,
+                "status": "Assigned" if getattr(locker, 'assigned', 0) else "Available"
+            })
+
+        return furniture_data
 
     def get_borrowing_analytics_report(self) -> Dict:
         """
