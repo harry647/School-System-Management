@@ -428,8 +428,12 @@ class ReportService:
             form_subject_groups = {}
 
             for book in all_books:
-                form = getattr(book, 'class_name', 'Unknown')
-                subject = getattr(book, 'subject', None) or getattr(book, 'category', 'Unknown')
+                form = getattr(book, 'class_name', None) or 'Unknown'
+                subject = getattr(book, 'subject', None) or getattr(book, 'category', None) or 'Unknown'
+                
+                # Ensure form and subject are strings (not None) for consistent sorting
+                form = str(form) if form is not None else 'Unknown'
+                subject = str(subject) if subject is not None else 'Unknown'
 
                 key = (form, subject)
                 if key not in form_subject_groups:
@@ -451,7 +455,11 @@ class ReportService:
             for data in form_subject_groups.values():
                 categorization.append(data)
 
-            return sorted(categorization, key=lambda x: (x['form'], x['subject']))
+            # Sort with safe handling of None values
+            return sorted(categorization, key=lambda x: (
+                str(x['form']) if x['form'] is not None else 'Unknown',
+                str(x['subject']) if x['subject'] is not None else 'Unknown'
+            ))
 
         except Exception as e:
             logger.error(f"Error getting books categorized by subject form: {e}")

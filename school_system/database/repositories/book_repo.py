@@ -12,6 +12,19 @@ class BookRepository(BaseRepository):
 
     def __init__(self):
         super().__init__(Book)
+    
+    def get_by_id(self, id: int) -> Optional[Book]:
+        """Get book by integer ID (overrides base to use 'id' column instead of 'book_number')."""
+        try:
+            cursor = self.db.cursor()
+            # Always use 'id' column for books, not 'book_number' (which is the model's __pk__)
+            cursor.execute(f"SELECT * FROM {self.model.__tablename__} WHERE id = ?", (id,))
+            result = cursor.fetchone()
+            if result:
+                return self.model(**dict(zip([column[0] for column in cursor.description], result)))
+            return None
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving book by ID: {e}")
 
     def validate_book_data(self, book_number: str, available: bool = True) -> bool:
         """Validate book data before operations."""

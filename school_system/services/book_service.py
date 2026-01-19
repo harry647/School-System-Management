@@ -1555,11 +1555,11 @@ class BookService:
                         continue
                     
                     # Borrow the book
-                    success, message = self.reserve_book(admission_number, 'student', book.id)
+                    success = self.reserve_book(int(admission_number), 'student', book.id)
                     if success:
                         success_count += 1
                     else:
-                        errors.append(f"Row {i}: {message}")
+                        errors.append(f"Row {i}: Failed to borrow book")
                         error_count += 1
                         
                 except Exception as e:
@@ -1791,12 +1791,12 @@ class BookService:
             logger.error(f"Error logging user action: {e}")
             return False
 
-    def borrow_book(self, book_id: int, user_id: str, user_type: str) -> bool:
+    def borrow_book(self, book_id, user_id: str, user_type: str) -> bool:
         """
         Borrow a book for a user (student or teacher).
 
         Args:
-            book_id: ID of the book to borrow
+            book_id: ID of the book to borrow (can be int or book_number string like "KLB/EE/10/1/26")
             user_id: ID of the user borrowing the book
             user_type: Type of user ('student' or 'teacher')
 
@@ -1806,6 +1806,24 @@ class BookService:
         logger.info(f"Borrowing book {book_id} for {user_type} {user_id}")
 
         try:
+            # Convert book_id to integer ID if it's a book_number string
+            book_id_int = book_id
+            if isinstance(book_id, str):
+                # Try to convert to int first (in case it's a numeric string)
+                try:
+                    book_id_int = int(book_id)
+                except ValueError:
+                    # It's a book_number string, look up the book
+                    book = self.get_book_by_number(book_id)
+                    if not book:
+                        logger.error(f"Book with number '{book_id}' not found")
+                        return False
+                    if not book.id:
+                        logger.error(f"Book '{book_id}' found but has no ID")
+                        return False
+                    book_id_int = book.id
+                    logger.info(f"Resolved book_number '{book_id}' to book_id {book_id_int}")
+            
             # Convert string IDs to appropriate types if needed
             if user_type == 'student':
                 user_id_int = int(user_id)
@@ -1813,7 +1831,7 @@ class BookService:
                 user_id_int = int(user_id)
 
             # Use the existing reserve_book method with correct parameter order
-            return self.reserve_book(user_id_int, user_type, book_id)
+            return self.reserve_book(user_id_int, user_type, book_id_int)
 
         except Exception as e:
             logger.error(f"Error borrowing book: {e}")
@@ -2013,12 +2031,12 @@ class BookService:
         
         return result
 
-    def check_book_availability(self, book_id: int) -> bool:
+    def check_book_availability(self, book_id) -> bool:
         """
         Check if a book is available for borrowing
         
         Args:
-            book_id: ID of the book to check
+            book_id: ID of the book to check (can be int or book_number string)
             
         Returns:
             True if available, False if already borrowed
@@ -2026,9 +2044,27 @@ class BookService:
         logger.info(f"Checking availability for book ID: {book_id}")
         
         try:
-            book = self.book_repository.get_by_id(book_id)
+            # Convert book_id to integer ID if it's a book_number string
+            book_id_int = book_id
+            if isinstance(book_id, str):
+                # Try to convert to int first (in case it's a numeric string)
+                try:
+                    book_id_int = int(book_id)
+                except ValueError:
+                    # It's a book_number string, look up the book
+                    book = self.get_book_by_number(book_id)
+                    if not book:
+                        logger.warning(f"Book with number '{book_id}' not found")
+                        return False
+                    if not book.id:
+                        logger.warning(f"Book '{book_id}' found but has no ID")
+                        return False
+                    book_id_int = book.id
+                    logger.info(f"Resolved book_number '{book_id}' to book_id {book_id_int}")
+            
+            book = self.book_repository.get_by_id(book_id_int)
             if not book:
-                logger.warning(f"Book with ID {book_id} not found")
+                logger.warning(f"Book with ID {book_id_int} not found")
                 return False
                 
             # Check if book is available
@@ -2038,9 +2074,9 @@ class BookService:
                 borrowed_book_teacher_repo = BorrowedBookTeacherRepository()
                 
                 # Check if book is borrowed by any student
-                student_borrowings = borrowed_book_student_repo.find_by_field('book_id', book_id)
+                student_borrowings = borrowed_book_student_repo.find_by_field('book_id', book_id_int)
                 # Check if book is borrowed by any teacher
-                teacher_borrowings = borrowed_book_teacher_repo.find_by_field('book_id', book_id)
+                teacher_borrowings = borrowed_book_teacher_repo.find_by_field('book_id', book_id_int)
                 
                 # Book is available only if it's not borrowed by anyone
                 is_available = not student_borrowings and not teacher_borrowings

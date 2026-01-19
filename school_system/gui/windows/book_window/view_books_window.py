@@ -38,6 +38,21 @@ class ViewBooksWindow(BaseFunctionWindow):
         # Load initial data
         self._refresh_books_table()
     
+    def _load_subjects(self):
+        """Load subjects dynamically from the database."""
+        try:
+            available_subjects = self.book_service.get_all_subjects()
+            if available_subjects:
+                self.subject_filter.addItems(available_subjects)
+            else:
+                # Fallback to standard subjects if database is empty
+                self.subject_filter.addItems(STANDARD_SUBJECTS)
+                logger.warning("No subjects found in database, using standard subjects")
+        except Exception as e:
+            logger.error(f"Error loading subjects from database: {e}")
+            # Fallback to standard subjects on error
+            self.subject_filter.addItems(STANDARD_SUBJECTS)
+    
     def setup_content(self):
         """Setup the main content area."""
         # Create main content layout
@@ -86,7 +101,8 @@ class ViewBooksWindow(BaseFunctionWindow):
         # Subject filter
         self.subject_filter = QComboBox()
         self.subject_filter.addItem("All Subjects")
-        self.subject_filter.addItems(STANDARD_SUBJECTS)
+        # Load subjects dynamically from database
+        self._load_subjects()
         self.subject_filter.setMinimumWidth(150)
         self.subject_filter.currentTextChanged.connect(self._on_filter_changed)
         action_layout.addWidget(self.subject_filter)
@@ -200,7 +216,8 @@ class ViewBooksWindow(BaseFunctionWindow):
 
             # Apply filters
             if subject:
-                books = [b for b in books if b.subject == subject]
+                # Check both subject and category fields for compatibility
+                books = [b for b in books if (getattr(b, 'subject', None) == subject or getattr(b, 'category', None) == subject)]
             if class_name:
                 books = [b for b in books if b.class_name == class_name]
 
@@ -235,7 +252,9 @@ class ViewBooksWindow(BaseFunctionWindow):
                 self.books_table.setItem(row, 1, QTableWidgetItem(book.title))
                 self.books_table.setItem(row, 2, QTableWidgetItem(book.author or ""))
                 self.books_table.setItem(row, 3, QTableWidgetItem(book.isbn or ""))
-                self.books_table.setItem(row, 4, QTableWidgetItem(book.category or ""))
+                # Display subject if available, otherwise fall back to category
+                subject_display = getattr(book, 'subject', None) or getattr(book, 'category', None) or ""
+                self.books_table.setItem(row, 4, QTableWidgetItem(subject_display))
                 self.books_table.setItem(row, 5, QTableWidgetItem(book.class_name or ""))
                 self.books_table.setItem(row, 6, QTableWidgetItem(book.book_type.title()))
                 self.books_table.setItem(row, 7, QTableWidgetItem(book.book_condition or "Good"))
@@ -270,8 +289,13 @@ class ViewBooksWindow(BaseFunctionWindow):
         """Open add book window."""
         from school_system.gui.windows.book_window.add_book_window import AddBookWindow
         add_window = AddBookWindow(self, self.current_user, self.current_role)
-        add_window.book_added.connect(self._refresh_books_table)
+        add_window.book_added.connect(self._on_book_added)
         add_window.show()
+    
+    def _on_book_added(self):
+        """Handle book added event - refresh table and subjects."""
+        self._refresh_subjects()
+        self._refresh_books_table()
     
     def _on_edit_book(self):
         """Open edit book window."""
@@ -283,8 +307,24 @@ class ViewBooksWindow(BaseFunctionWindow):
         book_number = self.books_table.item(selected_rows[0].row(), 0).text()
         from school_system.gui.windows.book_window.edit_book_window import EditBookWindow
         edit_window = EditBookWindow(book_number, self, self.current_user, self.current_role)
-        edit_window.book_updated.connect(self._refresh_books_table)
+        edit_window.book_updated.connect(self._on_book_updated)
         edit_window.show()
+    
+    def _on_book_updated(self):
+        """Handle book updated event - refresh table and subjects."""
+        self._refresh_subjects()
+        self._refresh_books_table()
+    
+    def _refresh_subjects(self):
+        """Refresh the subjects combobox with latest data from database."""
+        current_selection = self.subject_filter.currentText()
+        self.subject_filter.clear()
+        self.subject_filter.addItem("All Subjects")
+        self._load_subjects()
+        # Restore previous selection if it still exists
+        index = self.subject_filter.findText(current_selection)
+        if index >= 0:
+            self.subject_filter.setCurrentIndex(index)
     
     def _on_delete_book(self):
         """Handle delete book."""

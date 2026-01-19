@@ -178,15 +178,11 @@ class BookRemoveWorkflow(BookWorkflowBase):
 class BookBorrowWorkflow(BookWorkflowBase):
     """Workflow for borrowing books."""
     
-    def execute_borrow_book(self, user_type: str, user_id: str, book_id: int) -> Tuple[bool, str]:
+    def execute_borrow_book(self, user_type: str, user_id: str, book_id) -> Tuple[bool, str]:
         """Execute the complete borrow book workflow."""
         try:
-            # Check if book is available
-            if not self.book_service.check_book_availability(book_id):
-                return False, "Book is not available for borrowing"
-            
-            # Reserve the book
-            success = self.book_service.reserve_book(user_id, user_type, book_id)
+            # Use borrow_book which handles book_number strings and converts to book_id
+            success = self.book_service.borrow_book(book_id, user_id, user_type)
             
             if success:
                 self._log_user_action(
