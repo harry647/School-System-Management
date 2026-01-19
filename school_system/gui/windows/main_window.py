@@ -22,6 +22,7 @@ from school_system.services.student_service import StudentService
 from school_system.services.teacher_service import TeacherService
 from school_system.services.furniture_service import FurnitureService
 from school_system.services.report_service import ReportService
+from school_system.gui.dashboard_data_manager import DashboardDataManager, DataState
 from school_system.services.class_management_service import ClassManagementService
 from school_system.gui.windows.user_window.user_window import UserWindow
 from school_system.gui.windows.user_window.view_users_window import ViewUsersWindow
@@ -105,13 +106,45 @@ class MainWindow(BaseApplicationWindow):
     def _init_dashboard_services(self):
         """Initialize services needed for dashboard data fetching."""
         try:
+            # Initialize traditional services
             self.book_service = BookService()
             self.student_service = StudentService()
             self.teacher_service = TeacherService()
             self.furniture_service = FurnitureService()
             self.report_service = ReportService()
             self.class_management_service = ClassManagementService()
-            logger.info("Dashboard services initialized successfully")
+
+            # Initialize the new DashboardDataManager
+            self.dashboard_data_manager = DashboardDataManager(self)
+
+            # Register services with the data manager
+            if self.student_service:
+                self.dashboard_data_manager.register_service('student_service', self.student_service)
+            if self.teacher_service:
+                self.dashboard_data_manager.register_service('teacher_service', self.teacher_service)
+            if self.book_service:
+                self.dashboard_data_manager.register_service('book_service', self.book_service)
+            if self.report_service:
+                self.dashboard_data_manager.register_service('report_service', self.report_service)
+            if self.furniture_service:
+                self.dashboard_data_manager.register_service('furniture_service', self.furniture_service)
+
+            # Connect data manager signals with debouncing
+            self.dashboard_data_manager.data_updated.connect(self._on_dashboard_data_updated)
+            self.dashboard_data_manager.data_error.connect(self._on_dashboard_data_error)
+            self.dashboard_data_manager.loading_started.connect(self._on_dashboard_loading_started)
+            self.dashboard_data_manager.loading_finished.connect(self._on_dashboard_loading_finished)
+
+            # Add debouncing timer for dashboard updates
+            self._dashboard_update_timer = QTimer(self)
+            self._dashboard_update_timer.setSingleShot(True)
+            self._dashboard_update_timer.timeout.connect(self._refresh_dashboard_display)
+            self._dashboard_update_pending = False
+
+            # Set up auto-refresh for critical data
+            self._setup_auto_refresh()
+
+            logger.info("Dashboard services and data manager initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize dashboard services: {str(e)}")
             # Set services to None so dashboard can use fallbacks
@@ -121,6 +154,7 @@ class MainWindow(BaseApplicationWindow):
             self.furniture_service = None
             self.report_service = None
             self.class_management_service = None
+            self.dashboard_data_manager = None
 
     def _setup_main_layout(self):
         """Setup the main splitter layout for sidebar and content area."""
@@ -844,6 +878,10 @@ class MainWindow(BaseApplicationWindow):
     def _load_content(self, content_id: str):
         """Load and display the specified content view."""
         try:
+            # Prevent unnecessary reloads of the same content
+            if self.current_view == content_id and content_id in self.content_views:
+                return
+
             if content_id in self.content_views:
                 # Switch to existing view
                 self.content_stack.setCurrentWidget(self.content_views[content_id])
@@ -5824,15 +5862,55 @@ For additional support, contact your system administrator.
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(20)
 
-        # Panel Title
+        # Panel Title and Refresh Controls
+        header_layout = QHBoxLayout()
+
         title = QLabel("⚡ Quick Actions")
         title.setStyleSheet(f"""
             font-size: 18px;
             font-weight: bold;
             color: {theme["text"]};
-            margin-bottom: 8px;
         """)
-        layout.addWidget(title)
+        header_layout.addWidget(title)
+
+        # Refresh controls
+        refresh_layout = QHBoxLayout()
+        refresh_layout.setSpacing(8)
+
+        # Manual refresh button
+        refresh_btn = self.create_button("🔄 Refresh", "secondary")
+        refresh_btn.setFixedHeight(32)
+        refresh_btn.clicked.connect(self._manual_refresh_dashboard)
+        refresh_layout.addWidget(refresh_btn)
+
+        # Auto-refresh toggle
+        self._auto_refresh_enabled = True
+        auto_refresh_btn = self.create_button("⏰ Auto: ON", "outline")
+        auto_refresh_btn.setFixedHeight(32)
+        auto_refresh_btn.clicked.connect(self._toggle_auto_refresh)
+        self._auto_refresh_button = auto_refresh_btn
+        refresh_layout.addWidget(auto_refresh_btn)
+
+        # Performance indicator
+        self._performance_label = QLabel("⚡ Ready")
+        self._performance_label.setStyleSheet(f"""
+            font-size: 12px;
+            color: {theme["text_secondary"]};
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: {theme["surface_hover"]};
+        """)
+        refresh_layout.addWidget(self._performance_label)
+
+        header_layout.addStretch()
+        header_layout.addLayout(refresh_layout)
+        layout.addLayout(header_layout)
+
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet(f"color: {theme['border']}; margin: 8px 0;")
+        layout.addWidget(separator)
 
         # Action Categories
         categories = [
@@ -5938,58 +6016,26 @@ For additional support, contact your system administrator.
         """)
         layout.addWidget(title)
 
-        # Key metrics based on role - fetch real data with fallbacks
+        # Key metrics based on role - use real-time stat cards
         if self.role in ['admin', 'librarian']:
-            # Get real metrics
-            system_health = "98%"  # This could be calculated from system status
-            active_users = self._get_active_users_count()
-            books_borrowed_today = self._get_books_borrowed_today()
-            pending_approvals = self._get_pending_approvals_count()
-
+            # Admin/Librarian metrics
             metrics = [
-                ("System Health", system_health, "#27ae60", "🟢"),
-                ("Active Users", active_users, role_color, "👥"),
-                ("Books Borrowed Today", books_borrowed_today, "#f39c12", "📚"),
-                ("Pending Approvals", pending_approvals, "#e74c3c", "⚠️"),
+                ("active_users_count", "Active Users", "👥", role_color),
+                ("books_borrowed_today", "Books Borrowed Today", "📚", "#f39c12"),
+                ("total_books_count", "Total Books", "📖", "#27ae60"),
+                ("available_books_count", "Available Books", "📚", "#3498db"),
             ]
         else:
-            # Get real metrics for regular users
-            books_available = self._get_available_books_count()
-            your_borrowed_books = self._get_user_borrowed_books_count()
-            due_soon = self._get_due_soon_count()
-
+            # Regular user metrics
             metrics = [
-                ("Books Available", books_available, "#27ae60", "📚"),
-                ("Your Borrowed Books", your_borrowed_books, role_color, "📖"),
-                ("Due Soon", due_soon, "#f39c12", "⏰"),
+                ("available_books_count", "Books Available", "📚", "#27ae60"),
+                ("total_borrowed_books_count", "Total Borrowed", "📖", role_color),
+                ("due_soon_count", "Due Soon", "⏰", "#f39c12"),
             ]
 
-        for metric_name, value, color, icon in metrics:
-            metric_card = QFrame()
-            metric_card.setStyleSheet(f"""
-                QFrame {{
-                    background-color: {theme["surface_hover"]};
-                    border-radius: 8px;
-                    border-left: 3px solid {color};
-                    padding: 12px;
-                }}
-            """)
-
-            metric_layout = QHBoxLayout(metric_card)
-            metric_layout.setContentsMargins(12, 12, 12, 12)
-
-            # Icon and name
-            icon_label = QLabel(f"{icon} {metric_name}")
-            icon_label.setStyleSheet(f"color: {theme['text']}; font-size: 14px; font-weight: 500;")
-
-            # Value
-            value_label = QLabel(value)
-            value_label.setStyleSheet(f"color: {color}; font-size: 16px; font-weight: bold;")
-
-            metric_layout.addWidget(icon_label)
-            metric_layout.addStretch()
-            metric_layout.addWidget(value_label)
-
+        for data_key, metric_name, icon, color in metrics:
+            # Create real-time stat card
+            metric_card = self._create_realtime_stat_card(metric_name, data_key, icon, color)
             layout.addWidget(metric_card)
 
         layout.addStretch()
@@ -6026,22 +6072,22 @@ For additional support, contact your system administrator.
         """)
         layout.addWidget(title)
 
-        # Statistics grid
+        # Statistics grid - use real-time data
         if self.role in ['admin', 'librarian']:
             stats_data = [
-                ("Total Students", "1,247", "👨‍🎓", "#3498db", "+12%"),
-                ("Total Teachers", "89", "👩‍🏫", "#2ecc71", "+3%"),
-                ("Total Books", "3,456", "📚", "#9b59b6", "+8%"),
-                ("Available Chairs", "245", "🪑", "#f39c12", "-2%"),
-                ("Available Lockers", "67", "🔐", "#e74c3c", "+5%"),
-                ("Books Borrowed", "892", "📖", "#1abc9c", "+15%"),
+                ("total_students_count", "Total Students", "👨‍🎓", "#3498db"),
+                ("total_teachers_count", "Total Teachers", "👩‍🏫", "#2ecc71"),
+                ("total_books_count", "Total Books", "📚", "#9b59b6"),
+                ("available_chairs_count", "Available Chairs", "🪑", "#f39c12"),
+                ("available_lockers_count", "Available Lockers", "🔐", "#e74c3c"),
+                ("total_borrowed_books_count", "Books Borrowed", "📖", "#1abc9c"),
             ]
         else:
             stats_data = [
-                ("Total Books", "3,456", "📚", "#9b59b6", "+8%"),
-                ("Available Books", "2,564", "📖", "#27ae60", "+12%"),
-                ("Your Borrowed", "3", "📚", "#3498db", "0%"),
-                ("Due Soon", "2", "⏰", "#f39c12", "0%"),
+                ("total_books_count", "Total Books", "📚", "#9b59b6"),
+                ("available_books_count", "Available Books", "📖", "#27ae60"),
+                ("total_borrowed_books_count", "Your Borrowed", "📚", "#3498db"),
+                ("due_soon_count", "Due Soon", "⏰", "#f39c12"),
             ]
 
         # Create grid layout for stats
@@ -6051,8 +6097,8 @@ For additional support, contact your system administrator.
         row, col = 0, 0
         max_cols = 2
 
-        for title, count, icon, color, change in stats_data:
-            stat_card = self._create_enhanced_stat_card(title, count, icon, color, change)
+        for data_key, title, icon, color in stats_data:
+            stat_card = self._create_realtime_stat_card(title, data_key, icon, color)
             grid_layout.addWidget(stat_card, row, col)
 
             col += 1
@@ -6166,6 +6212,189 @@ For additional support, contact your system administrator.
         layout.addWidget(change_label)
 
         return card
+
+    def _create_realtime_stat_card(self, title, data_key, icon, color, change=""):
+        """
+        Create a real-time statistics card with loading and error states.
+
+        Args:
+            title: Card title
+            data_key: Key for data fetching
+            icon: Icon emoji
+            color: Theme color
+            change: Change indicator text
+        """
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        card = QFrame()
+        card.setProperty("realtimeStatCard", "true")
+        card.setStyleSheet(f"""
+            QFrame[realtimeStatCard="true"] {{
+                background-color: {theme["surface"]};
+                border-radius: 12px;
+                border: 1px solid {theme["border"]};
+                padding: 20px;
+                min-height: 120px;
+            }}
+            QFrame[realtimeStatCard="true"]:hover {{
+                border-color: {color};
+                background-color: {theme["surface_hover"]};
+            }}
+        """)
+
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(8)
+
+        # Header with icon, title, and status indicator
+        header_layout = QHBoxLayout()
+
+        # Icon
+        icon_label = QLabel(icon)
+        icon_label.setStyleSheet("font-size: 24px;")
+        header_layout.addWidget(icon_label)
+
+        # Title
+        title_label = QLabel(title)
+        title_label.setStyleSheet(f"""
+            font-size: 14px;
+            color: {theme["text_secondary"]};
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        """)
+        header_layout.addWidget(title_label)
+
+        # Status indicator (loading/error/normal)
+        self._status_indicators = getattr(self, '_status_indicators', {})
+        status_label = QLabel("")
+        status_label.setFixedSize(16, 16)
+        status_label.setStyleSheet("""
+            QLabel {
+                border-radius: 8px;
+                background-color: transparent;
+            }
+        """)
+        self._status_indicators[data_key] = status_label
+        header_layout.addStretch()
+        header_layout.addWidget(status_label)
+
+        layout.addLayout(header_layout)
+
+        # Count display (can show loading spinner or error icon)
+        self._count_labels = getattr(self, '_count_labels', {})
+        count_label = QLabel("Loading...")
+        count_font = QFont("Segoe UI", 28, QFont.Weight.Bold)
+        count_label.setFont(count_font)
+        count_label.setStyleSheet(f"color: {theme['text']};")
+        self._count_labels[data_key] = count_label
+        layout.addWidget(count_label)
+
+        # Change indicator
+        if change:
+            change_label = QLabel(change)
+            change_label.setStyleSheet(f"""
+                font-size: 12px;
+                color: {color};
+                font-weight: 500;
+            """)
+            layout.addWidget(change_label)
+
+        # Store card reference for updates
+        self._stat_cards = getattr(self, '_stat_cards', {})
+        self._stat_cards[data_key] = card
+
+        # Initial data fetch
+        self._update_stat_card_display(data_key)
+
+        return card
+
+    def _update_stat_card_display(self, data_key: str):
+        """Update the display of a stat card based on current data state."""
+        if not hasattr(self, '_count_labels') or data_key not in self._count_labels:
+            return
+
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        count_label = self._count_labels[data_key]
+        status_label = self._status_indicators.get(data_key)
+
+        # Get data from data manager
+        data = None
+        is_loading = False
+        error_message = None
+
+        if self.dashboard_data_manager:
+            # Check if data is currently being fetched
+            if hasattr(self.dashboard_data_manager, '_active_workers') and \
+               data_key in self.dashboard_data_manager._active_workers:
+                is_loading = True
+            else:
+                # Try to get cached data
+                cache_entry = self.dashboard_data_manager._cache.get(data_key)
+                if cache_entry:
+                    if cache_entry.state == DataState.ERROR:
+                        error_message = cache_entry.error_message
+                    elif cache_entry.state in [DataState.READY, DataState.STALE]:
+                        data = cache_entry.data
+
+        # Update display based on state
+        if is_loading:
+            count_label.setText("⏳")
+            count_label.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 24px;")
+            if status_label:
+                status_label.setStyleSheet("""
+                    QLabel {
+                        background-color: #fbbf24;
+                        border-radius: 8px;
+                    }
+                """)
+        elif error_message:
+            count_label.setText("❌")
+            count_label.setStyleSheet(f"color: #ef4444; font-size: 24px;")
+            if status_label:
+                status_label.setStyleSheet("""
+                    QLabel {
+                        background-color: #ef4444;
+                        border-radius: 8px;
+                    }
+                """)
+            # Could show tooltip with error message
+            count_label.setToolTip(f"Error: {error_message}")
+        else:
+            # Format data for display
+            if data is not None:
+                if isinstance(data, int):
+                    if data_key in ['total_students_count', 'total_books_count', 'active_users_count', 'available_books_count']:
+                        display_text = f"{data:,}"
+                    else:
+                        display_text = str(data)
+                else:
+                    display_text = str(data)
+
+                count_label.setText(display_text)
+                count_label.setStyleSheet(f"color: {theme['text']};")
+                if status_label:
+                    status_label.setStyleSheet("""
+                        QLabel {
+                            background-color: #10b981;
+                            border-radius: 8px;
+                        }
+                    """)
+                count_label.setToolTip("")  # Clear any error tooltip
+            else:
+                # No data available yet
+                count_label.setText("--")
+                count_label.setStyleSheet(f"color: {theme['text_secondary']};")
+                if status_label:
+                    status_label.setStyleSheet("""
+                        QLabel {
+                            background-color: #6b7280;
+                            border-radius: 8px;
+                        }
+                    """)
 
     def _create_activity_panel(self):
         """Create a recent activity panel."""
@@ -7337,6 +7566,317 @@ Developed for efficient school administration."""
             ("System backup completed", "3 hours ago", "💾"),
         ]
 
+    # DashboardDataManager integration methods
+    def _setup_auto_refresh(self):
+        """Set up auto-refresh intervals for dashboard data."""
+        if not self.dashboard_data_manager:
+            return
+
+        # Set auto-refresh intervals (in seconds) - more conservative to reduce load
+        refresh_intervals = {
+            'active_users_count': 600,  # 10 minutes
+            'total_students_count': 900,  # 15 minutes
+            'total_teachers_count': 900,  # 15 minutes
+            'total_books_count': 600,  # 10 minutes
+            'available_books_count': 300,  # 5 minutes
+            'books_borrowed_today': 120,  # 2 minutes
+            'total_borrowed_books_count': 300,  # 5 minutes
+            'due_soon_count': 600,  # 10 minutes
+            'recent_activities': 300,  # 5 minutes
+            'available_chairs_count': 1200,  # 20 minutes
+            'available_lockers_count': 1200,  # 20 minutes
+        }
+
+        for data_key, interval in refresh_intervals.items():
+            self.dashboard_data_manager.set_auto_refresh(data_key, interval)
+
+        logger.info("Auto-refresh configured for dashboard data with conservative intervals")
+
+    def _on_dashboard_data_updated(self, data_key: str, data):
+        """Handle data updates from the dashboard data manager."""
+        logger.debug(f"Dashboard data updated: {data_key}")
+
+        # Update the dashboard display if it's currently visible with debouncing
+        if self.current_view == "dashboard":
+            # Update stat cards immediately for better responsiveness
+            self._update_dashboard_stat_cards()
+            self._update_performance_indicator()
+
+            # Schedule a debounced full refresh (if not already pending)
+            if not self._dashboard_update_pending:
+                self._dashboard_update_pending = True
+                self._dashboard_update_timer.start(1000)  # 1 second debounce
+
+    def _on_dashboard_data_error(self, data_key: str, error_message: str):
+        """Handle data fetch errors from the dashboard data manager."""
+        logger.error(f"Dashboard data error for {data_key}: {error_message}")
+
+        # Could show user notification for critical errors
+        if data_key in ['active_users_count', 'total_books_count']:
+            # For now, just log - could show toast notification
+            pass
+
+    def _on_dashboard_loading_started(self, data_key: str):
+        """Handle loading started signal."""
+        logger.debug(f"Dashboard data loading started: {data_key}")
+
+        # Could show loading indicators in UI
+        if self.current_view == "dashboard":
+            # Update UI to show loading state for specific data
+            pass
+
+    def _on_dashboard_loading_finished(self, data_key: str):
+        """Handle loading finished signal."""
+        logger.debug(f"Dashboard data loading finished: {data_key}")
+
+        # Update UI loading state
+        if self.current_view == "dashboard":
+            self._refresh_dashboard_display()
+
+    def _manual_refresh_dashboard(self):
+        """Manually refresh all dashboard data."""
+        logger.info("Manual dashboard refresh requested")
+
+        if self.dashboard_data_manager:
+            # Invalidate all cache and force refresh
+            self.dashboard_data_manager.invalidate_cache()
+
+            # Trigger refresh for all data keys
+            data_keys = [
+                'active_users_count', 'total_students_count', 'total_teachers_count',
+                'total_books_count', 'available_books_count', 'books_borrowed_today',
+                'total_borrowed_books_count', 'due_soon_count', 'recent_activities',
+                'available_chairs_count', 'available_lockers_count'
+            ]
+
+            for data_key in data_keys:
+                self.dashboard_data_manager.get_data(data_key, force_refresh=True)
+
+            # Update performance indicator
+            self._update_performance_indicator()
+
+    def _toggle_auto_refresh(self):
+        """Toggle auto-refresh on/off."""
+        if not self.dashboard_data_manager:
+            return
+
+        self._auto_refresh_enabled = not self._auto_refresh_enabled
+
+        if self._auto_refresh_enabled:
+            # Re-enable auto-refresh for all data keys
+            self._setup_auto_refresh()
+            self._auto_refresh_button.setText("⏰ Auto: ON")
+            self._auto_refresh_button.setProperty("variant", "outline")
+            logger.info("Auto-refresh enabled")
+        else:
+            # Disable auto-refresh for all data keys
+            for data_key in self.dashboard_data_manager._auto_refresh_intervals.keys():
+                self.dashboard_data_manager.disable_auto_refresh(data_key)
+            self._auto_refresh_button.setText("⏰ Auto: OFF")
+            self._auto_refresh_button.setProperty("variant", "secondary")
+            logger.info("Auto-refresh disabled")
+
+        # Update button style
+        self._auto_refresh_button.style().unpolish(self._auto_refresh_button)
+        self._auto_refresh_button.style().polish(self._auto_refresh_button)
+
+    def _update_performance_indicator(self):
+        """Update the performance indicator with current stats."""
+        if not self.dashboard_data_manager or not hasattr(self, '_performance_label'):
+            return
+
+        try:
+            stats = self.dashboard_data_manager.get_cache_stats()
+            cache_stats = stats.get('cache_stats', {})
+            perf_stats = stats.get('performance_stats', {})
+
+            total_entries = cache_stats.get('total_entries', 0)
+            active_workers = cache_stats.get('active_workers', 0)
+            cache_hit_rate = perf_stats.get('cache_hit_rate', 0)
+
+            if active_workers > 0:
+                status_text = f"🔄 Loading ({active_workers} active)"
+                color = "#fbbf24"  # Yellow
+            elif cache_hit_rate > 0.8:
+                status_text = f"⚡ Fast ({cache_hit_rate:.1%} hit rate)"
+                color = "#10b981"  # Green
+            elif cache_hit_rate > 0.5:
+                status_text = f"⚡ Good ({cache_hit_rate:.1%} hit rate)"
+                color = "#f59e0b"  # Orange
+            else:
+                status_text = f"🐌 Slow ({cache_hit_rate:.1%} hit rate)"
+                color = "#ef4444"  # Red
+
+            theme_manager = self.get_theme_manager()
+            theme = theme_manager._themes[self.get_theme()]
+
+            self._performance_label.setText(status_text)
+            self._performance_label.setStyleSheet(f"""
+                font-size: 12px;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                background-color: {color};
+            """)
+
+        except Exception as e:
+            logger.error(f"Error updating performance indicator: {str(e)}")
+
+    def _refresh_dashboard_display(self):
+        """Refresh the dashboard display with latest data."""
+        try:
+            # Reset debouncing flag
+            self._dashboard_update_pending = False
+
+            # Only refresh if dashboard is currently visible
+            if self.current_view == "dashboard":
+                # Full refresh only when explicitly requested or after debounced updates
+                self._load_content("dashboard")
+            else:
+                logger.debug("Skipping dashboard refresh - not currently visible")
+        except Exception as e:
+            logger.error(f"Error refreshing dashboard display: {str(e)}")
+            self._dashboard_update_pending = False
+
+    def _update_dashboard_stat_cards(self):
+        """Update stat card displays with latest data without full reload."""
+        try:
+            # Update status indicators and counts for existing stat cards
+            if hasattr(self, '_count_labels'):
+                for data_key, count_label in self._count_labels.items():
+                    if self.dashboard_data_manager:
+                        data = self.dashboard_data_manager.get_data(data_key)
+                        if data is not None:
+                            # Update the display
+                            if hasattr(self, '_update_stat_card_display'):
+                                self._update_stat_card_display(data_key)
+
+            # Update performance indicator
+            if hasattr(self, '_update_performance_indicator'):
+                self._update_performance_indicator()
+
+        except Exception as e:
+            logger.error(f"Error updating dashboard stat cards: {str(e)}")
+
+    # Enhanced data fetching methods using DashboardDataManager
+    def _get_active_users_count(self) -> str:
+        """Get count of active users using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('active_users_count')
+            if data is not None:
+                return f"{data:,}"
+        # Fallback to old method
+        return super()._get_active_users_count()
+
+    def _get_books_borrowed_today(self) -> str:
+        """Get books borrowed today using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('books_borrowed_today')
+            if data is not None:
+                return str(data)
+        # Fallback to old method
+        return super()._get_books_borrowed_today()
+
+    def _get_available_books_count(self) -> str:
+        """Get available books count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('available_books_count')
+            if data is not None:
+                return f"{data:,}"
+        # Fallback to old method
+        return super()._get_available_books_count()
+
+    def _get_user_borrowed_books_count(self) -> str:
+        """Get user borrowed books count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('total_borrowed_books_count')
+            if data is not None:
+                return str(data)
+        # Fallback to old method
+        return super()._get_user_borrowed_books_count()
+
+    def _get_due_soon_count(self) -> str:
+        """Get due soon count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('due_soon_count')
+            if data is not None:
+                return str(data)
+        # Fallback to old method
+        return super()._get_due_soon_count()
+
+    def _get_total_students_count(self) -> str:
+        """Get total students count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('total_students_count')
+            if data is not None:
+                return f"{data:,}"
+        # Fallback to old method
+        return super()._get_total_students_count()
+
+    def _get_total_teachers_count(self) -> str:
+        """Get total teachers count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('total_teachers_count')
+            if data is not None:
+                return f"{data:,}"
+        # Fallback to old method
+        return super()._get_total_teachers_count()
+
+    def _get_total_books_count(self) -> str:
+        """Get total books count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('total_books_count')
+            if data is not None:
+                return f"{data:,}"
+        # Fallback to old method
+        return super()._get_total_books_count()
+
+    def _get_available_chairs_count(self) -> str:
+        """Get available chairs count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('available_chairs_count')
+            if data is not None:
+                return str(data)
+        # Fallback to old method
+        return super()._get_available_chairs_count()
+
+    def _get_available_lockers_count(self) -> str:
+        """Get available lockers count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('available_lockers_count')
+            if data is not None:
+                return str(data)
+        # Fallback to old method
+        return super()._get_available_lockers_count()
+
+    def _get_total_borrowed_books_count(self) -> str:
+        """Get total borrowed books count using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('total_borrowed_books_count')
+            if data is not None:
+                return str(data)
+        # Fallback to old method
+        return super()._get_total_borrowed_books_count()
+
+    def _get_recent_activities(self) -> list:
+        """Get recent activities using data manager."""
+        if self.dashboard_data_manager:
+            data = self.dashboard_data_manager.get_data('recent_activities')
+            if data is not None:
+                return data
+        # Fallback to default activities
+        return [
+            ("Book borrowed: 'Python Programming' by John Doe", "2 min ago", "📖"),
+            ("New student registered: Jane Smith", "15 min ago", "👨‍🎓"),
+            ("Book returned: 'Data Science 101'", "1 hour ago", "↩️"),
+            ("Teacher added: Prof. Michael Johnson", "2 hours ago", "👩‍🏫"),
+            ("System backup completed", "3 hours ago", "💾"),
+        ]
+
     def closeEvent(self, event):
         """Handle window closing."""
+        # Shutdown the dashboard data manager
+        if hasattr(self, 'dashboard_data_manager') and self.dashboard_data_manager:
+            self.dashboard_data_manager.shutdown()
+
         super().closeEvent(event)
