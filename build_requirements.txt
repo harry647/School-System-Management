@@ -1,0 +1,12 @@
+# Build Requirements for School System Management
+# These packages are needed to build the installer
+
+# PyInstaller - for creating the executable
+pyinstaller>=5.0.0
+
+# UPX - for compressing the executable (optional, reduces size)
+# upx>=4.0.0
+
+# Additional tools for development
+wheel>=0.37.0
+setuptools>=65.0.0

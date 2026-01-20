@@ -1,0 +1,25 @@
+School System Management - License Agreement
+
+This software is provided "as is" without warranty of any kind, either expressed or implied,
+including but not limited to the implied warranties of merchantability and fitness for a
+particular purpose.
+
+The School System Management application is designed for educational institutions to manage
+student records, library books, teacher information, and related administrative tasks.
+
+PERMISSIONS:
+- Use for educational purposes
+- Install on multiple computers within the same institution
+- Make backup copies for disaster recovery
+
+RESTRICTIONS:
+- Do not redistribute or sell this software
+- Do not reverse engineer or modify the software
+- Do not use for commercial purposes without written permission
+
+SUPPORT:
+This software is provided as-is. For technical support or feature requests,
+please contact the development team.
+
+COPYRIGHT:
+© 2024 School Management Solutions. All rights reserved.

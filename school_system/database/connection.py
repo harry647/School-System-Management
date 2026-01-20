@@ -140,6 +140,8 @@ def initialize_database():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 qr_code TEXT UNIQUE,
                 qr_generated_at TIMESTAMP,
+                class TEXT,
+                stream_name TEXT,
                 FOREIGN KEY (stream) REFERENCES short_form_mappings(short_form)
             )
         """)
@@ -217,7 +219,19 @@ def initialize_database():
                 user_id TEXT PRIMARY KEY,
                 reminder_frequency TEXT DEFAULT 'daily' CHECK (reminder_frequency IN ('daily', 'weekly', 'disabled')),
                 sound_enabled INTEGER DEFAULT 1,
+                settings_json TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(username) ON DELETE CASCADE
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS global_settings (
+                key TEXT PRIMARY KEY,
+                value_json TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -439,6 +453,50 @@ def initialize_database():
         """, (default_username, default_password))
         if cursor.rowcount > 0:
             logger.info("Default admin user created with password")
+
+        # Insert default global settings
+        cursor.execute("SELECT COUNT(*) FROM global_settings WHERE key = 'global_settings'")
+        if cursor.fetchone()[0] == 0:
+            default_global_settings = {
+                "application": {
+                    "app_name": "School System Management",
+                    "app_version": "1.0.0",
+                    "maintenance_mode": False,
+                    "debug_mode": False
+                },
+                "database": {
+                    "backup_enabled": True,
+                    "backup_interval_hours": 24,
+                    "max_backup_files": 30,
+                    "auto_cleanup_backups": True
+                },
+                "security": {
+                    "max_login_attempts": 3,
+                    "session_timeout_minutes": 60,
+                    "password_min_length": 8,
+                    "require_special_chars": True,
+                    "password_expiry_days": 90
+                },
+                "system": {
+                    "log_level": "INFO",
+                    "max_file_size_mb": 100,
+                    "temp_file_cleanup_hours": 24,
+                    "system_notifications": True
+                },
+                "features": {
+                    "qr_codes_enabled": True,
+                    "bulk_operations_enabled": True,
+                    "advanced_reporting": True,
+                    "api_access_enabled": False
+                }
+            }
+
+            import json
+            cursor.execute(
+                "INSERT INTO global_settings (key, value_json, created_at, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                ("global_settings", json.dumps(default_global_settings))
+            )
+            logger.info("Default global settings inserted")
         
         mydb.commit()
         logger.info("Database initialized successfully with all updates")
