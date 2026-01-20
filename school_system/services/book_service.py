@@ -130,7 +130,10 @@ class BookService:
         for key, value in book_data.items():
             setattr(book, key, value)
 
-        return self.book_repository.update(book)
+        # Use the book's own update method instead of repository update
+        # to handle special field mappings like class_name -> class
+        book.update()
+        return book
 
     def delete_book(self, book_id: int) -> bool:
         """
@@ -657,10 +660,36 @@ class BookService:
             data = self.import_export_service.import_from_excel(filename)
             books = []
 
+            # Column name mapping from Excel (Title Case) to Book constructor (lowercase)
+            column_mapping = {
+                'Book_Number': 'book_number',
+                'Title': 'title',
+                'Author': 'author',
+                'Subject': 'subject',
+                'Class': 'class_name',  # Maps to class_name parameter
+                'Category': 'category',
+                'ISBN': 'isbn',
+                'Publication_Date': 'publication_date',
+                'Book_Condition': 'book_condition',
+                'Available': 'available',
+                'Book_Type': 'book_type',  # Will be converted to revision
+                'QR_Code': 'qr_code',
+                'QR_Generated_At': 'qr_generated_at'
+            }
+
             for book_data in data:
-                book = Book(**book_data)
-                created_book = self.book_repository.create(book)
-                books.append(created_book)
+                # Map Excel column names to Book constructor parameter names
+                mapped_data = {}
+                for excel_col, book_param in column_mapping.items():
+                    if excel_col in book_data:
+                        mapped_data[book_param] = book_data[excel_col]
+
+                # Create book with mapped data
+                book = Book(**mapped_data)
+                # Use the book's save method instead of repository create
+                # to handle special field mappings like class_name -> class
+                book.save()
+                books.append(book)
 
             logger.info(f"Successfully imported {len(books)} books from {filename}")
             return books
@@ -1414,23 +1443,24 @@ class BookService:
         try:
             books = self.book_repository.get_all()
 
-            # Convert books to exportable data, excluding internal fields
+            # Convert books to exportable data using Title Case column names
+            # that match what the UI shows for import
             data = []
             for book in books:
                 book_dict = {
-                    'book_number': book.book_number,
-                    'title': book.title,
-                    'author': book.author,
-                    'category': getattr(book, 'category', ''),
-                    'isbn': getattr(book, 'isbn', ''),
-                    'publication_date': getattr(book, 'publication_date', ''),
-                    'available': book.available,
-                    'book_type': book.book_type,
-                    'book_condition': book.book_condition,
-                    'subject': getattr(book, 'subject', ''),
-                    'class': getattr(book, 'class_name', ''),
-                    'qr_code': getattr(book, 'qr_code', ''),
-                    'qr_generated_at': getattr(book, 'qr_generated_at', '')
+                    'Book_Number': book.book_number,
+                    'Title': book.title,
+                    'Author': book.author,
+                    'Subject': getattr(book, 'subject', ''),
+                    'Class': getattr(book, 'class_name', ''),
+                    'Category': getattr(book, 'category', ''),
+                    'ISBN': getattr(book, 'isbn', ''),
+                    'Publication_Date': getattr(book, 'publication_date', ''),
+                    'Book_Condition': book.book_condition,
+                    'Available': book.available,
+                    'Book_Type': book.book_type,
+                    'QR_Code': getattr(book, 'qr_code', ''),
+                    'QR_Generated_At': getattr(book, 'qr_generated_at', '')
                 }
                 data.append(book_dict)
 
@@ -1478,6 +1508,40 @@ class BookService:
             return self.import_export_service.export_to_csv(data, filename)
         except Exception as e:
             logger.error(f"Error exporting books to CSV: {e}")
+            return False
+
+    def export_borrowed_books_to_excel(self, filename: str) -> bool:
+        """
+        Export borrowed books data to an Excel file.
+
+        Args:
+            filename: The name of the Excel file.
+
+        Returns:
+            True if the export was successful, otherwise False.
+        """
+        logger.info(f"Exporting borrowed books to Excel file: {filename}")
+        ValidationUtils.validate_input(filename, "Filename cannot be empty")
+
+        try:
+            # Get basic borrowed books data
+            borrowed_books = self.get_borrowed_books()
+
+            # Convert to export format
+            export_data = []
+            for book_info in borrowed_books:
+                export_dict = {
+                    'Book_ID': book_info.get('book_id', ''),
+                    'Book_Number': book_info.get('book_number', ''),
+                    'Student_ID': book_info.get('user_id', ''),
+                    'Borrowed_Date': book_info.get('borrowed_on', ''),
+                    'Status': 'Active'
+                }
+                export_data.append(export_dict)
+
+            return self.import_export_service.export_to_excel(export_data, filename)
+        except Exception as e:
+            logger.error(f"Error exporting borrowed books to Excel: {e}")
             return False
 
     def generate_book_import_template(self, filename: str, columns: List[str], sample_data: List[Dict] = None) -> bool:

@@ -50,7 +50,11 @@ class BookImportExportWindow(BaseFunctionWindow):
         # Export section
         export_card = self._create_export_card()
         main_layout.add_widget(export_card)
-        
+
+        # Borrowing Records section
+        borrowing_card = self._create_borrowing_records_card()
+        main_layout.add_widget(borrowing_card)
+
         # Add to content
         self.add_layout_to_content(main_layout)
     
@@ -186,7 +190,140 @@ class BookImportExportWindow(BaseFunctionWindow):
         export_layout.addWidget(export_btn)
         
         return export_card
-    
+
+    def _create_borrowing_records_card(self) -> QWidget:
+        """Create the borrowing records import/export card."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        borrowing_card = QWidget()
+        borrowing_card.setProperty("card", "true")
+        borrowing_card.setStyleSheet(f"""
+            QWidget[card="true"] {{
+                background-color: {theme["surface"]};
+                border: 1px solid {theme["border"]};
+                border-radius: 12px;
+                padding: 24px;
+                margin-top: 16px;
+            }}
+        """)
+
+        borrowing_layout = QVBoxLayout(borrowing_card)
+        borrowing_layout.setContentsMargins(24, 24, 24, 24)
+        borrowing_layout.setSpacing(16)
+
+        # Title
+        title_label = QLabel("📖 Borrowing Records")
+        title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
+        title_label.setFont(title_font)
+        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        borrowing_layout.addWidget(title_label)
+
+        # Description
+        desc_label = QLabel("Import or export book borrowing records. Import creates new borrowing records for students.")
+        desc_label.setWordWrap(True)
+        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 12px;")
+        borrowing_layout.addWidget(desc_label)
+
+        # Tabs for Import/Export
+        from PyQt6.QtWidgets import QTabWidget
+        tabs = QTabWidget()
+
+        # Import tab
+        import_tab = self._create_borrowing_import_tab()
+        tabs.addTab(import_tab, "Import Borrowing Records")
+
+        # Export tab
+        export_tab = self._create_borrowing_export_tab()
+        tabs.addTab(export_tab, "Export Borrowing Records")
+
+        borrowing_layout.addWidget(tabs)
+
+        return borrowing_card
+
+    def _create_borrowing_import_tab(self) -> QWidget:
+        """Create the borrowing records import tab."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
+
+        # Required columns information
+        columns_info = QVBoxLayout()
+        columns_info.setSpacing(8)
+
+        columns_label = QLabel("Required Excel Columns:")
+        columns_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px;")
+        columns_info.addWidget(columns_label)
+
+        # Show required columns for borrowing import
+        from school_system.gui.windows.book_window.utils.constants import EXCEL_BULK_BORROW_COLUMNS
+        for i, col in enumerate(EXCEL_BULK_BORROW_COLUMNS):
+            is_required = True  # All columns in bulk borrow are required
+            status = "Required"
+            color = theme["error"]
+
+            col_label = QLabel(f"• {col.replace('_', ' ')} ({status})")
+            col_label.setStyleSheet(f"color: {color}; font-size: 11px; margin-left: 12px;")
+            columns_info.addWidget(col_label)
+
+        # Template button
+        template_btn = self.create_button("📄 Generate Import Template", "outline")
+        template_btn.setFixedWidth(200)
+        template_btn.clicked.connect(self._generate_borrowing_import_template)
+        columns_info.addWidget(template_btn)
+
+        layout.addLayout(columns_info)
+
+        # File selection
+        file_layout = QHBoxLayout()
+        file_layout.setSpacing(12)
+
+        self.borrowing_import_file_label = QLabel("No file selected")
+        self.borrowing_import_file_label.setStyleSheet(f"color: {theme["text_secondary"]}; padding: 8px; border: 1px dashed {theme["border"]}; border-radius: 8px;")
+        file_layout.addWidget(self.borrowing_import_file_label, stretch=1)
+
+        browse_btn = self.create_button("Browse...", "outline")
+        browse_btn.clicked.connect(self._on_browse_borrowing_import_file)
+        file_layout.addWidget(browse_btn)
+
+        layout.addLayout(file_layout)
+
+        # Import button
+        import_btn = self.create_button("Import Borrowing Records", "primary")
+        import_btn.clicked.connect(self._on_import_borrowing_records)
+        layout.addWidget(import_btn)
+
+        layout.addStretch()
+        return tab
+
+    def _create_borrowing_export_tab(self) -> QWidget:
+        """Create the borrowing records export tab."""
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
+
+        # Description
+        desc_label = QLabel("Export all current borrowing records to an Excel file.")
+        desc_label.setWordWrap(True)
+        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 8px;")
+        layout.addWidget(desc_label)
+
+        # Export button
+        export_btn = self.create_button("Export Borrowing Records", "primary")
+        export_btn.clicked.connect(self._on_export_borrowing_records)
+        layout.addWidget(export_btn)
+
+        layout.addStretch()
+        return tab
+
     def _on_browse_import_file(self):
         """Handle browse import file button click."""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -326,35 +463,41 @@ class BookImportExportWindow(BaseFunctionWindow):
 
         if file_path:
             try:
-                # Define columns for the template
-                columns = [
-                    'book_number', 'title', 'author', 'category', 'isbn',
-                    'publication_date', 'subject', 'class', 'condition'
-                ]
+                # Use the same columns as defined in constants for consistency
+                from school_system.gui.windows.book_window.utils.constants import EXCEL_BOOK_IMPORT_COLUMNS
+                columns = EXCEL_BOOK_IMPORT_COLUMNS
 
-                # Sample data
+                # Sample data with Title Case keys matching the columns
                 sample_data = [
                     {
-                        'book_number': 'MATH101',
-                        'title': 'Advanced Mathematics',
-                        'author': 'John Smith',
-                        'category': 'Mathematics',
-                        'isbn': '1234567890123',
-                        'publication_date': '2024-01-15',
-                        'subject': 'Mathematics',
-                        'class': 'Form 4',
-                        'condition': 'New'
+                        'Book_Number': 'MATH101',
+                        'Title': 'Advanced Mathematics',
+                        'Author': 'John Smith',
+                        'Subject': 'Mathematics',
+                        'Class': 'Form 4',
+                        'Category': 'Textbook',
+                        'ISBN': '1234567890123',
+                        'Publication_Date': '2024-01-15',
+                        'Book_Condition': 'New',
+                        'Available': 1,
+                        'Book_Type': 'course',
+                        'QR_Code': '',
+                        'QR_Generated_At': ''
                     },
                     {
-                        'book_number': 'ENG201',
-                        'title': 'English Literature',
-                        'author': 'Jane Doe',
-                        'category': 'English',
-                        'isbn': '9876543210987',
-                        'publication_date': '2023-09-01',
-                        'subject': 'English',
-                        'class': 'Form 3',
-                        'condition': 'Good'
+                        'Book_Number': 'ENG201',
+                        'Title': 'English Literature',
+                        'Author': 'Jane Doe',
+                        'Subject': 'English',
+                        'Class': 'Form 3',
+                        'Category': 'Literature',
+                        'ISBN': '9876543210987',
+                        'Publication_Date': '2023-09-01',
+                        'Book_Condition': 'Good',
+                        'Available': 1,
+                        'Book_Type': 'course',
+                        'QR_Code': '',
+                        'QR_Generated_At': ''
                     }
                 ]
 
@@ -371,4 +514,166 @@ class BookImportExportWindow(BaseFunctionWindow):
 
             except Exception as e:
                 logger.error(f"Error generating import template: {e}")
+                show_error_message("Error", f"Failed to generate template: {str(e)}", self)
+
+    def _on_browse_borrowing_import_file(self):
+        """Handle browse borrowing import file button click."""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Borrowing Import File",
+            "",
+            "Excel Files (*.xlsx *.xls);;All Files (*)"
+        )
+
+        if file_path:
+            self.borrowing_import_file_path = file_path
+            file_name = file_path.split('/')[-1].split('\\')[-1]
+            self.borrowing_import_file_label.setText(f"Selected: {file_name}")
+            theme = self.get_theme_manager()._themes[self.get_theme()]
+            self.borrowing_import_file_label.setStyleSheet(f"""
+                color: {theme["success"]};
+                padding: 8px;
+                border: 1px solid {theme["success"]};
+                border-radius: 8px;
+                font-weight: 500;
+            """)
+        else:
+            self.borrowing_import_file_label.setText("No file selected")
+            theme = self.get_theme_manager()._themes[self.get_theme()]
+            self.borrowing_import_file_label.setStyleSheet(f"""
+                color: {theme["text_secondary"]};
+                padding: 8px;
+                border: 1px dashed {theme["border"]};
+                border-radius: 8px;
+            """)
+
+    def _on_import_borrowing_records(self):
+        """Handle import borrowing records button click."""
+        if not hasattr(self, 'borrowing_import_file_path'):
+            show_error_message("No File Selected", "Please select an Excel file to import.", self)
+            return
+
+        file_path = self.borrowing_import_file_path
+
+        try:
+            # Import borrowing records using the bulk borrow functionality
+            success, message, statistics = self.book_service.bulk_borrow_books_from_excel(
+                file_path, self.current_user
+            )
+
+            if success:
+                # Show detailed results
+                result_message = f"Borrowing records imported successfully!\n\n{message}\n\n"
+                result_message += f"Total Records: {statistics['total_records']}\n"
+                result_message += f"Successful: {statistics['success_count']}\n"
+                result_message += f"Errors: {statistics['error_count']}"
+
+                if statistics['errors']:
+                    result_message += f"\n\nErrors:\n" + "\n".join(statistics['errors'][:10])  # Show first 10 errors
+                    if len(statistics['errors']) > 10:
+                        result_message += f"\n... and {len(statistics['errors']) - 10} more errors"
+
+                show_success_message("Import Complete", result_message, self)
+                logger.info(f"Borrowing records imported from {file_path}: {statistics}")
+            else:
+                show_error_message("Import Failed", message, self)
+                logger.error(f"Borrowing records import failed: {message}")
+
+            # Clear file selection
+            self.borrowing_import_file_label.setText("No file selected")
+            theme = self.get_theme_manager()._themes[self.get_theme()]
+            self.borrowing_import_file_label.setStyleSheet(f"""
+                color: {theme["text_secondary"]};
+                padding: 8px;
+                border: 1px dashed {theme["border"]};
+                border-radius: 8px;
+            """)
+            if hasattr(self, 'borrowing_import_file_path'):
+                delattr(self, 'borrowing_import_file_path')
+
+        except Exception as e:
+            logger.error(f"Error importing borrowing records: {e}")
+            show_error_message("Error", f"Failed to import borrowing records: {str(e)}", self)
+
+    def _on_export_borrowing_records(self):
+        """Handle export borrowing records button click."""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Borrowing Records Export",
+            "borrowing_records_export.xlsx",
+            "Excel Files (*.xlsx)"
+        )
+
+        if file_path:
+            try:
+                success = self.book_service.export_borrowed_books_to_excel(file_path)
+
+                if success:
+                    show_success_message("Success",
+                        f"Borrowing records exported successfully to {file_path}.",
+                        self)
+                    logger.info(f"Borrowing records exported to {file_path}")
+                else:
+                    show_error_message("Export Error",
+                        "Failed to export borrowing records. Please check the logs.",
+                        self)
+
+            except Exception as e:
+                logger.error(f"Error exporting borrowing records: {e}")
+                show_error_message("Error", f"Failed to export borrowing records: {str(e)}", self)
+
+    def _generate_borrowing_import_template(self):
+        """Generate an Excel template for borrowing records import."""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Borrowing Import Template",
+            "borrowing_import_template.xlsx",
+            "Excel Files (*.xlsx)"
+        )
+
+        if file_path:
+            try:
+                # Use the bulk borrow columns
+                from school_system.gui.windows.book_window.utils.constants import EXCEL_BULK_BORROW_COLUMNS
+                columns = EXCEL_BULK_BORROW_COLUMNS
+
+                # Sample data for borrowing records
+                sample_data = [
+                    {
+                        'Admission_Number': '4467',
+                        'Student_Name': 'John Doe',
+                        'Book_Number': 'MATH101'
+                    },
+                    {
+                        'Admission_Number': '4579',
+                        'Student_Name': 'Jane Smith',
+                        'Book_Number': 'ENG201'
+                    },
+                    {
+                        'Admission_Number': '4584',
+                        'Student_Name': 'Bob Johnson',
+                        'Book_Number': 'SCI301'
+                    }
+                ]
+
+                # Generate template
+                success = self.book_service.import_export_service.generate_excel_template(
+                    file_path, columns, sample_data
+                )
+
+                if success:
+                    show_success_message("Template Generated",
+                        f"Borrowing import template saved to: {file_path}\n\n"
+                        "The template includes sample data with:\n"
+                        "• Admission_Number: Student admission number\n"
+                        "• Student_Name: Student full name\n"
+                        "• Book_Number: Unique book identifier\n\n"
+                        "Each row represents one book borrowing transaction.",
+                        self)
+                    logger.info(f"Borrowing import template generated: {file_path}")
+                else:
+                    show_error_message("Template Error", "Failed to generate borrowing import template.", self)
+
+            except Exception as e:
+                logger.error(f"Error generating borrowing import template: {e}")
                 show_error_message("Error", f"Failed to generate template: {str(e)}", self)

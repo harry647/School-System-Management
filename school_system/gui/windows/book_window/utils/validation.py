@@ -86,8 +86,8 @@ class BookValidationHelper:
                 continue
             
             # Check if student exists
-            student_exists = student_service.get_student_by_admission_number(admission_number)
-            if not student_exists:
+            students = student_service.get_students_by_admission_number(admission_number)
+            if not students:
                 errors.append(f"Row {i}: Student with admission number '{admission_number}' not found")
             
             # Validate book number
