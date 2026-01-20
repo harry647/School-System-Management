@@ -59,9 +59,11 @@ class BaseRepository(Generic[T]):
              
             # Retrieve the auto-generated ID for models that have auto-increment primary keys
             pk = getattr(self.model, '__pk__', None)
-            # Note: student_id is not auto-increment in the current schema, it's TEXT PRIMARY KEY
-            # So we don't need to set it from lastrowid
-             
+            if pk and pk.endswith('_id'):  # Likely auto-increment if ends with _id
+                generated_id = cursor.lastrowid
+                if generated_id:
+                    kwargs[pk] = generated_id
+
             return self.model(**kwargs)
         except Exception as e:
             raise DatabaseException(f"Error creating entity: {e}")
