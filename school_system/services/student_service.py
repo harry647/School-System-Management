@@ -121,7 +121,7 @@ class StudentService:
                 return None
 
             qr_code = student.generate_qr_code()
-            self.student_repository.update(student)
+            student.update()
             logger.info(f"Generated QR code {qr_code} for student {admission_number}")
             return qr_code
         except Exception as e:
@@ -199,9 +199,9 @@ class StudentService:
         # Don't remove student_id - let the Student model handle it
           
         student = Student(**student_data_copy)
-        created_student = self.student_repository.create(student)
-        logger.info(f"Student created successfully with ID: {created_student.student_id}")
-        return created_student
+        student.save()
+        logger.info(f"Student created successfully with ID: {student.student_id}")
+        return student
 
     def update_student(self, admission_number: str, student_data: dict) -> Optional[Student]:
         """
@@ -224,7 +224,8 @@ class StudentService:
         for key, value in student_data.items():
             setattr(student, key, value)
 
-        return self.student_repository.update(student.student_id)
+        student.update()
+        return student
 
     def delete_student(self, admission_number: str) -> bool:
         """
@@ -367,8 +368,8 @@ class StudentService:
                     student_data_copy['stream'] = student_data_copy.pop('Stream')
                  
                 student = Student(**student_data_copy)
-                created_student = self.student_repository.create(student)
-                students.append(created_student)
+                student.save()
+                students.append(student)
              
             logger.info(f"Successfully imported {len(students)} students from {filename}")
             return students
