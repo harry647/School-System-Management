@@ -214,9 +214,13 @@ class TeacherService:
             teachers = []
             
             for teacher_data in data:
-                teacher = Teacher(**teacher_data)
-                created_teacher = self.teacher_repository.create(teacher)
-                teachers.append(created_teacher)
+                # Remove created_at if it exists (Teacher model doesn't accept it)
+                teacher_data_copy = teacher_data.copy()
+                teacher_data_copy.pop('created_at', None)
+
+                teacher = Teacher(**teacher_data_copy)
+                teacher.save()
+                teachers.append(teacher)
             
             logger.info(f"Successfully imported {len(teachers)} teachers from {filename}")
             return teachers
