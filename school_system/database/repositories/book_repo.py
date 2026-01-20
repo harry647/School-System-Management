@@ -116,6 +116,19 @@ class BorrowedBookStudentRepository(BaseRepository):
             return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
         except Exception as e:
             raise DatabaseException(f"Error retrieving borrowed books for student: {e}")
+
+    def get_borrowed_books_by_book(self, book_id: int) -> List[BorrowedBookStudent]:
+        """Get all current borrowings of a specific book (not returned)."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_student
+                WHERE book_id = ? AND returned_on IS NULL
+            """, (book_id,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving borrowings for book: {e}")
     
     def get_returned_books_by_student(self, student_id: str) -> List[BorrowedBookStudent]:
         """Get all books returned by a student."""
@@ -202,6 +215,19 @@ class BorrowedBookTeacherRepository(BaseRepository):
             return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
         except Exception as e:
             raise DatabaseException(f"Error retrieving borrowed books for teacher: {e}")
+
+    def get_borrowed_books_by_book(self, book_id: int) -> List[BorrowedBookTeacher]:
+        """Get all current borrowings of a specific book by teachers (not returned)."""
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("""
+                SELECT * FROM borrowed_books_teacher
+                WHERE book_id = ? AND returned_on IS NULL
+            """, (book_id,))
+            results = cursor.fetchall()
+            return [self.model(**dict(zip([column[0] for column in cursor.description], row))) for row in results]
+        except Exception as e:
+            raise DatabaseException(f"Error retrieving teacher borrowings for book: {e}")
     
     def get_returned_books_by_teacher(self, teacher_id: str) -> List[BorrowedBookTeacher]:
         """Get all books returned by a teacher."""

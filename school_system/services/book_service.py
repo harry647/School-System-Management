@@ -13,7 +13,7 @@ from school_system.services.student_service import StudentService
 from school_system.services.class_management_service import ClassManagementService
 
 from school_system.models.book import (Book, BookTag, BorrowedBookStudent, BorrowedBookTeacher,
- DistributionSession, DistributionStudent, DistributionImportLog)
+ DistributionSession, DistributionStudent, DistributionImportLog, get_db_session)
 
 from school_system.database.repositories.book_repo import (BookRepository,
         BookTagRepository, BorrowedBookStudentRepository, BorrowedBookTeacherRepository,
@@ -2136,13 +2136,13 @@ class BookService:
                 # Also check if the book is currently borrowed by anyone
                 borrowed_book_student_repo = BorrowedBookStudentRepository()
                 borrowed_book_teacher_repo = BorrowedBookTeacherRepository()
-                
-                # Check if book is borrowed by any student
-                student_borrowings = borrowed_book_student_repo.find_by_field('book_id', book_id_int)
-                # Check if book is borrowed by any teacher
-                teacher_borrowings = borrowed_book_teacher_repo.find_by_field('book_id', book_id_int)
-                
-                # Book is available only if it's not borrowed by anyone
+
+                # Check if book is currently borrowed by any student (not returned)
+                student_borrowings = borrowed_book_student_repo.get_borrowed_books_by_book(book_id_int)
+                # Check if book is currently borrowed by any teacher (not returned)
+                teacher_borrowings = borrowed_book_teacher_repo.get_borrowed_books_by_book(book_id_int)
+
+                # Book is available only if it's not currently borrowed by anyone
                 is_available = not student_borrowings and not teacher_borrowings
                 return is_available
             else:
