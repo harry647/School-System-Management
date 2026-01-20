@@ -54,11 +54,11 @@ class FurnitureService:
             The created Chair object.
         """
         logger.info(f"Creating a new chair with data: {chair_data}")
-        ValidationUtils.validate_input(chair_data.get('name'), "Chair name cannot be empty")
-         
+        ValidationUtils.validate_input(chair_data.get('chair_id'), "Chair ID cannot be empty")
+
         chair = Chair(**chair_data)
         created_chair = self.chair_repository.create(chair)
-        logger.info(f"Chair created successfully with ID: {created_chair.id}")
+        logger.info(f"Chair created successfully with ID: {created_chair.chair_id}")
         return created_chair
  
     def update_chair(self, chair_id: int, chair_data: dict) -> Optional[Chair]:
@@ -455,7 +455,7 @@ class FurnitureService:
             True if the issue was reported successfully, otherwise False.
         """
         logger.info(f"Reporting maintenance issue for {furniture_type} {furniture_id}: {issue}")
-        
+
         try:
             if furniture_type == 'chair':
                 furniture_item = self.chair_repository.get_by_id(furniture_id)
@@ -463,34 +463,131 @@ class FurnitureService:
                 furniture_item = self.locker_repository.get_by_id(furniture_id)
             else:
                 return False
-            
+
             if not furniture_item:
                 return False
-            
+
             # Store maintenance issue
             if not hasattr(furniture_item, 'maintenance_issues'):
                 furniture_item.maintenance_issues = []
-            
+
             furniture_item.maintenance_issues.append({
                 'issue': issue,
                 'reported_date': datetime.datetime.now().isoformat(),
                 'status': 'reported'
             })
-            
+
             # Update condition if needed
             if furniture_item.cond != 'Needs Repair':
                 furniture_item.cond = 'Needs Repair'
-            
+
             if furniture_type == 'chair':
                 self.chair_repository.update(furniture_item)
             else:
                 self.locker_repository.update(furniture_item)
-            
+
             logger.info(f"Maintenance issue reported successfully for {furniture_type} {furniture_id}")
             return True
         except Exception as e:
             logger.error(f"Error reporting maintenance issue: {e}")
             return False
+
+    def record_maintenance_activity(self, furniture_id: str, maintenance_type: str, notes: str) -> bool:
+        """
+        Record a maintenance activity for furniture by updating its condition.
+
+        Args:
+            furniture_id: The furniture ID (e.g., "CH1" or "LK1")
+            maintenance_type: The type of maintenance performed.
+            notes: Additional notes about the maintenance (stored in logs).
+
+        Returns:
+            True if the maintenance was recorded successfully, otherwise False.
+        """
+        logger.info(f"Recording maintenance activity for {furniture_id}: {maintenance_type} - {notes}")
+
+        try:
+            # Determine furniture type and extract ID
+            if furniture_id.startswith('CH'):
+                furniture_type = 'chair'
+                item_id = int(furniture_id[2:])
+                furniture_item = self.chair_repository.get_by_id(item_id)
+            elif furniture_id.startswith('LK'):
+                furniture_type = 'locker'
+                item_id = int(furniture_id[2:])
+                furniture_item = self.locker_repository.get_by_id(item_id)
+            else:
+                return False
+
+            if not furniture_item:
+                return False
+
+            # Update condition based on maintenance type
+            if maintenance_type.lower() in ['repair', 'replacement']:
+                furniture_item.cond = 'Good'
+            elif maintenance_type.lower() == 'cleaning':
+                # Cleaning improves condition slightly
+                if furniture_item.cond == 'Poor':
+                    furniture_item.cond = 'Fair'
+                elif furniture_item.cond == 'Fair':
+                    furniture_item.cond = 'Good'
+            elif maintenance_type.lower() == 'inspection':
+                # Inspection might reveal issues or confirm good condition
+                if furniture_item.cond == 'Needs Repair':
+                    furniture_item.cond = 'Fair'  # Assumed fixed during inspection
+            # Other maintenance types don't change condition
+
+            # Save the updated furniture item
+            if furniture_type == 'chair':
+                self.chair_repository.update(furniture_item)
+            else:
+                self.locker_repository.update(furniture_item)
+
+            logger.info(f"Maintenance activity recorded successfully for {furniture_id} - condition updated to {furniture_item.cond}")
+            return True
+        except Exception as e:
+            logger.error(f"Error recording maintenance activity: {e}")
+            return False
+
+    def get_maintenance_records(self) -> List[dict]:
+        """
+        Get maintenance summary for furniture items that have been maintained.
+
+        Returns:
+            A list of dictionaries containing maintenance summary information.
+        """
+        logger.info("Retrieving maintenance summary")
+
+        try:
+            records = []
+
+            # Get chairs that have been maintained (condition changed from Needs Repair)
+            chairs = self.chair_repository.get_all()
+            for chair in chairs:
+                if chair.cond == 'Good':  # Assume recently maintained
+                    records.append({
+                        'furniture_id': f"CH{chair.chair_id}",
+                        'type': 'Maintenance Completed',
+                        'date': 'Recent',
+                        'notes': f'Condition: {chair.cond}'
+                    })
+
+            # Get lockers that have been maintained
+            lockers = self.locker_repository.get_all()
+            for locker in lockers:
+                if locker.cond == 'Good':  # Assume recently maintained
+                    records.append({
+                        'furniture_id': f"LK{locker.locker_id}",
+                        'type': 'Maintenance Completed',
+                        'date': 'Recent',
+                        'notes': f'Condition: {locker.cond}'
+                    })
+
+            logger.info(f"Retrieved {len(records)} maintenance summaries")
+            return records
+        except Exception as e:
+            logger.error(f"Error retrieving maintenance records: {e}")
+            return []
 
     def assign_furniture_batch(self, assignments: List[dict], furniture_type: str) -> List[bool]:
         """
@@ -894,7 +991,7 @@ class FurnitureService:
                     'type': 'Chair',
                     'location': chair.location or "",
                     'status': 'Assigned' if chair.assigned else 'Available',
-                    'assigned_to': chair.assigned_to or "",
+                    'assigned_to': "",  # Would need to join with assignments table
                     'condition': chair.cond or "Good",
                     'form': chair.form or "",
                     'color': chair.color or ""
@@ -908,7 +1005,7 @@ class FurnitureService:
                     'type': 'Locker',
                     'location': locker.location or "",
                     'status': 'Assigned' if locker.assigned else 'Available',
-                    'assigned_to': locker.assigned_to or "",
+                    'assigned_to': "",  # Would need to join with assignments table
                     'condition': locker.cond or "Good",
                     'form': locker.form or "",
                     'color': locker.color or ""
@@ -918,4 +1015,126 @@ class FurnitureService:
             return furniture_items
         except Exception as e:
             logger.error(f"Error retrieving all furniture: {e}")
+            return []
+
+    def assign_furniture_to_user(self, furniture_id: str, user_id: int, furniture_type: str) -> bool:
+        """
+        Assign furniture to a user.
+
+        Args:
+            furniture_id: The furniture ID (e.g., "CH1" or "LK1")
+            user_id: The user ID (student ID)
+            furniture_type: The type of furniture ('chair' or 'locker')
+
+        Returns:
+            True if assignment was successful, otherwise False.
+        """
+        logger.info(f"Assigning {furniture_type} {furniture_id} to user {user_id}")
+
+        try:
+            if furniture_type.lower() == 'chair':
+                # Extract chair ID from furniture_id (remove "CH" prefix)
+                if not furniture_id.startswith('CH'):
+                    return False
+                chair_id = int(furniture_id[2:])
+
+                # Check if chair exists and is available
+                chair = self.chair_repository.get_by_id(chair_id)
+                if not chair or chair.assigned:
+                    return False
+
+                # Check if student already has a chair assigned
+                existing_assignment = self.chair_assignment_repository.get_by_id(user_id)
+                if existing_assignment:
+                    return False  # Student already has a chair
+
+                # Create assignment
+                assignment_data = {
+                    'student_id': user_id,
+                    'chair_id': chair_id,
+                    'assigned_date': datetime.datetime.now().date()
+                }
+                assignment = self.chair_assignment_repository.create(ChairAssignment(**assignment_data))
+
+                # Update chair status
+                chair.assigned = 1
+                self.chair_repository.update(chair)
+
+                logger.info(f"Successfully assigned chair {chair_id} to student {user_id}")
+                return True
+
+            elif furniture_type.lower() == 'locker':
+                # Extract locker ID from furniture_id (remove "LK" prefix)
+                if not furniture_id.startswith('LK'):
+                    return False
+                locker_id = int(furniture_id[2:])
+
+                # Check if locker exists and is available
+                locker = self.locker_repository.get_by_id(locker_id)
+                if not locker or locker.assigned:
+                    return False
+
+                # Check if student already has a locker assigned
+                existing_assignment = self.locker_assignment_repository.get_by_id(user_id)
+                if existing_assignment:
+                    return False  # Student already has a locker
+
+                # Create assignment
+                assignment_data = {
+                    'student_id': user_id,
+                    'locker_id': locker_id,
+                    'assigned_date': datetime.datetime.now().date()
+                }
+                assignment = self.locker_assignment_repository.create(LockerAssignment(**assignment_data))
+
+                # Update locker status
+                locker.assigned = 1
+                self.locker_repository.update(locker)
+
+                logger.info(f"Successfully assigned locker {locker_id} to student {user_id}")
+                return True
+
+            return False
+        except Exception as e:
+            logger.error(f"Error assigning furniture: {e}")
+            return False
+
+    def get_all_assignments(self) -> List[dict]:
+        """
+        Get all furniture assignments as unified list.
+
+        Returns:
+            A list of dictionaries containing assignment information.
+        """
+        logger.info("Retrieving all furniture assignments")
+
+        try:
+            assignments = []
+
+            # Get chair assignments
+            chair_assignments = self.chair_assignment_repository.get_all()
+            for assignment in chair_assignments:
+                assignments.append({
+                    'furniture_id': f"CH{assignment.chair_id}",
+                    'user_id': assignment.student_id,
+                    'assigned_date': assignment.assigned_date,
+                    'status': 'Active',
+                    'type': 'Chair'
+                })
+
+            # Get locker assignments
+            locker_assignments = self.locker_assignment_repository.get_all()
+            for assignment in locker_assignments:
+                assignments.append({
+                    'furniture_id': f"LK{assignment.locker_id}",
+                    'user_id': assignment.student_id,
+                    'assigned_date': assignment.assigned_date,
+                    'status': 'Active',
+                    'type': 'Locker'
+                })
+
+            logger.info(f"Retrieved {len(assignments)} furniture assignments")
+            return assignments
+        except Exception as e:
+            logger.error(f"Error retrieving assignments: {e}")
             return []

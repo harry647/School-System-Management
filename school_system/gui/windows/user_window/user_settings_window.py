@@ -26,7 +26,7 @@ class UserSettingsWindow(BaseFunctionWindow):
 
         self.auth_service = AuthService()
         self.settings_service = SettingsService()
-        self.current_user_id = None  # Will be set when loading settings
+        self.current_username = None  # Will be set when loading settings
 
         # Setup content
         self.setup_content()
@@ -81,14 +81,14 @@ class UserSettingsWindow(BaseFunctionWindow):
         title.setStyleSheet(f"color: {theme['text']};")
         section_layout.addWidget(title)
 
-        # User ID input
-        userid_label = QLabel("User ID:")
-        userid_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
-        section_layout.addWidget(userid_label)
+        # Username input
+        username_label = QLabel("Username:")
+        username_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
+        section_layout.addWidget(username_label)
 
-        self.user_id_input = self.create_input("Enter user ID")
-        self.user_id_input.setPlaceholderText("Numeric user ID")
-        section_layout.addWidget(self.user_id_input)
+        self.username_input = self.create_input("Enter username")
+        self.username_input.setPlaceholderText("Username (e.g., admin)")
+        section_layout.addWidget(self.username_input)
 
         # Load button
         load_button = self.create_button("Load Settings", "primary")
@@ -454,27 +454,24 @@ class UserSettingsWindow(BaseFunctionWindow):
     def _on_load_settings(self):
         """Handle load settings button click."""
         try:
-            userid_text = self.user_id_input.text().strip()
-            if not userid_text:
-                show_error_message("Error", "Please enter a user ID.", self)
+            username = self.username_input.text().strip()
+            if not username:
+                show_error_message("Error", "Please enter a username.", self)
                 return
 
-            user_id = int(userid_text)
-            self.current_user_id = user_id
+            self.current_username = username
 
             # Load user settings
-            settings = self.settings_service.get_user_settings(user_id)
+            settings = self.settings_service.get_user_settings(username)
 
             # Populate the UI with loaded settings
             self._populate_settings_ui(settings)
 
             # Update current user info
-            self.current_user_label.setText(f"Current User ID: {user_id}")
+            self.current_user_label.setText(f"Current User: {username}")
 
-            show_success_message("Success", f"Settings loaded for user ID {user_id}.", self)
+            show_success_message("Success", f"Settings loaded for user '{username}'.", self)
 
-        except ValueError:
-            show_error_message("Error", "Invalid user ID. Please enter a numeric value.", self)
         except Exception as e:
             logger.error(f"Error loading user settings: {str(e)}")
             show_error_message("Error", f"An error occurred: {str(e)}", self)
@@ -482,7 +479,7 @@ class UserSettingsWindow(BaseFunctionWindow):
     def _on_save_settings(self):
         """Handle save settings button click."""
         try:
-            if not self.current_user_id:
+            if not self.current_username:
                 show_error_message("Error", "Please load user settings first.", self)
                 return
 
@@ -490,10 +487,10 @@ class UserSettingsWindow(BaseFunctionWindow):
             settings_data = self._collect_settings_from_ui()
 
             # Save settings
-            success = self.settings_service.update_user_settings(self.current_user_id, settings_data)
+            success = self.settings_service.update_user_settings(self.current_username, settings_data)
 
             if success:
-                show_success_message("Success", f"Settings saved successfully for user ID {self.current_user_id}.", self)
+                show_success_message("Success", f"Settings saved successfully for user '{self.current_username}'.", self)
             else:
                 show_error_message("Error", "Failed to save settings.", self)
 
@@ -504,18 +501,18 @@ class UserSettingsWindow(BaseFunctionWindow):
     def _on_reset_settings(self):
         """Handle reset settings button click."""
         try:
-            if not self.current_user_id:
+            if not self.current_username:
                 show_error_message("Error", "Please load user settings first.", self)
                 return
 
             # Reset to defaults
-            success = self.settings_service.reset_user_settings(self.current_user_id)
+            success = self.settings_service.reset_user_settings(self.current_username)
 
             if success:
                 # Reload default settings into UI
-                default_settings = self.settings_service.get_user_settings(self.current_user_id)
+                default_settings = self.settings_service.get_user_settings(self.current_username)
                 self._populate_settings_ui(default_settings)
-                show_success_message("Success", f"Settings reset to defaults for user ID {self.current_user_id}.", self)
+                show_success_message("Success", f"Settings reset to defaults for user '{self.current_username}'.", self)
             else:
                 show_error_message("Error", "Failed to reset settings.", self)
 

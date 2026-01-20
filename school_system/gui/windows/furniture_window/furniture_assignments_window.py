@@ -154,23 +154,41 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
     def _on_assign_furniture(self):
         """Handle assign furniture."""
         furniture_id = self.furniture_id_input.text().strip()
-        user_id = self.user_id_input.text().strip()
-        
-        if not furniture_id or not user_id:
+        user_id_text = self.user_id_input.text().strip()
+
+        if not furniture_id or not user_id_text:
             show_error_message("Validation Error", "Please fill in all required fields.", self)
             return
-        
+
         try:
+            user_id = int(user_id_text)
+
+            # Determine furniture type from ID
+            if furniture_id.startswith('CH'):
+                furniture_type = 'chair'
+            elif furniture_id.startswith('LK'):
+                furniture_type = 'locker'
+            else:
+                show_error_message("Validation Error", "Invalid furniture ID format. Use CH# for chairs or LK# for lockers.", self)
+                return
+
             # Assign furniture
-            # Note: This would need to be implemented in FurnitureService
-            show_success_message("Success", f"Furniture {furniture_id} assigned to {user_id}.", self)
-            
-            # Clear inputs
-            self.furniture_id_input.clear()
-            self.user_id_input.clear()
-            
-            # Refresh table
-            self._refresh_assignments_table()
+            success = self.furniture_service.assign_furniture_to_user(furniture_id, user_id, furniture_type)
+
+            if success:
+                show_success_message("Success", f"Furniture {furniture_id} assigned to user {user_id}.", self)
+
+                # Clear inputs
+                self.furniture_id_input.clear()
+                self.user_id_input.clear()
+
+                # Refresh table
+                self._refresh_assignments_table()
+            else:
+                show_error_message("Error", "Failed to assign furniture. It may already be assigned or the user may already have furniture.", self)
+
+        except ValueError:
+            show_error_message("Validation Error", "User ID must be a valid number.", self)
         except Exception as e:
             logger.error(f"Error assigning furniture: {e}")
             show_error_message("Error", f"Failed to assign furniture: {str(e)}", self)
@@ -179,22 +197,21 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         """Refresh the assignments table."""
         try:
             # Get assignments
-            # Note: This would need to be implemented in FurnitureService
-            assignments = []
-            
+            assignments = self.furniture_service.get_all_assignments()
+
             # Clear table
             self.assignments_table.setRowCount(0)
-            
+
             # Populate table
             for assignment in assignments:
                 row = self.assignments_table.rowCount()
                 self.assignments_table.insertRow(row)
-                
-                self.assignments_table.setItem(row, 0, QTableWidgetItem(assignment.furniture_id))
-                self.assignments_table.setItem(row, 1, QTableWidgetItem(assignment.user_id))
-                self.assignments_table.setItem(row, 2, QTableWidgetItem(str(assignment.assigned_date)))
-                self.assignments_table.setItem(row, 3, QTableWidgetItem(assignment.status))
-            
+
+                self.assignments_table.setItem(row, 0, QTableWidgetItem(assignment['furniture_id']))
+                self.assignments_table.setItem(row, 1, QTableWidgetItem(str(assignment['user_id'])))
+                self.assignments_table.setItem(row, 2, QTableWidgetItem(str(assignment['assigned_date'])))
+                self.assignments_table.setItem(row, 3, QTableWidgetItem(assignment['status']))
+
             logger.info(f"Refreshed assignments table with {len(assignments)} entries")
         except Exception as e:
             logger.error(f"Error refreshing assignments table: {e}")

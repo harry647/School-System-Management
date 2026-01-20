@@ -36,7 +36,7 @@ class UserSetting(BaseModel):
     __tablename__ = 'settings'
     __pk__ = "user_id"
 
-    def __init__(self, user_id, settings_json=None, reminder_frequency="daily", sound_enabled=1, created_at=None, updated_at=None):
+    def __init__(self, user_id, settings_json=None, reminder_frequency="daily", sound_enabled=1, created_at=None, updated_at=None, **kwargs):
         super().__init__()
         self.user_id = user_id
         self.settings_json = settings_json
@@ -45,6 +45,9 @@ class UserSetting(BaseModel):
         self.sound_enabled = sound_enabled
         self.created_at = created_at or datetime.datetime.now()
         self.updated_at = updated_at or created_at or datetime.datetime.now()
+        # Handle any additional fields that might be passed
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def save(self):
         """Save the user setting to the database."""
@@ -53,6 +56,16 @@ class UserSetting(BaseModel):
         cursor.execute(
             "INSERT INTO settings (user_id, settings_json, reminder_frequency, sound_enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
             (self.user_id, self.settings_json, self.reminder_frequency, self.sound_enabled, self.created_at, self.updated_at)
+        )
+        db.commit()
+
+    def update(self):
+        """Update the user setting in the database."""
+        db = get_db_session()
+        cursor = db.cursor()
+        cursor.execute(
+            "UPDATE settings SET settings_json = ?, reminder_frequency = ?, sound_enabled = ?, updated_at = ? WHERE user_id = ?",
+            (self.settings_json, self.reminder_frequency, self.sound_enabled, datetime.datetime.now(), self.user_id)
         )
         db.commit()
 

@@ -168,22 +168,32 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         furniture_id = self.furniture_id_input.text().strip()
         maintenance_type = self.maintenance_type_combo.currentText().strip()
         notes = self.notes_input.toPlainText().strip()
-        
+
         if not furniture_id or not maintenance_type:
             show_error_message("Validation Error", "Please fill in all required fields.", self)
             return
-        
+
+        # Validate furniture ID format
+        if not (furniture_id.startswith('CH') or furniture_id.startswith('LK')):
+            show_error_message("Validation Error", "Invalid furniture ID format. Use CH# for chairs or LK# for lockers.", self)
+            return
+
         try:
             # Record maintenance
-            # Note: This would need to be implemented in FurnitureService
-            show_success_message("Success", f"Maintenance recorded for furniture {furniture_id}.", self)
-            
-            # Clear inputs
-            self.furniture_id_input.clear()
-            self.notes_input.clear()
-            
-            # Refresh table
-            self._refresh_maintenance_table()
+            success = self.furniture_service.record_maintenance_activity(furniture_id, maintenance_type, notes)
+
+            if success:
+                show_success_message("Success", f"Maintenance recorded for furniture {furniture_id}.", self)
+
+                # Clear inputs
+                self.furniture_id_input.clear()
+                self.notes_input.clear()
+
+                # Refresh table
+                self._refresh_maintenance_table()
+            else:
+                show_error_message("Error", "Failed to record maintenance. Please check the furniture ID.", self)
+
         except Exception as e:
             logger.error(f"Error recording maintenance: {e}")
             show_error_message("Error", f"Failed to record maintenance: {str(e)}", self)
@@ -192,22 +202,21 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         """Refresh the maintenance table."""
         try:
             # Get maintenance records
-            # Note: This would need to be implemented in FurnitureService
-            records = []
-            
+            records = self.furniture_service.get_maintenance_records()
+
             # Clear table
             self.maintenance_table.setRowCount(0)
-            
+
             # Populate table
             for record in records:
                 row = self.maintenance_table.rowCount()
                 self.maintenance_table.insertRow(row)
-                
-                self.maintenance_table.setItem(row, 0, QTableWidgetItem(record.furniture_id))
-                self.maintenance_table.setItem(row, 1, QTableWidgetItem(record.maintenance_type))
-                self.maintenance_table.setItem(row, 2, QTableWidgetItem(str(record.date)))
-                self.maintenance_table.setItem(row, 3, QTableWidgetItem(record.notes or ""))
-            
+
+                self.maintenance_table.setItem(row, 0, QTableWidgetItem(record['furniture_id']))
+                self.maintenance_table.setItem(row, 1, QTableWidgetItem(record['type']))
+                self.maintenance_table.setItem(row, 2, QTableWidgetItem(record['date']))
+                self.maintenance_table.setItem(row, 3, QTableWidgetItem(record['notes'] or ""))
+
             logger.info(f"Refreshed maintenance table with {len(records)} entries")
         except Exception as e:
             logger.error(f"Error refreshing maintenance table: {e}")

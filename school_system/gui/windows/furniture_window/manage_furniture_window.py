@@ -137,26 +137,26 @@ class ManageFurnitureWindow(BaseFunctionWindow):
         try:
             # Get furniture items
             furniture_items = self.furniture_service.get_all_furniture()
-            
+
             # Apply filter
             type_filter = self.type_filter.currentText()
             if type_filter != "All Types":
-                furniture_items = [f for f in furniture_items if f.type == type_filter]
-            
+                furniture_items = [f for f in furniture_items if f['type'] == type_filter]
+
             # Clear table
             self.furniture_table.setRowCount(0)
-            
+
             # Populate table
             for item in furniture_items:
                 row = self.furniture_table.rowCount()
                 self.furniture_table.insertRow(row)
-                
-                self.furniture_table.setItem(row, 0, QTableWidgetItem(item.furniture_id))
-                self.furniture_table.setItem(row, 1, QTableWidgetItem(item.type))
-                self.furniture_table.setItem(row, 2, QTableWidgetItem(item.location or ""))
-                self.furniture_table.setItem(row, 3, QTableWidgetItem(item.status or "Available"))
-                self.furniture_table.setItem(row, 4, QTableWidgetItem(item.assigned_to or ""))
-            
+
+                self.furniture_table.setItem(row, 0, QTableWidgetItem(item['furniture_id']))
+                self.furniture_table.setItem(row, 1, QTableWidgetItem(item['type']))
+                self.furniture_table.setItem(row, 2, QTableWidgetItem(item['location'] or ""))
+                self.furniture_table.setItem(row, 3, QTableWidgetItem(item['status'] or "Available"))
+                self.furniture_table.setItem(row, 4, QTableWidgetItem(item['assigned_to'] or ""))
+
             logger.info(f"Refreshed furniture table with {len(furniture_items)} items")
         except Exception as e:
             logger.error(f"Error refreshing furniture table: {e}")
@@ -179,4 +179,189 @@ class ManageFurnitureWindow(BaseFunctionWindow):
     
     def _on_add_furniture(self):
         """Handle add furniture."""
-        show_error_message("Info", "Add furniture functionality will be implemented here.", self)
+        try:
+            # Create add furniture dialog
+            self._show_add_furniture_dialog()
+        except Exception as e:
+            logger.error(f"Error showing add furniture dialog: {e}")
+            show_error_message("Error", f"Failed to open add furniture dialog: {str(e)}", self)
+
+    def _show_add_furniture_dialog(self):
+        """Show the add furniture dialog."""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QPushButton
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add New Furniture")
+        dialog.setModal(True)
+
+        theme_manager = self.get_theme_manager()
+        theme = theme_manager._themes[self.get_theme()]
+
+        layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # Title
+        title = QLabel("Add New Furniture Item")
+        title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
+        title.setFont(title_font)
+        title.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
+        layout.addWidget(title)
+
+        # Form fields
+        form_layout = QVBoxLayout()
+        form_layout.setSpacing(12)
+
+        # Furniture type
+        type_layout = QHBoxLayout()
+        type_label = QLabel("Type:")
+        type_label.setMinimumWidth(80)
+        type_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
+        type_layout.addWidget(type_label)
+
+        self.add_type_combo = QComboBox()
+        self.add_type_combo.addItems(["Chair", "Locker"])
+        self.add_type_combo.setMinimumWidth(200)
+        type_layout.addWidget(self.add_type_combo)
+        type_layout.addStretch()
+        form_layout.addLayout(type_layout)
+
+        # Location
+        location_layout = QHBoxLayout()
+        location_label = QLabel("Location:")
+        location_label.setMinimumWidth(80)
+        location_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
+        location_layout.addWidget(location_label)
+
+        self.add_location_input = QLineEdit()
+        self.add_location_input.setPlaceholderText("e.g., Room 101")
+        self.add_location_input.setMinimumWidth(200)
+        location_layout.addWidget(self.add_location_input)
+        location_layout.addStretch()
+        form_layout.addLayout(location_layout)
+
+        # Form (for chairs/lockers)
+        form_layout_h = QHBoxLayout()
+        form_label = QLabel("Form:")
+        form_label.setMinimumWidth(80)
+        form_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
+        form_layout_h.addWidget(form_label)
+
+        self.add_form_input = QLineEdit()
+        self.add_form_input.setPlaceholderText("e.g., Standard, Executive")
+        self.add_form_input.setMinimumWidth(200)
+        form_layout_h.addWidget(self.add_form_input)
+        form_layout_h.addStretch()
+        form_layout.addLayout(form_layout_h)
+
+        # Color
+        color_layout = QHBoxLayout()
+        color_label = QLabel("Color:")
+        color_label.setMinimumWidth(80)
+        color_label.setStyleSheet(f"color: {theme['text']}; font-weight: 500;")
+        color_layout.addWidget(color_label)
+
+        self.add_color_input = QLineEdit()
+        self.add_color_input.setPlaceholderText("e.g., Blue, Brown")
+        self.add_color_input.setMinimumWidth(200)
+        color_layout.addWidget(self.add_color_input)
+        color_layout.addStretch()
+        form_layout.addLayout(color_layout)
+
+        layout.addLayout(form_layout)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(dialog.reject)
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 8px 16px;
+                border-radius: 6px;
+                border: 1px solid {theme['border']};
+                background-color: transparent;
+                color: {theme['text']};
+            }}
+            QPushButton:hover {{
+                background-color: {theme['surface_hover']};
+            }}
+        """)
+        button_layout.addWidget(cancel_btn)
+
+        add_btn = QPushButton("Add Furniture")
+        add_btn.clicked.connect(lambda: self._perform_add_furniture(dialog))
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                padding: 8px 16px;
+                border-radius: 6px;
+                border: none;
+                background-color: #10b981;
+                color: white;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: #059669;
+            }}
+        """)
+        button_layout.addWidget(add_btn)
+
+        layout.addLayout(button_layout)
+
+        dialog.exec()
+
+    def _perform_add_furniture(self, dialog):
+        """Perform the add furniture operation."""
+        try:
+            furniture_type = self.add_type_combo.currentText()
+            location = self.add_location_input.text().strip()
+            form = self.add_form_input.text().strip()
+            color = self.add_color_input.text().strip()
+
+            # Validation
+            if not color:
+                show_error_message("Validation Error", "Color is required.", dialog)
+                return
+
+            # Create furniture based on type
+            if furniture_type == "Chair":
+                # Get next chair ID
+                chairs = self.furniture_service.get_all_chairs()
+                next_id = max([c.chair_id for c in chairs], default=0) + 1
+
+                furniture_data = {
+                    'chair_id': next_id,
+                    'location': location,
+                    'form': form,
+                    'color': color,
+                    'cond': 'Good',
+                    'assigned': 0
+                }
+                result = self.furniture_service.create_chair(furniture_data)
+
+            elif furniture_type == "Locker":
+                # Get next locker ID
+                lockers = self.furniture_service.get_all_lockers()
+                next_id = max([l.locker_id for l in lockers], default=0) + 1
+
+                furniture_data = {
+                    'locker_id': next_id,
+                    'location': location,
+                    'form': form,
+                    'color': color,
+                    'cond': 'Good',
+                    'assigned': 0
+                }
+                result = self.furniture_service.create_locker(furniture_data)
+
+            if result:
+                show_success_message("Success", f"{furniture_type} added successfully!", dialog)
+                dialog.accept()
+                self._refresh_furniture_table()
+            else:
+                show_error_message("Error", f"Failed to add {furniture_type.lower()}.", dialog)
+
+        except Exception as e:
+            logger.error(f"Error adding furniture: {e}")
+            show_error_message("Error", f"Failed to add furniture: {str(e)}", dialog)
