@@ -53,10 +53,22 @@ class TeacherService:
             The created Teacher object.
         """
         logger.info(f"Creating a new teacher with data: {teacher_data}")
+
+        # Map 'name' to 'teacher_name' for backward compatibility
+        if 'name' in teacher_data and 'teacher_name' not in teacher_data:
+            teacher_data['teacher_name'] = teacher_data['name']
+
         ValidationUtils.validate_input(teacher_data.get('teacher_name'), "Teacher name cannot be empty")
         ValidationUtils.validate_input(teacher_data.get('teacher_id'), "Teacher ID cannot be empty")
-        
-        teacher = Teacher(**teacher_data)
+
+        # Only pass the fields that the Teacher model accepts
+        teacher_model_data = {
+            'teacher_id': teacher_data['teacher_id'],
+            'teacher_name': teacher_data['teacher_name'],
+            'department': teacher_data.get('department')
+        }
+
+        teacher = Teacher(**teacher_model_data)
         created_teacher = self.teacher_repository.create(teacher)
         logger.info(f"Teacher created successfully with ID: {created_teacher.teacher_id}")
         return created_teacher
@@ -76,7 +88,12 @@ class TeacherService:
         if not teacher:
             return None
 
-        for key, value in teacher_data.items():
+        # Map 'name' to 'teacher_name' for backward compatibility
+        mapped_data = teacher_data.copy()
+        if 'name' in mapped_data and 'teacher_name' not in mapped_data:
+            mapped_data['teacher_name'] = mapped_data.pop('name')
+
+        for key, value in mapped_data.items():
             setattr(teacher, key, value)
 
         return self.teacher_repository.update(teacher)

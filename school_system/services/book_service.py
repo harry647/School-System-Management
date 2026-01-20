@@ -2370,6 +2370,47 @@ class BookService:
             logger.error(f"Error returning book by teacher: {e}")
             return False
 
+    def return_book(self, book_id: int, user_id: str, user_type: str,
+                    return_condition: str = "Good", fine_amount: float = 0,
+                    returned_by: str = None) -> bool:
+        """
+        Unified method to return a book for either student or teacher.
+
+        Args:
+            book_id: ID of the book being returned
+            user_id: ID of the user returning the book (student_id or teacher_id)
+            user_type: Type of user ('student' or 'teacher')
+            return_condition: Condition of the returned book (only for students)
+            fine_amount: Fine amount to be charged (only for students)
+            returned_by: Librarian username processing the return (only for students)
+
+        Returns:
+            True if return was successful, False otherwise
+        """
+        logger.info(f"Returning book {book_id} for {user_type} {user_id}")
+
+        try:
+            if user_type == 'student':
+                return self.return_book_student(
+                    student_id=user_id,
+                    book_id=book_id,
+                    return_condition=return_condition,
+                    fine_amount=fine_amount,
+                    returned_by=returned_by
+                )
+            elif user_type == 'teacher':
+                return self.return_book_teacher(
+                    teacher_id=user_id,
+                    book_id=book_id
+                )
+            else:
+                logger.warning(f"Invalid user type: {user_type}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error returning book: {e}")
+            return False
+
     def get_borrowing_history(self, user_id: int, user_type: str) -> List[Union[BorrowedBookStudent, BorrowedBookTeacher]]:
         """
         Get complete borrowing history for a user (student or teacher)
