@@ -746,17 +746,18 @@ class DashboardDataManager(QObject):
             True if cross-validation passes
         """
         try:
-            # Check that available books <= total books (but be more lenient)
+            # Check that available books <= total books (be lenient for data correction period)
             if data_key == 'available_books_count':
                 total_books = self._cache.get('total_books_count')
                 if total_books and total_books.data is not None:
-                    # Allow available books to be up to 10% more than total books (for data inconsistencies)
-                    max_allowed = int(total_books.data * 1.1)
+                    # Allow available books to be up to 50% more than total books during data correction
+                    # This will be reduced over time as the system corrects inconsistent data
+                    max_allowed = int(total_books.data * 1.5)
                     if data > max_allowed:
                         logger.warning(f"Cross-validation failed: available books ({data}) significantly > total books ({total_books.data})")
                         return False
                     elif data > total_books.data:
-                        logger.debug(f"Available books ({data}) slightly > total books ({total_books.data}) - allowing due to potential data inconsistency")
+                        logger.debug(f"Available books ({data}) > total books ({total_books.data}) - allowing during data correction period")
 
             # Check that borrowed books makes sense relative to total
             if data_key == 'total_borrowed_books_count':

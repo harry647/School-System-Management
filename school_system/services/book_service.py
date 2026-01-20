@@ -2117,9 +2117,11 @@ class BookService:
                     'reminder_days': 7  # Default reminder period
                 }
                 self.create_borrowed_book_student(borrowed_data)
+                # Mark book as unavailable
+                self._mark_book_unavailable(book_id)
                 logger.info(f"Book {book_id} reserved for student {user_id}")
                 return True
-                
+
             elif user_type == 'teacher':
                 borrowed_data = {
                     'teacher_id': user_id,
@@ -2127,6 +2129,8 @@ class BookService:
                     'borrowed_on': datetime.now().strftime('%Y-%m-%d')
                 }
                 self.create_borrowed_book_teacher(borrowed_data)
+                # Mark book as unavailable
+                self._mark_book_unavailable(book_id)
                 logger.info(f"Book {book_id} reserved for teacher {user_id}")
                 return True
                 
@@ -2610,3 +2614,51 @@ class BookService:
         except Exception as e:
             logger.error(f"Error getting overdue books: {e}")
             return []
+
+    def _mark_book_unavailable(self, book_id: int) -> bool:
+        """
+        Mark a book as unavailable (borrowed).
+
+        Args:
+            book_id: ID of the book to mark as unavailable
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            db = get_db_session()
+            cursor = db.cursor()
+            cursor.execute(
+                "UPDATE books SET available = 0 WHERE id = ?",
+                (book_id,)
+            )
+            db.commit()
+            logger.debug(f"Marked book {book_id} as unavailable")
+            return True
+        except Exception as e:
+            logger.error(f"Error marking book {book_id} as unavailable: {e}")
+            return False
+
+    def _mark_book_available(self, book_id: int) -> bool:
+        """
+        Mark a book as available (returned).
+
+        Args:
+            book_id: ID of the book to mark as available
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            db = get_db_session()
+            cursor = db.cursor()
+            cursor.execute(
+                "UPDATE books SET available = 1 WHERE id = ?",
+                (book_id,)
+            )
+            db.commit()
+            logger.debug(f"Marked book {book_id} as available")
+            return True
+        except Exception as e:
+            logger.error(f"Error marking book {book_id} as available: {e}")
+            return False
