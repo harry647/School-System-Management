@@ -84,12 +84,21 @@ class BaseRepository(Generic[T]):
         except Exception as e:
             raise DatabaseException(f"Error updating entity: {e}")
 
-    def delete(self, id: int) -> bool:
-        """Delete an entity."""
+    def delete(self, entity_or_id) -> bool:
+        """Delete an entity by ID or entity object."""
         try:
             cursor = self.db.cursor()
             pk = getattr(self.model, '__pk__', 'id')
-            cursor.execute(f"DELETE FROM {self.model.__tablename__} WHERE {pk} = ?", (id,))
+
+            # Check if it's an instance of the model class
+            if isinstance(entity_or_id, self.model):
+                # It's an entity object, get the primary key value
+                pk_value = getattr(entity_or_id, pk)
+            else:
+                # It's a primary key value directly
+                pk_value = entity_or_id
+
+            cursor.execute(f"DELETE FROM {self.model.__tablename__} WHERE {pk} = ?", (pk_value,))
             self.db.commit()
             return cursor.rowcount > 0
         except Exception as e:

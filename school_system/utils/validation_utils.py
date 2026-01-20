@@ -107,6 +107,21 @@ class ValidationUtils:
             return False
 
     @staticmethod
+    def validate_username(username: str) -> bool:
+        """
+        Validate username format.
+
+        Args:
+            username: Username to validate
+
+        Returns:
+            True if the username is valid, False otherwise
+        """
+        # Username should be 3-20 characters, alphanumeric with underscores
+        pattern = r'^[a-zA-Z0-9_]{3,20}$'
+        return re.match(pattern, username) is not None
+
+    @staticmethod
     def validate_password(password: str) -> bool:
         """
         Validate password strength.
@@ -119,6 +134,21 @@ class ValidationUtils:
         """
         # At least 8 characters, with uppercase, lowercase, digit, and special character
         pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+        return re.match(pattern, password) is not None
+
+    @staticmethod
+    def validate_password_strength(password: str) -> bool:
+        """
+        Validate basic password strength (without special character requirement).
+
+        Args:
+            password: Password to validate
+
+        Returns:
+            True if the password meets basic strength requirements, False otherwise
+        """
+        # At least 8 characters, with uppercase, lowercase, and digit
+        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$'
         return re.match(pattern, password) is not None
 
     @staticmethod

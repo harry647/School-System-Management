@@ -16,11 +16,16 @@ from school_system.services.auth_service import AuthService
 
 class ValidationResult:
     """Container for validation results with detailed feedback."""
-    
+
     def __init__(self, is_valid: bool = True, message: str = "", field: str = ""):
         self.is_valid = is_valid
         self.message = message
         self.field = field
+
+    @property
+    def error_message(self):
+        """Backward compatibility property for error_message."""
+        return self.message
 
 
 class UserValidator:
@@ -94,16 +99,60 @@ class UserValidator:
         """Validate that a user exists."""
         if not username:
             return ValidationResult(False, "Username is required", "username")
-        
+
         existing_user = self.auth_service.get_user_by_username(username)
         if not existing_user:
             return ValidationResult(
-                False, 
+                False,
                 f"User '{username}' does not exist",
                 "username"
             )
-        
+
         return ValidationResult(True, "User exists", "username")
+
+    def validate_role_update(self, username: str, new_role: str) -> ValidationResult:
+        """Validate role update for an existing user."""
+        # Validate that user exists
+        user_result = self.validate_user_exists(username)
+        if not user_result.is_valid:
+            return user_result
+
+        # Validate new role
+        role_result = self.validate_role(new_role)
+        if not role_result.is_valid:
+            return role_result
+
+        # Check if user is trying to change their own role (might need special permissions)
+        # For now, just return success
+        return ValidationResult(True, "Role update validation passed", "role_update")
+
+    def validate_user_creation(self, username: str, password: str,
+                              confirm_password: str, role: str) -> ValidationResult:
+        """Validate complete user creation data."""
+        # Validate username
+        username_result = self.validate_username(username)
+        if not username_result.is_valid:
+            return username_result
+
+        # Validate password
+        password_result = self.validate_password(password)
+        if not password_result.is_valid:
+            return password_result
+
+        # Validate password confirmation
+        if password != confirm_password:
+            return ValidationResult(
+                False,
+                "Passwords do not match",
+                "confirm_password"
+            )
+
+        # Validate role
+        role_result = self.validate_role(role)
+        if not role_result.is_valid:
+            return role_result
+
+        return ValidationResult(True, "All validation passed", "user_creation")
 
 
 class ValidationFeedbackWidget(QWidget):
