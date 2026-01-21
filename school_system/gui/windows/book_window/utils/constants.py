@@ -15,9 +15,7 @@ CARD_SPACING = 15
 REQUIRED_FIELDS = [
     'subject',
     'class',
-    'book_number',
-    'title',
-    'author'
+    'book_number'
 ]
 
 # Excel import/export constants

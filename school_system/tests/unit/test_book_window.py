@@ -696,8 +696,8 @@ class TestBookWindowConstants:
         assert isinstance(REQUIRED_FIELDS, list)
         assert len(REQUIRED_FIELDS) > 0
         assert 'book_number' in REQUIRED_FIELDS
-        assert 'title' in REQUIRED_FIELDS
-        assert 'author' in REQUIRED_FIELDS
+        assert 'subject' in REQUIRED_FIELDS
+        assert 'class' in REQUIRED_FIELDS
     
     def test_book_conditions(self):
         """Test book conditions list."""

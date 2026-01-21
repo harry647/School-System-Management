@@ -102,8 +102,9 @@ class BookService:
             The created Book object.
         """
         logger.info(f"Creating a new book with data: {book_data}")
-        ValidationUtils.validate_input(book_data.get('title'), "Book title cannot be empty")
-        ValidationUtils.validate_input(book_data.get('author'), "Book author cannot be empty")
+        # Title and author are now optional
+        # ValidationUtils.validate_input(book_data.get('title'), "Book title cannot be empty")
+        # ValidationUtils.validate_input(book_data.get('author'), "Book author cannot be empty")
         ValidationUtils.validate_input(book_data.get('book_number'), "Book number cannot be empty")
         
         book = Book(**book_data)

@@ -351,7 +351,7 @@ class BookImportExportWindow(BaseFunctionWindow):
 
         try:
             # Define required columns for book import
-            required_columns = ['book_number', 'title', 'author']
+            required_columns = REQUIRED_FIELDS
 
             # Import books from file using service method
             success, data, error_msg = self.book_service.import_books_from_excel_with_validation(

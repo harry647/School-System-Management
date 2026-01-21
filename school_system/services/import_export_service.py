@@ -171,20 +171,49 @@ class ImportExportService:
             # Get headers from first row
             headers = [cell.value for cell in sheet[1]]
             
-            # Validate required columns
+            # Validate required columns (with variations)
             missing_columns = []
+            column_mapping = {}
+
             for column in required_columns:
-                if column not in headers:
+                found = False
+                # Try exact match first
+                if column in headers:
+                    column_mapping[column] = column
+                    found = True
+                else:
+                    # Try variations
+                    variations = [
+                        column.upper(),
+                        column.lower(),
+                        column.replace('_', ' '),
+                        column.replace('_', ''),
+                        column.title(),
+                        column.capitalize()
+                    ]
+
+                    for variation in variations:
+                        if variation in headers:
+                            column_mapping[column] = variation
+                            found = True
+                            break
+
+                if not found:
                     missing_columns.append(column)
             
             if missing_columns:
                 return False, [], f"Missing required columns: {', '.join(missing_columns)}"
             
-            # Import data
+            # Import data with proper column mapping
             data = []
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 if row:
-                    data.append(dict(zip(headers, row)))
+                    row_dict = dict(zip(headers, row))
+                    # Map columns to expected names
+                    mapped_row = {}
+                    for expected_col, actual_col in column_mapping.items():
+                        mapped_row[expected_col] = row_dict.get(actual_col, '')
+                    data.append(mapped_row)
             
             return True, data, ""
             
