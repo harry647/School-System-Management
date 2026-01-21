@@ -35,17 +35,49 @@ if errorlevel 1 (
 echo Python version check passed.
 echo.
 
-REM Install/upgrade PyInstaller if needed
-echo Checking PyInstaller...
-python -c "import PyInstaller" >nul 2>&1
+REM Create virtual environment
+echo Creating virtual environment...
+python -m venv build_venv
 if errorlevel 1 (
-    echo Installing PyInstaller...
-    pip install pyinstaller
-    if errorlevel 1 (
-        echo ERROR: Failed to install PyInstaller
-        pause
-        exit /b 1
-    )
+    echo ERROR: Failed to create virtual environment
+    pause
+    exit /b 1
+)
+
+REM Activate virtual environment
+echo Activating virtual environment...
+call build_venv\Scripts\activate.bat
+if errorlevel 1 (
+    echo ERROR: Failed to activate virtual environment
+    pause
+    exit /b 1
+)
+
+REM Upgrade pip in virtual environment
+echo Upgrading pip in virtual environment...
+python -m pip install --upgrade pip
+if errorlevel 1 (
+    echo ERROR: Failed to upgrade pip
+    pause
+    exit /b 1
+)
+
+REM Install runtime requirements
+echo Installing runtime requirements...
+pip install -r requirements.txt
+if errorlevel 1 (
+    echo ERROR: Failed to install runtime requirements
+    pause
+    exit /b 1
+)
+
+REM Install build requirements
+echo Installing build requirements...
+pip install -r build_requirements.txt
+if errorlevel 1 (
+    echo ERROR: Failed to install build requirements
+    pause
+    exit /b 1
 )
 
 REM Check if Inno Setup is available
@@ -85,6 +117,10 @@ echo.
 python build_installer.py
 set BUILD_RESULT=%errorlevel%
 
+REM Deactivate virtual environment
+echo Deactivating virtual environment...
+call deactivate
+
 echo.
 if %BUILD_RESULT% equ 0 (
     echo ========================================
@@ -107,6 +143,9 @@ if %BUILD_RESULT% equ 0 (
     echo   Username: admin
     echo   Password: harry123
     echo.
+    echo NOTE: Virtual environment 'build_venv' can be safely removed after testing.
+    echo To remove: rmdir /s build_venv
+    echo.
 ) else (
     echo ========================================
     echo BUILD FAILED
@@ -115,6 +154,8 @@ if %BUILD_RESULT% equ 0 (
     echo Check the following files for details:
     echo - build_installer.log
     echo - build_summary.json
+    echo.
+    echo NOTE: Virtual environment 'build_venv' remains available for debugging.
     echo.
 )
 

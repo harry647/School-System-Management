@@ -23,6 +23,10 @@ fpdf>=1.7.2
 qrcode[pil]>=7.3.1
 Pillow>=9.0.0
 
+# Date and Time Utilities - For timezone handling and relative date calculations
+pytz>=2023.3
+python-dateutil>=2.8.2
+
 # ==================================================
 # Standard Library Modules (Included with Python)
 # ==================================================

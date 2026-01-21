@@ -67,6 +67,11 @@ class InstallerBuilder:
         """Check if all required tools and dependencies are available."""
         logger.info("Checking build requirements...")
 
+        # Check if running in virtual environment
+        if not hasattr(sys, 'real_prefix') and not (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            logger.warning("Not running in a virtual environment. This may cause issues with the build.")
+            logger.warning("The build script should be run from the build_installer.bat file which sets up the venv.")
+
         # Check Python version
         python_version = sys.version_info
         if python_version < (3, 7):
@@ -79,7 +84,8 @@ class InstallerBuilder:
             import PyInstaller
             logger.info(f"✓ PyInstaller {PyInstaller.__version__} is available")
         except ImportError:
-            logger.error("PyInstaller is not installed. Run: pip install pyinstaller")
+            logger.error("PyInstaller is not installed in the virtual environment.")
+            logger.error("Make sure to run build_installer.bat which sets up the venv with all requirements.")
             return False
 
         # Check if Inno Setup is available (on Windows)
@@ -120,8 +126,8 @@ class InstallerBuilder:
                 missing_packages.append(package)
 
         if missing_packages:
-            logger.error(f"Missing required packages: {', '.join(missing_packages)}")
-            logger.error("Run: pip install -r requirements.txt")
+            logger.error(f"Missing required packages in virtual environment: {', '.join(missing_packages)}")
+            logger.error("Make sure build_installer.bat was run to set up the virtual environment with all requirements.")
             return False
 
         return True
@@ -246,11 +252,15 @@ class InstallerBuilder:
 
     def create_build_summary(self, success):
         """Create a build summary."""
+        # Check if running in virtual environment
+        in_venv = hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
+
         summary = {
             "build_timestamp": datetime.now().isoformat(),
             "success": success,
             "platform": sys.platform,
             "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+            "virtual_environment": in_venv,
             "executable_created": (self.dist_dir / "SchoolSystemManagement.exe").exists(),
             "installer_created": (self.installer_output / "SchoolSystemManagement_Setup.exe").exists() if sys.platform == "win32" else None
         }
@@ -308,9 +318,11 @@ class InstallerBuilder:
             logger.info("Executable available in: dist/SchoolSystemManagement.exe")
             if sys.platform == "win32" and self.inno_compiler:
                 logger.info("Installer available in: installer_output/SchoolSystemManagement_Setup.exe")
+            logger.info("Build was performed in isolated virtual environment for consistency.")
         else:
             logger.error("✗ BUILD FAILED")
             logger.error("Check the log file for details: build_installer.log")
+            logger.info("Virtual environment 'build_venv' remains available for debugging.")
         logger.info("=" * 60)
 
         return success
