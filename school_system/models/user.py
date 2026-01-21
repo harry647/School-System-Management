@@ -75,11 +75,12 @@ class UserSetting(BaseModel):
 class ShortFormMapping(BaseModel):
     __tablename__ = 'short_form_mappings'
     __pk__ = "short_form"
-    def __init__(self, short_form, full_name, type):
+    def __init__(self, short_form=None, full_name=None, type=None, **kwargs):
         super().__init__()
-        self.short_form = short_form
-        self.full_name = full_name
-        self.type = type
+        # Handle both direct arguments and kwargs (for database instantiation)
+        self.short_form = short_form or kwargs.get('short_form')
+        self.full_name = full_name or kwargs.get('full_name')
+        self.type = type or kwargs.get('type')
     
     def save(self):
         """Save the short form mapping to the database."""
