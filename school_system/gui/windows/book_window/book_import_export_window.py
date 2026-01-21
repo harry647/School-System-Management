@@ -104,7 +104,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         for i, col in enumerate(EXCEL_BOOK_IMPORT_COLUMNS):
             is_required = col in REQUIRED_FIELDS
             status = "Required" if is_required else "Optional"
-            color = theme["error"] if is_required else theme["text_secondary"]
+            color = theme["danger"] if is_required else theme["text_secondary"]
 
             col_label = QLabel(f"• {col.replace('_', ' ')} ({status})")
             col_label.setStyleSheet(f"color: {color}; font-size: 11px; margin-left: 12px;")
@@ -264,7 +264,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         for i, col in enumerate(EXCEL_BULK_BORROW_COLUMNS):
             is_required = True  # All columns in bulk borrow are required
             status = "Required"
-            color = theme["error"]
+            color = theme["danger"]
 
             col_label = QLabel(f"• {col.replace('_', ' ')} ({status})")
             col_label.setStyleSheet(f"color: {color}; font-size: 11px; margin-left: 12px;")
