@@ -6,7 +6,7 @@ class Chair(BaseModel):
     __pk__ = "chair_id"
     def __init__(self, chair_id, location=None, form=None, color="Black", cond="Good", assigned=0):
         super().__init__()
-        self.chair_id = chair_id
+        self.chair_id = int(chair_id) if chair_id is not None else None
         self.location = location
         self.form = form
         self.color = color
@@ -31,7 +31,7 @@ class Locker(BaseModel):
     __pk__ = "locker_id"
     def __init__(self, locker_id, location=None, form=None, color="Black", cond="Good", assigned=0):
         super().__init__()
-        self.locker_id = locker_id
+        self.locker_id = int(locker_id) if locker_id is not None else None
         self.location = location
         self.form = form
         self.color = color
