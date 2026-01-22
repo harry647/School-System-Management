@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 # DATABASE_CONFIG definition (moved before engine creation)
 DATABASE_CONFIG = {
     'engine': 'sqlite',
-    'name': 'school.db',
+    'name': 'school_db',
     'backup_interval': 3600,  # 1 hour in seconds
     'connection_pool_size': 10,
     'connection_timeout': 30,
@@ -37,17 +37,19 @@ DATABASE_CONFIG = {
 }
 
 # SQLite doesn't use a connection pool, so we'll manage a single DB file
-DATABASE_FILE = "school.db"
+DATABASE_FILE = "school_db"
 
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and PyInstaller."""
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+    # Always use the project root directory (parent of school_system)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(project_root, relative_path)
 
 
 # SQLite doesn't use a connection pool, so we'll manage a single DB file
-DATABASE_FILE = "school.db"
+DATABASE_FILE = "school_db"
 
 
 def load_db_config(config_file='config.json'):

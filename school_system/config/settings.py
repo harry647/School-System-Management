@@ -3,7 +3,7 @@ class Settings:
     
     def __init__(self):
         # Database configuration
-        self.database_url = "sqlite:///school.db"
+        self.database_url = "sqlite:///school_db"
         self.debug = False
         self.log_level = "INFO"
         

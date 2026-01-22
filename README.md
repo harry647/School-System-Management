@@ -14,7 +14,7 @@ A comprehensive school management system for managing students, teachers, books,
 
 ## Database
 
-- **Single database file**: `school.db` (SQLite)
+- **Single database file**: `school_db` (SQLite)
 - **Configuration**: `config.json` (auto-generated on first run)
 - **Tables**: All created automatically on first run
 - **Size**: ~150KB with sample data
@@ -150,13 +150,13 @@ Application logs are stored in `logs/app.log` with rotation support.
 
 ### Database Files
 
-- **school.db**: Main SQLite database (~150KB)
+- **school_db**: Main SQLite database (~150KB)
 - **config.json**: Database configuration
 - **logs/app.log**: Application logs
 
 ### Reset Database
 
-To reset the database, simply delete the `school.db` file and restart the application. The database will be recreated with default settings.
+To reset the database, simply delete the `school_db` file and restart the application. The database will be recreated with default settings.
 
 ## License
 
