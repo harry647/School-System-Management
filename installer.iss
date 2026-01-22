@@ -2,6 +2,9 @@
 ; This script creates a professional installer with all necessary components
 
 #include "version.iss"
+#ifndef MyAppVersion
+#define MyAppVersion "1.0.0"
+#endif
 
 #define MyAppName "School System Management"
 #define MyAppPublisher "School Management Solutions"

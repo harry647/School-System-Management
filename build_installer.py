@@ -51,16 +51,16 @@ class InstallerBuilder:
                 text=True,
                 check=True
             )
-            logger.info(f"✓ {description} completed successfully")
+            logger.info(f"[SUCCESS] {description} completed successfully")
             return True
         except subprocess.CalledProcessError as e:
-            logger.error(f"✗ {description} failed")
+            logger.error(f"[ERROR] {description} failed")
             logger.error(f"Error code: {e.returncode}")
             logger.error(f"STDOUT: {e.stdout}")
             logger.error(f"STDERR: {e.stderr}")
             return False
         except Exception as e:
-            logger.error(f"✗ Unexpected error in {description}: {e}")
+            logger.error(f"[ERROR] Unexpected error in {description}: {e}")
             return False
 
     def check_requirements(self):
@@ -77,12 +77,12 @@ class InstallerBuilder:
         if python_version < (3, 7):
             logger.error(f"Python {python_version.major}.{python_version.minor} is not supported. Need Python 3.7+")
             return False
-        logger.info(f"✓ Python {python_version.major}.{python_version.minor}.{python_version.micro} detected")
+        logger.info(f"[OK] Python {python_version.major}.{python_version.minor}.{python_version.micro} detected")
 
         # Check if PyInstaller is installed
         try:
             import PyInstaller
-            logger.info(f"✓ PyInstaller {PyInstaller.__version__} is available")
+            logger.info(f"[OK] PyInstaller {PyInstaller.__version__} is available")
         except ImportError:
             logger.error("PyInstaller is not installed in the virtual environment.")
             logger.error("Make sure to run build_installer.bat which sets up the venv with all requirements.")
@@ -105,7 +105,7 @@ class InstallerBuilder:
                     break
 
             if self.inno_compiler:
-                logger.info(f"✓ Inno Setup found at: {self.inno_compiler}")
+                logger.info(f"[OK] Inno Setup found at: {self.inno_compiler}")
             else:
                 logger.warning("Inno Setup not found. Install from: https://jrsoftware.org/isinfo.php")
                 logger.warning("You can still build the executable, but not the installer")
@@ -113,21 +113,34 @@ class InstallerBuilder:
             logger.info("Non-Windows platform detected - skipping Inno Setup check")
 
         # Check if required packages are installed
+        # Format: (import_name, display_name)
         required_packages = [
-            'PyQt6', 'pandas', 'openpyxl', 'fpdf', 'qrcode', 'Pillow'
+            ('PyQt6', 'PyQt6'),
+            ('pandas', 'pandas'),
+            ('openpyxl', 'openpyxl'),
+            ('fpdf', 'fpdf'),
+            ('qrcode', 'qrcode'),
+            ('PIL', 'Pillow')
         ]
 
         missing_packages = []
-        for package in required_packages:
+        for import_name, display_name in required_packages:
             try:
-                __import__(package)
-                logger.info(f"✓ {package} is available")
+                __import__(import_name)
+                logger.info(f"[OK] {display_name} is available")
             except ImportError:
-                missing_packages.append(package)
+                missing_packages.append(display_name)
 
         if missing_packages:
             logger.error(f"Missing required packages in virtual environment: {', '.join(missing_packages)}")
-            logger.error("Make sure build_installer.bat was run to set up the virtual environment with all requirements.")
+            logger.error("The build script should have installed all requirements automatically.")
+            logger.error("Try deleting the 'build_venv' folder and running build_installer.bat again.")
+            logger.error("If the problem persists, manually install missing packages:")
+            for package in missing_packages:
+                if package == "Pillow":
+                    logger.error(f"  pip install {package}")
+                else:
+                    logger.error(f"  pip install {package}")
             return False
 
         return True
@@ -142,7 +155,7 @@ class InstallerBuilder:
             if dir_path.exists():
                 try:
                     shutil.rmtree(dir_path)
-                    logger.info(f"✓ Cleaned {dir_path}")
+                    logger.info(f"[OK] Cleaned {dir_path}")
                 except Exception as e:
                     logger.warning(f"Could not clean {dir_path}: {e}")
 
@@ -153,7 +166,7 @@ class InstallerBuilder:
             logger.error(f"Spec file not found: {spec_file}")
             return False
 
-        logger.info(f"✓ Spec file found: {spec_file}")
+        logger.info(f"[OK] Spec file found: {spec_file}")
         return True
 
     def validate_inno_script(self):
@@ -163,7 +176,7 @@ class InstallerBuilder:
             logger.error(f"Inno Setup script not found: {inno_script}")
             return False
 
-        logger.info(f"✓ Inno Setup script found: {inno_script}")
+        logger.info(f"[OK] Inno Setup script found: {inno_script}")
         return True
 
     def create_version_file(self):
@@ -282,7 +295,7 @@ class InstallerBuilder:
         exe_path = self.dist_dir / "SchoolSystemManagement.exe"
         if exe_path.exists():
             exe_size = exe_path.stat().st_size / (1024 * 1024)  # Size in MB
-            logger.info(f"✓ Executable created: {exe_path} ({exe_size:.1f} MB)")
+            logger.info(f"[OK] Executable created: {exe_path} ({exe_size:.1f} MB)")
             return True
         else:
             logger.error("Executable was not created")
@@ -319,7 +332,7 @@ class InstallerBuilder:
         installer_path = self.installer_output / "SchoolSystemManagement_Setup.exe"
         if installer_path.exists():
             installer_size = installer_path.stat().st_size / (1024 * 1024)  # Size in MB
-            logger.info(f"✓ Installer created: {installer_path} ({installer_size:.1f} MB)")
+            logger.info(f"[OK] Installer created: {installer_path} ({installer_size:.1f} MB)")
             return True
         else:
             logger.error("Installer was not created")
@@ -465,7 +478,7 @@ Version: {version}
         try:
             with open(summary_file, 'w') as f:
                 json.dump(summary, f, indent=2)
-            logger.info(f"✓ Build summary saved: {summary_file}")
+            logger.info(f"[OK] Build summary saved: {summary_file}")
         except Exception as e:
             logger.error(f"Failed to save build summary: {e}")
 
@@ -487,6 +500,10 @@ Version: {version}
 
             # Step 3: Convert icons
             if not self.convert_icons():
+                success = False
+
+            # Step 4: Create version file
+            if not self.create_version_file():
                 success = False
 
             # Step 5: Build executable
