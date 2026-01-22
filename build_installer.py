@@ -200,8 +200,8 @@ class InstallerBuilder:
                 version_iss_file = self.project_root / "version.iss"
                 try:
                     with open(version_iss_file, 'w') as f:
-                        f.write(f'# Version definitions for Inno Setup\n')
-                        f.write(f'# This file is generated during the build process\n\n')
+                        f.write(f'; Version definitions for Inno Setup\n')
+                        f.write(f'; This file is generated during the build process\n\n')
                         f.write(f'#define MyAppVersion "{version_manager.get_current_version()}"\n')
                         f.write(f'#define MyAppVersionInfo VersionToInt(MyAppVersion)\n')
                     logger.info(f"[SUCCESS] Generated Inno Setup version file: {version_iss_file}")

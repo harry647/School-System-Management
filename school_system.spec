@@ -12,7 +12,8 @@ import sys
 from pathlib import Path
 
 # Get the project root directory
-project_root = Path(__file__).parent
+import os
+project_root = Path(os.path.abspath("."))
 
 # Define data files to include
 data_files = [

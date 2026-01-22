@@ -1,0 +1,10 @@
+{
+  "build_timestamp": "2026-01-22T20:49:37.568721",
+  "success": false,
+  "platform": "win32",
+  "python_version": "3.14.0",
+  "virtual_environment": true,
+  "executable_created": false,
+  "installer_created": false,
+  "distribution_zip_created": true
+}
