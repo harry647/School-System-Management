@@ -138,6 +138,7 @@ if %BUILD_RESULT% equ 0 (
         echo NOTE: No installer created (Inno Setup not found)
         echo You can distribute the executable directly.
     )
+    echo - Distribution ZIP: Contains all files for easy transport
     echo.
     echo Default login credentials:
     echo   Username: admin

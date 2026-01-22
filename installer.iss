@@ -1,8 +1,9 @@
 ; Inno Setup Script for School System Management Application
 ; This script creates a professional installer with all necessary components
 
+#include "version.iss"
+
 #define MyAppName "School System Management"
-#define MyAppVersion "1.0.0"
 #define MyAppPublisher "School Management Solutions"
 #define MyAppURL "https://www.schoolmanagement.com"
 #define MyAppExeName "SchoolSystemManagement.exe"
