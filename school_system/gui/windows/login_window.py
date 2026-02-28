@@ -14,6 +14,7 @@ from school_system.gui.dialogs.message_dialog import show_error_message, show_su
 from school_system.config.logging import logger
 from school_system.services.auth_service import AuthService
 from school_system.core.exceptions import AuthenticationError, ValidationError
+from school_system.config.settings import get_settings
 
 
 class LoginWindow(BaseWindow):
@@ -190,7 +191,13 @@ class LoginWindow(BaseWindow):
         logo_layout.setSpacing(8)
         
         logo_label = QLabel()
-        logo_pixmap = QPixmap("school_system/gui/resources/icons/logo.png")
+        # Use centralized path management for logo
+        settings = get_settings()
+        logo_path = settings.resolve_path("school_system/gui/resources/icons/logo.png")
+        logo_pixmap = QPixmap(logo_path)
+        if logo_pixmap.isNull():
+            # Fallback to trying direct path
+            logo_pixmap = QPixmap("school_system/gui/resources/icons/logo.png")
         if not logo_pixmap.isNull():
             logo_label.setPixmap(logo_pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)

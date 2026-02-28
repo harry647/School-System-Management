@@ -20,6 +20,7 @@ from PyQt6.QtGui import QIcon
 from school_system.gui.base.base_dialog import BaseDialog
 from school_system.gui.base.widgets import ModernInput
 from school_system.config.logging import logger
+from school_system.config.settings import get_settings
 
 
 class InputDialog(BaseDialog):
@@ -146,7 +147,12 @@ class InputDialog(BaseDialog):
         self._error_layout.setContentsMargins(0, 0, 0, 0)
          
         self._error_icon = QLabel()
-        self._error_icon.setPixmap(QIcon("icons/error.png").pixmap(16, 16))
+        # Use centralized path management for icons
+        settings = get_settings()
+        icon_base = settings.resolve_path("school_system/gui/resources/icons")
+        import os
+        error_icon_path = os.path.join(icon_base, "error.png")
+        self._error_icon.setPixmap(QIcon(error_icon_path).pixmap(16, 16))
         self._error_icon.setAccessibleName("Error icon")
          
         self._error_message = QLabel()

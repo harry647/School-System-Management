@@ -16,9 +16,11 @@ Features:
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame, QDialogButtonBox
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QPixmap
+import os
 
 from school_system.gui.base.base_dialog import BaseDialog
 from school_system.config.logging import logger
+from school_system.config.settings import get_settings
 
 
 class MessageDialog(BaseDialog):
@@ -164,14 +166,18 @@ class MessageDialog(BaseDialog):
         """Set the appropriate icon based on message type."""
         icon_path = ""
         
+        # Use centralized path management for icons
+        settings = get_settings()
+        icon_base = settings.resolve_path("school_system/gui/resources/icons")
+        
         if self._message_type == self.INFO:
-            icon_path = "icons/info.png"
+            icon_path = os.path.join(icon_base, "info.png")
         elif self._message_type == self.WARNING:
-            icon_path = "icons/warning.png"
+            icon_path = os.path.join(icon_base, "warning.png")
         elif self._message_type == self.ERROR:
-            icon_path = "icons/error.png"
+            icon_path = os.path.join(icon_base, "error.png")
         elif self._message_type == self.SUCCESS:
-            icon_path = "icons/success.png"
+            icon_path = os.path.join(icon_base, "success.png")
         
         if icon_path:
             try:

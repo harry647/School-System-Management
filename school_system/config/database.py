@@ -7,6 +7,14 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog
 from sqlalchemy import create_engine
 
+from .path_manager import (
+    get_path_manager, 
+    PathType,
+    ExecutionContext,
+    PathValidationError,
+    PathPermissionError
+)
+
 logger = logging.getLogger('DatabaseConfig')
 logger.setLevel(logging.INFO)
 
@@ -39,27 +47,58 @@ DATABASE_CONFIG = {
 # SQLite doesn't use a connection pool, so we'll manage a single DB file
 DATABASE_FILE = "school_db"
 
-def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    # Always use the project root directory (parent of school_system)
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(project_root, relative_path)
+def resource_path(relative_path: str) -> str:
+    """
+    Get absolute path to resource, works for dev and PyInstaller.
+    
+    This function is maintained for backward compatibility.
+    New code should use PathManager.resolve_path() instead.
+    
+    Args:
+        relative_path: Path relative to project root.
+        
+    Returns:
+        Absolute path to the resource.
+    """
+    path_manager = get_path_manager()
+    return path_manager.resolve_path(relative_path)
 
 
 # SQLite doesn't use a connection pool, so we'll manage a single DB file
 DATABASE_FILE = "school_db"
 
 
-def load_db_config(config_file='config.json'):
-    """Loads database config from file or uses defaults if not available."""
-    config_path = resource_path(config_file)
+def load_db_config(config_file: str = 'config.json') -> dict:
+    """
+    Loads database config from file or uses defaults if not available.
+    
+    Uses PathManager to determine the correct config location based on
+    execution context (development vs packaged).
+    
+    Args:
+        config_file: Name of the config file.
+        
+    Returns:
+        Database configuration dictionary.
+    """
+    path_manager = get_path_manager()
+    
+    # Use the config path from path manager
+    config_dir = path_manager.get_config_path()
+    config_path = os.path.join(config_dir, config_file)
+    
+    # If not in config dir, try project root for backward compatibility
+    if not os.path.exists(config_path):
+        config_path = os.path.join(path_manager.get_executable_directory(), config_file)
+    
     logger.info(f"Attempting to load config from: {config_path}")
     
     # Default configuration for SQLite (only needs database file path)
+    # Use the database path from path manager
+    db_dir = path_manager.get_database_path()
+    default_db_name = "school_db"
     default_config = {
-        "database": DATABASE_FILE
+        "database": os.path.join(db_dir, default_db_name)
     }
     
     try:
@@ -74,6 +113,8 @@ def load_db_config(config_file='config.json'):
                 return db_config
         else:
             logger.info(f"Config file not found at {config_path}, using defaults and creating config")
+            # Ensure config directory exists
+            os.makedirs(config_dir, exist_ok=True)
             with open(config_path, 'w') as f:
                 json.dump({"database_config": default_config}, f, indent=4)
             return default_config

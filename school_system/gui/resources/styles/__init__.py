@@ -14,11 +14,16 @@ Usage:
     app.setStyleSheet(light_theme_qss)
 """
 
-# Read and expose the stylesheets
-with open('school_system/gui/resources/styles/dark_theme.qss', 'r') as f:
+import os
+
+# Get the directory where this module is located
+_STYLES_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Read and expose the stylesheets using absolute paths based on module location
+with open(os.path.join(_STYLES_DIR, 'dark_theme.qss'), 'r') as f:
     dark_theme_qss = f.read()
 
-with open('school_system/gui/resources/styles/light_theme.qss', 'r') as f:
+with open(os.path.join(_STYLES_DIR, 'light_theme.qss'), 'r') as f:
     light_theme_qss = f.read()
 
 __all__ = ['dark_theme_qss', 'light_theme_qss']
