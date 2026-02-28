@@ -2,7 +2,7 @@
 Notification service for managing notifications and alerts.
 """
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 from school_system.config.logging import logger
 from school_system.config.settings import Settings
 from school_system.core.exceptions import DatabaseException
@@ -17,7 +17,7 @@ class NotificationService:
     def __init__(self):
         pass
 
-    def create_notification(self, title: str, message: str, recipient: str) -> Notification:
+    def create_notification(self, title: str, message: str, recipient: str) -> Dict:
         """
         Create a new notification.
 
@@ -37,7 +37,7 @@ class NotificationService:
         logger.info(f"Notification created successfully")
         return {"title": title, "message": message, "recipient": recipient}
 
-    def get_notifications_for_user(self, user_id: int) -> List[Notification]:
+    def get_notifications_for_user(self, user_id: int) -> List[Dict]:
         """
         Retrieve notifications for a specific user.
 

@@ -2,7 +2,7 @@
 Student service for managing student-related operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime
 from school_system.config.logging import logger
 from school_system.config.settings import Settings

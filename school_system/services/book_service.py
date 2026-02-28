@@ -2,7 +2,7 @@
 Book service for managing book-related operations.
 """
 
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Union, Tuple, Dict
 from datetime import datetime, timedelta
 from school_system.config.logging import logger
 from school_system.config.settings import Settings

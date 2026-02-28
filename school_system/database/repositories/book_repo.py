@@ -2,6 +2,7 @@
 Repository for book operations.
 """
 
+from typing import Optional, List
 from .base import BaseRepository
 from ...models.book import Book, BookTag, BorrowedBookStudent, BorrowedBookTeacher, QRBook, QRBorrowLog, DistributionSession, DistributionStudent, DistributionImportLog
 from ...core.exceptions import DatabaseException
