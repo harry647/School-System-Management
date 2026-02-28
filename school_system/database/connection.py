@@ -17,6 +17,8 @@ class DatabaseConnection:
     
     def __init__(self):
         self._connection = None
+        # Use load_db_config to get the full database path
+        self._db_config = load_db_config()
         self._config = DATABASE_CONFIG
            
     def get_connection(self) -> Optional[sqlite3.Connection]:
@@ -28,8 +30,10 @@ class DatabaseConnection:
     def _create_connection(self) -> Optional[sqlite3.Connection]:
         """Create a new database connection."""
         try:
+            # Use the full database path from config
+            db_path = self._db_config.get('database', self._config['name'])
             conn = sqlite3.connect(
-                self._config['name'],
+                db_path,
                 check_same_thread=self._config['sqlite']['check_same_thread'],
                 isolation_level=self._config['sqlite']['isolation_level'],
                 timeout=self._config['sqlite']['timeout']
@@ -38,7 +42,7 @@ class DatabaseConnection:
             # Enable foreign key support
             conn.execute("PRAGMA foreign_keys = ON")
             
-            logger.info(f"Database connection established to {self._config['name']}")
+            logger.info(f"Database connection established to {db_path}")
             return conn
             
         except SQLiteError as e:

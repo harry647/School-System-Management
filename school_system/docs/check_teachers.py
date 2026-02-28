@@ -1,7 +1,15 @@
 import sqlite3
 import os
+import sys
 
-db_path = 'school_db'
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config.database import load_db_config
+
+# Get database path from centralized config
+db_config = load_db_config()
+db_path = db_config.get('database', 'school_db')
 if os.path.exists(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()

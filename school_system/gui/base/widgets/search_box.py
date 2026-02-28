@@ -11,6 +11,9 @@ from typing import Optional, Callable, Dict, Any
 from functools import lru_cache
 import os
 
+# Import settings for centralized path resolution
+from ....config.settings import get_settings
+
 
 class SearchBox(QWidget):
     """
@@ -54,7 +57,9 @@ class SearchBox(QWidget):
         
         # Create search button
         self.search_button = QPushButton()
-        icon_path = os.path.join("school_system", "gui", "resources", "icons", "search.png")
+        # Use centralized path resolution
+        settings = get_settings()
+        icon_path = settings.resolve_path("school_system/gui/resources/icons/search.png")
         if os.path.exists(icon_path):
             self.search_button.setIcon(QIcon(icon_path))
         else:
