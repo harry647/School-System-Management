@@ -87,6 +87,13 @@ def load_db_config(config_file: str = 'config.json') -> dict:
     config_dir = path_manager.get_config_path()
     config_path = os.path.join(config_dir, config_file)
     
+    # For PyInstaller, also check the bundle directory
+    if path_manager.is_pyinstaller and path_manager.bundle_dir:
+        bundle_config = os.path.join(path_manager.bundle_dir, "school_system", config_file)
+        if os.path.exists(bundle_config):
+            config_path = bundle_config
+            logger.info(f"Using bundled config file: {config_path}")
+    
     # If not in config dir, try project root for backward compatibility
     if not os.path.exists(config_path):
         config_path = os.path.join(path_manager.get_executable_directory(), config_file)

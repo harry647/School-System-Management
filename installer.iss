@@ -53,8 +53,8 @@ Source: "dist\SchoolSystemManagement.exe"; DestDir: "{app}"; Flags: ignoreversio
 Source: "dist\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Template files
-Source: "book_import_template.xlsx"; DestDir: "{app}"; Flags: ignoreversion
-Source: "student_import_template.xlsx"; DestDir: "{app}"; Flags: ignoreversion
+Source: "school_system\docs\book_import_template.xlsx"; DestDir: "{app}\_internal"; Flags: ignoreversion
+Source: "school_system\docs\student_import_template.xlsx"; DestDir: "{app}\_internal"; Flags: ignoreversion
 
 ; Documentation (create if exists)
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
@@ -62,6 +62,16 @@ Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 ; VC++ Redistributables (if needed)
 ; Source: "vcredist_x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Check: VCRedistNeedsInstall
+
+[Dirs]
+; Create data directories in application folder (for non-admin installs)
+Name: "{app}\_internal\school_system\data"; Permissions: users-modify
+Name: "{app}\_internal\school_system\data\backup"; Permissions: users-modify
+Name: "{app}\_internal\school_system\data\exports"; Permissions: users-modify
+Name: "{app}\_internal\logs"; Permissions: users-modify
+Name: "{app}\_internal\config"; Permissions: users-modify
+Name: "{app}\_internal\cache"; Permissions: users-modify
+Name: "{app}\_internal\temp"; Permissions: users-modify
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
@@ -127,7 +137,7 @@ begin
   DataDirPage.Values[0] := ExpandConstant('{userdocs}\{#MyAppName}');
 
   // Set config file path
-  ConfigFile := ExpandConstant('{app}\school_system\config.json');
+  ConfigFile := ExpandConstant('{app\_internal}\school_system\config.json');
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;

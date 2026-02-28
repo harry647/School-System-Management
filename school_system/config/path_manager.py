@@ -116,6 +116,7 @@ class PathManager:
             
         self._context = None
         self._executable_dir = None
+        self._bundle_dir = None  # Directory where bundled resources are located (_MEIPASS for PyInstaller)
         self._user_data_dir = None
         self._temp_dir = None
         self._validated_paths = {}
@@ -140,6 +141,16 @@ class PathManager:
         """Check if running on Windows."""
         return platform.system() == "Windows"
     
+    @property
+    def bundle_dir(self) -> str:
+        """Get the directory where bundled resources are located."""
+        return self._bundle_dir
+    
+    @property
+    def is_pyinstaller(self) -> bool:
+        """Check if running as a PyInstaller frozen executable."""
+        return self._context == ExecutionContext.PYINSTALLER_FROZEN
+    
     def _detect_execution_context(self) -> None:
         """Detect the current execution context."""
         # Check for various frozen executable indicators
@@ -148,13 +159,16 @@ class PathManager:
             if hasattr(sys, '_MEIPASS'):
                 self._context = ExecutionContext.PYINSTALLER_FROZEN
                 self._executable_dir = os.path.dirname(sys.executable)
-                logger.info("Detected PyInstaller frozen executable")
+                self._bundle_dir = sys._MEIPASS  # PyInstaller extracts files here
+                logger.info(f"Detected PyInstaller frozen executable")
+                logger.info(f"Bundle dir (MEIPASS): {self._bundle_dir}")
                 return
             
             # cx_Freeze
             if hasattr(sys, 'cx_Freeze'):
                 self._context = ExecutionContext.CX_FREEZE_FROZEN
                 self._executable_dir = os.path.dirname(sys.executable)
+                self._bundle_dir = self._executable_dir
                 logger.info("Detected cx_Freeze frozen executable")
                 return
             
@@ -162,12 +176,14 @@ class PathManager:
             if hasattr(sys, 'console'):
                 self._context = ExecutionContext.PY2EXE_FROZEN
                 self._executable_dir = os.path.dirname(sys.executable)
+                self._bundle_dir = self._executable_dir
                 logger.info("Detected py2exe frozen executable")
                 return
             
             # Generic frozen (unknown type)
             self._context = ExecutionContext.UNKNOWN
             self._executable_dir = os.path.dirname(sys.executable)
+            self._bundle_dir = self._executable_dir
             logger.info("Detected unknown frozen executable type")
             return
         
@@ -175,6 +191,7 @@ class PathManager:
         self._context = ExecutionContext.DEVELOPMENT
         # Get the project root (parent of school_system directory)
         self._executable_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self._bundle_dir = self._executable_dir
         logger.info("Detected development context")
     
     def get_executable_directory(self) -> str:
@@ -457,6 +474,15 @@ class PathManager:
         }
         
         subdir = subdirs.get(path_type, "")
+        
+        # For PyInstaller apps, check bundle directory first for bundled resources
+        if self.is_pyinstaller and self._bundle_dir and subdir:
+            # Check if bundled resource exists (read-only data)
+            bundle_path = os.path.join(self._bundle_dir, "school_system", subdir)
+            if os.path.exists(bundle_path) or path_type in (PathType.DATA, PathType.BACKUP, PathType.EXPORT):
+                # For data directories, we need writable locations, so check bundle first then fallback
+                pass  # Continue to the writable path logic
+        
         if subdir:
             path = os.path.join(base_dir, subdir)
         else:
@@ -464,7 +490,7 @@ class PathManager:
         
         # For packaged apps, try executable dir first, then fallback
         if self.is_frozen and use_executable_dir:
-            # First attempt: executable directory
+            # First attempt: executable directory (for portable installations)
             if self._can_use_path(path):
                 if create:
                     self._ensure_path_exists(path)
@@ -472,8 +498,9 @@ class PathManager:
                 logger.info(f"Using executable directory for {path_type.value}: {path}")
                 return path
             
-            # Fallback: AppData/Local
-            fallback_path = os.path.join(self._get_user_data_directory(), subdir)
+            # Fallback: AppData/Local (user-writable location)
+            fallback_base = self._get_user_data_directory()
+            fallback_path = os.path.join(fallback_base, subdir)
             if self._can_use_path(fallback_path):
                 if create:
                     self._ensure_path_exists(fallback_path)
@@ -635,7 +662,13 @@ class PathManager:
         if not self.is_frozen:
             return os.path.join(self.get_executable_directory(), relative_path)
         
-        # For frozen apps, try executable dir first
+        # For PyInstaller apps, check _MEIPASS (bundle_dir) first for resources
+        if self.is_pyinstaller and self._bundle_dir:
+            bundle_path = os.path.join(self._bundle_dir, relative_path)
+            if os.path.exists(bundle_path):
+                return bundle_path
+        
+        # Try executable dir for user-writable data
         exec_path = os.path.join(self.get_executable_directory(), relative_path)
         if os.path.exists(exec_path):
             return exec_path
