@@ -99,7 +99,7 @@ class DistributionWindow(BaseFunctionWindow):
         title_label = QLabel("Create Distribution Session")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Form fields in horizontal layout
@@ -109,7 +109,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Class
         class_layout = QVBoxLayout()
         class_label = QLabel("Class")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         class_layout.addWidget(class_label)
         
         self.class_combo = QComboBox()
@@ -131,7 +131,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Stream
         stream_layout = QVBoxLayout()
         stream_label = QLabel("Stream")
-        stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        stream_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         stream_layout.addWidget(stream_label)
         
         self.stream_combo = QComboBox()
@@ -145,7 +145,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Term
         term_layout = QVBoxLayout()
         term_label = QLabel("Term")
-        term_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        term_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         term_layout.addWidget(term_label)
         
         self.term_combo = QComboBox()
@@ -159,7 +159,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Date
         date_layout = QVBoxLayout()
         date_label = QLabel("Distribution Date")
-        date_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        date_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         date_layout.addWidget(date_label)
         
         self.date_input = QDateEdit()
@@ -230,7 +230,7 @@ class DistributionWindow(BaseFunctionWindow):
         title_label = QLabel("Distribution Sessions")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         title_layout.addWidget(title_label)
         
         title_layout.addStretch()
@@ -304,17 +304,17 @@ class DistributionWindow(BaseFunctionWindow):
         title_label = QLabel("Generate Borrowing Templates")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
 
         subtitle_label = QLabel("Create printable Excel/PDF templates for book borrowing by class, stream, and subject")
-        subtitle_label.setStyleSheet(f"color: {theme["text_secondary"]}; font-size: 12px;")
+        subtitle_label.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 12px;")
         form_layout.addWidget(subtitle_label)
 
         # Template type selection
         type_layout = QHBoxLayout()
         type_label = QLabel("Template Type:")
-        type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        type_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         type_layout.addWidget(type_label)
 
         self.template_type_combo = QComboBox()
@@ -337,7 +337,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Class selection
         class_layout = QHBoxLayout()
         class_label = QLabel("Class:")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         class_layout.addWidget(class_label)
 
         self.template_class_combo = QComboBox()
@@ -360,7 +360,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Stream selection
         stream_layout = QHBoxLayout()
         stream_label = QLabel("Stream:")
-        stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        stream_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         stream_layout.addWidget(stream_label)
 
         self.template_stream_combo = QComboBox()
@@ -382,7 +382,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Subject selection
         subject_layout = QHBoxLayout()
         subject_label = QLabel("Subject:")
-        subject_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        subject_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         subject_layout.addWidget(subject_label)
 
         self.template_subject_combo = QComboBox()
@@ -407,7 +407,7 @@ class DistributionWindow(BaseFunctionWindow):
         # Output format selection
         format_layout = QHBoxLayout()
         format_label = QLabel("Output Format:")
-        format_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        format_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         format_layout.addWidget(format_label)
 
         self.output_format_combo = QComboBox()

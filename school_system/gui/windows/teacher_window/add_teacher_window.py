@@ -66,13 +66,13 @@ class AddTeacherWindow(BaseFunctionWindow):
         title_label = QLabel("Teacher Information")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Teacher ID field
         id_layout = QVBoxLayout()
         id_label = QLabel("Teacher ID *")
-        id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         id_layout.addWidget(id_label)
         
         self.teacher_id_input = self.create_input("Enter teacher ID")
@@ -83,7 +83,7 @@ class AddTeacherWindow(BaseFunctionWindow):
         # Name field
         name_layout = QVBoxLayout()
         name_label = QLabel("Full Name *")
-        name_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        name_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         name_layout.addWidget(name_label)
         
         self.name_input = self.create_input("Enter full name")
@@ -94,7 +94,7 @@ class AddTeacherWindow(BaseFunctionWindow):
         # Department field
         dept_layout = QVBoxLayout()
         dept_label = QLabel("Department")
-        dept_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        dept_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         dept_layout.addWidget(dept_label)
         
         self.department_input = self.create_input("Enter department")
@@ -105,7 +105,7 @@ class AddTeacherWindow(BaseFunctionWindow):
         # Email field
         email_layout = QVBoxLayout()
         email_label = QLabel("Email")
-        email_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        email_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         email_layout.addWidget(email_label)
         
         self.email_input = self.create_input("Enter email address")
@@ -116,7 +116,7 @@ class AddTeacherWindow(BaseFunctionWindow):
         # Phone field
         phone_layout = QVBoxLayout()
         phone_label = QLabel("Phone")
-        phone_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        phone_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         phone_layout.addWidget(phone_label)
         
         self.phone_input = self.create_input("Enter phone number")

@@ -7065,7 +7065,7 @@ For additional support, contact your system administrator.
         title_label = QLabel("Quick Actions")
         title_font = QFont("Segoe UI", 16, QFont.Weight.DemiBold)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         card_layout.addWidget(title_label)
          
         quick_actions_layout = QHBoxLayout()
@@ -7151,7 +7151,7 @@ For additional support, contact your system administrator.
         count_label = QLabel(count)
         count_font = QFont("Segoe UI", 32, QFont.Weight.Bold)
         count_label.setFont(count_font)
-        count_label.setStyleSheet(f"color: {theme["text"]};")
+        count_label.setStyleSheet(f"color: {theme['text']};")
         count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(count_label)
          

@@ -74,7 +74,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         title_label = QLabel("Borrow Book")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Form fields in horizontal layout
@@ -84,7 +84,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         # User Type
         user_type_layout = QVBoxLayout()
         user_type_label = QLabel("User Type *")
-        user_type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        user_type_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         user_type_layout.addWidget(user_type_label)
         
         self.user_type_combo = QComboBox()
@@ -96,7 +96,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         # User ID
         user_id_layout = QVBoxLayout()
         user_id_label = QLabel("User ID *")
-        user_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        user_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         user_id_layout.addWidget(user_id_label)
         
         self.user_id_input = self.create_input("Enter user ID")
@@ -108,7 +108,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         # Book ID
         book_id_layout = QVBoxLayout()
         book_id_label = QLabel("Book ID *")
-        book_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        book_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         book_id_layout.addWidget(book_id_label)
         
         self.book_id_input = self.create_input("Enter book ID")
@@ -154,7 +154,7 @@ class BorrowBookWindow(BaseFunctionWindow):
         title_label = QLabel("Borrowed Books")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         title_layout.addWidget(title_label)
         
         title_layout.addStretch()

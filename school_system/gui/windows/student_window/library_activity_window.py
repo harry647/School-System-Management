@@ -92,7 +92,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         header = QLabel("📖 Borrow Book")
         header_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         header.setFont(header_font)
-        header.setStyleSheet(f"color: {theme["text"]};")
+        header.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(header)
 
         # Borrow form
@@ -113,7 +113,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         # Student ID input
         student_layout = QVBoxLayout()
         student_label = QLabel("Student ID:")
-        student_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        student_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         student_layout.addWidget(student_label)
 
         self.borrow_student_id_input = self.create_input("Enter student ID")
@@ -124,7 +124,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         # Book selection
         book_layout = QVBoxLayout()
         book_label = QLabel("Select Book:")
-        book_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        book_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         book_layout.addWidget(book_label)
 
         self.borrow_book_combo = QComboBox()
@@ -136,7 +136,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         # Borrow duration
         duration_layout = QVBoxLayout()
         duration_label = QLabel("Borrow Duration (days):")
-        duration_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        duration_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         duration_layout.addWidget(duration_label)
 
         self.borrow_duration_combo = QComboBox()
@@ -169,7 +169,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         borrows_header = QHBoxLayout()
         borrows_title = QLabel("Current Borrows")
-        borrows_title.setStyleSheet(f"font-weight: 600; color: {theme["text"]};")
+        borrows_title.setStyleSheet(f"font-weight: 600; color: {theme['text']};")
         borrows_header.addWidget(borrows_title)
 
         borrows_header.addStretch()
@@ -206,7 +206,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         header = QLabel("↩️ Return Book")
         header_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         header.setFont(header_font)
-        header.setStyleSheet(f"color: {theme["text"]};")
+        header.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(header)
 
         # Return form
@@ -227,7 +227,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         # Outstanding borrows selection
         borrow_layout = QVBoxLayout()
         borrow_label = QLabel("Select Borrow Record:")
-        borrow_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        borrow_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         borrow_layout.addWidget(borrow_label)
 
         self.return_borrow_combo = QComboBox()
@@ -259,7 +259,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         overdue_header = QHBoxLayout()
         overdue_title = QLabel("⚠️ Overdue Books")
-        overdue_title.setStyleSheet(f"font-weight: 600; color: {theme["text"]}; color: #dc3545;")
+        overdue_title.setStyleSheet(f"font-weight: 600; color: {theme['text']}; color: #dc3545;")
         overdue_header.addWidget(overdue_title)
 
         overdue_header.addStretch()
@@ -292,7 +292,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
         header = QLabel("📚 Library Activity History")
         header_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         header.setFont(header_font)
-        header.setStyleSheet(f"color: {theme["text"]};")
+        header.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(header)
 
         # Filters
@@ -312,7 +312,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Student filter
         student_filter_label = QLabel("Student ID:")
-        student_filter_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        student_filter_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         filter_layout.addWidget(student_filter_label)
 
         self.history_student_filter = self.create_input("Filter by student ID")
@@ -322,7 +322,7 @@ class LibraryActivityWindow(BaseFunctionWindow):
 
         # Activity type filter
         type_label = QLabel("Activity:")
-        type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        type_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         filter_layout.addWidget(type_label)
 
         self.history_type_filter = QComboBox()

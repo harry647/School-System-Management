@@ -225,7 +225,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("📥 Import Students")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]};")
+        title_label.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(title_label)
 
         # Import controls
@@ -234,7 +234,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # File format selector
         format_label = QLabel("Format:")
-        format_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        format_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         controls_layout.addWidget(format_label)
 
         self.format_combo = QComboBox()
@@ -264,7 +264,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # File path display
         self.file_path_label = QLabel("No file selected")
-        self.file_path_label.setStyleSheet(f"color: {theme["text_secondary"]}; font-style: italic;")
+        self.file_path_label.setStyleSheet(f"color: {theme['text_secondary']}; font-style: italic;")
         layout.addWidget(self.file_path_label)
 
         # Progress bar
@@ -309,7 +309,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("📤 Export Students")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]};")
+        title_label.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(title_label)
 
         # Export controls
@@ -318,7 +318,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # Class filter
         class_label = QLabel("Filter by Class:")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         controls_layout.addWidget(class_label)
 
         self.export_class_combo = QComboBox()
@@ -327,7 +327,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # Stream filter
         stream_label = QLabel("Filter by Stream:")
-        stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        stream_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         controls_layout.addWidget(stream_label)
 
         self.export_stream_combo = QComboBox()
@@ -336,7 +336,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
 
         # Format selector
         format_label = QLabel("Format:")
-        format_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        format_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         controls_layout.addWidget(format_label)
 
         self.export_format_combo = QComboBox()
@@ -378,7 +378,7 @@ class StudentImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("📊 Import Results")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]};")
+        title_label.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(title_label)
 
         # Results text area

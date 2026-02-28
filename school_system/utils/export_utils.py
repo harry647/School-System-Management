@@ -181,11 +181,10 @@ class ExportUtils:
     <h1>{title}</h1>
     <table id="{table_id}">
         <thead>
-            <tr>{"".join(f"<th>{header}</th>" for header in headers)}</tr>
+            <tr>{"<tr>" + "".join(f"<th>{header}</th>" for header in headers)}</tr>
         </thead>
         <tbody>
-            {"\n"
-            .join(rows)}
+            <tr>{"<tr>" + "".join(rows)}</tr>
         </tbody>
     </table>
     <p style="margin-top: 20px; color: #666; font-size: 0.9em;">

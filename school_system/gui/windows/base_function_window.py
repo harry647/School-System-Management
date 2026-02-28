@@ -182,7 +182,7 @@ class BaseFunctionWindow(BaseWindow):
         title_label = QLabel(self.windowTitle())
         title_font = QFont("Segoe UI", 20, QFont.Weight.Bold)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]};")
+        title_label.setStyleSheet(f"color: {theme['text']};")
         header_layout.addWidget(title_label)
         
         header_layout.addStretch()

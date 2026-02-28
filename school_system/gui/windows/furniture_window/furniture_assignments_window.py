@@ -71,7 +71,7 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         title_label = QLabel("Assign Furniture")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Form fields
@@ -81,7 +81,7 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         # Furniture ID
         furniture_id_layout = QVBoxLayout()
         furniture_id_label = QLabel("Furniture ID *")
-        furniture_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        furniture_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         furniture_id_layout.addWidget(furniture_id_label)
         
         self.furniture_id_input = self.create_input("Enter furniture ID")
@@ -93,7 +93,7 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         # User ID
         user_id_layout = QVBoxLayout()
         user_id_label = QLabel("User ID *")
-        user_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        user_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         user_id_layout.addWidget(user_id_label)
         
         self.user_id_input = self.create_input("Enter user ID")
@@ -138,7 +138,7 @@ class FurnitureAssignmentsWindow(BaseFunctionWindow):
         title_label = QLabel("Furniture Assignments")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         table_layout.addWidget(title_label)
         
         # Assignments table

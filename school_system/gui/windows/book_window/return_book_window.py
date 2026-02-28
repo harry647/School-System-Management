@@ -67,13 +67,13 @@ class ReturnBookWindow(BaseFunctionWindow):
         title_label = QLabel("Return Book")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # User Type
         user_type_layout = QVBoxLayout()
         user_type_label = QLabel("User Type *")
-        user_type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        user_type_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         user_type_layout.addWidget(user_type_label)
         
         self.user_type_combo = QComboBox()
@@ -85,7 +85,7 @@ class ReturnBookWindow(BaseFunctionWindow):
         # User ID
         user_id_layout = QVBoxLayout()
         user_id_label = QLabel("User ID *")
-        user_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        user_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         user_id_layout.addWidget(user_id_label)
         
         self.user_id_input = self.create_input("Enter user ID")
@@ -96,7 +96,7 @@ class ReturnBookWindow(BaseFunctionWindow):
         # Book ID
         book_id_layout = QVBoxLayout()
         book_id_label = QLabel("Book ID *")
-        book_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        book_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         book_id_layout.addWidget(book_id_label)
         
         self.book_id_input = self.create_input("Enter book ID")
@@ -107,7 +107,7 @@ class ReturnBookWindow(BaseFunctionWindow):
         # Condition
         condition_layout = QVBoxLayout()
         condition_label = QLabel("Return Condition *")
-        condition_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        condition_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         condition_layout.addWidget(condition_label)
         
         self.condition_combo = QComboBox()
@@ -119,7 +119,7 @@ class ReturnBookWindow(BaseFunctionWindow):
         # Fine Amount
         fine_layout = QVBoxLayout()
         fine_label = QLabel("Fine Amount")
-        fine_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        fine_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         fine_layout.addWidget(fine_label)
         
         self.fine_input = self.create_input("Enter fine amount (0 if none)")

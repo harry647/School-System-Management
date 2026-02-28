@@ -71,7 +71,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         title_label = QLabel("Record Maintenance")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Form fields
@@ -81,7 +81,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         # Furniture ID
         furniture_id_layout = QVBoxLayout()
         furniture_id_label = QLabel("Furniture ID *")
-        furniture_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        furniture_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         furniture_id_layout.addWidget(furniture_id_label)
         
         self.furniture_id_input = self.create_input("Enter furniture ID")
@@ -93,7 +93,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         # Maintenance type
         type_layout = QVBoxLayout()
         type_label = QLabel("Maintenance Type *")
-        type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        type_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         type_layout.addWidget(type_label)
         
         self.maintenance_type_combo = QComboBox()
@@ -115,7 +115,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         # Notes field
         notes_layout = QVBoxLayout()
         notes_label = QLabel("Notes")
-        notes_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        notes_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         notes_layout.addWidget(notes_label)
         
         self.notes_input = QTextEdit()
@@ -150,7 +150,7 @@ class FurnitureMaintenanceWindow(BaseFunctionWindow):
         title_label = QLabel("Maintenance Records")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         table_layout.addWidget(title_label)
         
         # Maintenance table

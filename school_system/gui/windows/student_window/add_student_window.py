@@ -68,13 +68,13 @@ class AddStudentWindow(BaseFunctionWindow):
         title_label = QLabel("Student Information")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Student ID field
         id_layout = QVBoxLayout()
         id_label = QLabel("Student ID *")
-        id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         id_layout.addWidget(id_label)
         
         self.student_id_input = self.create_input("Enter student ID")
@@ -85,7 +85,7 @@ class AddStudentWindow(BaseFunctionWindow):
         # Name field
         name_layout = QVBoxLayout()
         name_label = QLabel("Full Name *")
-        name_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        name_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         name_layout.addWidget(name_label)
         
         self.name_input = self.create_input("Enter full name")
@@ -96,7 +96,7 @@ class AddStudentWindow(BaseFunctionWindow):
         # Class field
         class_layout = QVBoxLayout()
         class_label = QLabel("Class *")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         class_layout.addWidget(class_label)
 
         self.class_combo = QComboBox()
@@ -118,7 +118,7 @@ class AddStudentWindow(BaseFunctionWindow):
         # Stream field
         stream_layout = QVBoxLayout()
         stream_label = QLabel("Stream *")
-        stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        stream_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         stream_layout.addWidget(stream_label)
 
         self.stream_combo = QComboBox()

@@ -70,13 +70,13 @@ class EditTeacherWindow(BaseFunctionWindow):
         title_label = QLabel("Edit Teacher Information")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Teacher ID field (read-only)
         id_layout = QVBoxLayout()
         id_label = QLabel("Teacher ID")
-        id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         id_layout.addWidget(id_label)
         
         self.teacher_id_input = self.create_input("Teacher ID")
@@ -88,7 +88,7 @@ class EditTeacherWindow(BaseFunctionWindow):
         # Name field
         name_layout = QVBoxLayout()
         name_label = QLabel("Full Name *")
-        name_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        name_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         name_layout.addWidget(name_label)
         
         self.name_input = self.create_input("Enter full name")
@@ -99,7 +99,7 @@ class EditTeacherWindow(BaseFunctionWindow):
         # Department field
         dept_layout = QVBoxLayout()
         dept_label = QLabel("Department")
-        dept_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        dept_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         dept_layout.addWidget(dept_label)
         
         self.department_input = self.create_input("Enter department")

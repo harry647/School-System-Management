@@ -73,7 +73,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         title_label = QLabel("Add Ream Entry")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]};")
+        title_label.setStyleSheet(f"color: {theme['text']};")
         layout.addWidget(title_label)
         
         # Form fields
@@ -82,7 +82,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         
         # Student ID
         student_id_label = QLabel("Student ID:")
-        student_id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        student_id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         form_layout.addWidget(student_id_label)
         
         self.student_id_input = self.create_input("Enter student ID")
@@ -92,7 +92,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         
         # Reams count
         reams_label = QLabel("Reams Count:")
-        reams_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        reams_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         form_layout.addWidget(reams_label)
         
         self.reams_input = self.create_input("Enter reams count")
@@ -135,7 +135,7 @@ class ReamManagementWindow(BaseFunctionWindow):
         title_label = QLabel("Ream Entries")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(title_label)
         
         # Ream entries table

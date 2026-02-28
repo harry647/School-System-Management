@@ -82,7 +82,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("Import Books")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         import_layout.addWidget(title_label)
         
         # Required columns information
@@ -92,12 +92,12 @@ class BookImportExportWindow(BaseFunctionWindow):
         # Main description
         desc_label = QLabel("Import books from an Excel file (.xlsx).")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 8px;")
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 8px;")
         columns_info.addWidget(desc_label)
 
         # Column information
         columns_label = QLabel("Excel File Columns:")
-        columns_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px;")
+        columns_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; font-size: 12px;")
         columns_info.addWidget(columns_label)
 
         # Show all columns with required/optional status
@@ -123,7 +123,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         file_layout.setSpacing(12)
         
         self.import_file_label = QLabel("No file selected")
-        self.import_file_label.setStyleSheet(f"color: {theme["text_secondary"]}; padding: 8px; border: 1px dashed {theme["border"]}; border-radius: 8px;")
+        self.import_file_label.setStyleSheet(f"color: {theme['text_secondary']}; padding: 8px; border: 1px dashed {theme['border']}; border-radius: 8px;")
         file_layout.addWidget(self.import_file_label, stretch=1)
         
         browse_btn = self.create_button("Browse...", "outline")
@@ -163,19 +163,19 @@ class BookImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("Export Books")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         export_layout.addWidget(title_label)
         
         # Description
         desc_label = QLabel("Export books to an Excel file (.xlsx) or CSV file (.csv).")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 12px;")
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 12px;")
         export_layout.addWidget(desc_label)
         
         # Format selection
         format_layout = QVBoxLayout()
         format_label = QLabel("Export Format")
-        format_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        format_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         format_layout.addWidget(format_label)
         
         self.export_format_combo = QComboBox()
@@ -216,13 +216,13 @@ class BookImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("📖 Borrowing Records")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         borrowing_layout.addWidget(title_label)
 
         # Description
         desc_label = QLabel("Import or export book borrowing records. Import creates new borrowing records for students.")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 12px;")
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 12px;")
         borrowing_layout.addWidget(desc_label)
 
         # Tabs for Import/Export
@@ -256,7 +256,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         columns_info.setSpacing(8)
 
         columns_label = QLabel("Required Excel Columns:")
-        columns_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; font-size: 12px;")
+        columns_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; font-size: 12px;")
         columns_info.addWidget(columns_label)
 
         # Show required columns for borrowing import
@@ -283,7 +283,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         file_layout.setSpacing(12)
 
         self.borrowing_import_file_label = QLabel("No file selected")
-        self.borrowing_import_file_label.setStyleSheet(f"color: {theme["text_secondary"]}; padding: 8px; border: 1px dashed {theme["border"]}; border-radius: 8px;")
+        self.borrowing_import_file_label.setStyleSheet(f"color: {theme['text_secondary']}; padding: 8px; border: 1px dashed {theme['border']}; border-radius: 8px;")
         file_layout.addWidget(self.borrowing_import_file_label, stretch=1)
 
         browse_btn = self.create_button("Browse...", "outline")
@@ -313,7 +313,7 @@ class BookImportExportWindow(BaseFunctionWindow):
         # Description
         desc_label = QLabel("Export all current borrowing records to an Excel file.")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 8px;")
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 8px;")
         layout.addWidget(desc_label)
 
         # Export button

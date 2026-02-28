@@ -73,7 +73,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         header_label = QLabel("📚 Classes")
         header_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         header_label.setFont(header_font)
-        header_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        header_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(header_label)
 
         # Add class section
@@ -94,7 +94,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         # Class name input
         name_layout = QVBoxLayout()
         name_label = QLabel("Class Name:")
-        name_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        name_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         name_layout.addWidget(name_label)
 
         self.class_name_input = self.create_input("Enter class name (e.g., Class 10-A)")
@@ -105,7 +105,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         # Class selection
         class_layout = QVBoxLayout()
         class_label = QLabel("Class:")
-        class_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        class_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         class_layout.addWidget(class_label)
 
         self.class_combo = QComboBox()
@@ -128,7 +128,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         # Stream selection
         stream_layout = QVBoxLayout()
         stream_label = QLabel("Stream:")
-        stream_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        stream_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         stream_layout.addWidget(stream_label)
 
         self.class_stream_combo = QComboBox()
@@ -162,7 +162,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         # List header with actions
         list_header = QHBoxLayout()
         list_title = QLabel("Existing Classes")
-        list_title.setStyleSheet(f"font-weight: 600; color: {theme["text"]};")
+        list_title.setStyleSheet(f"font-weight: 600; color: {theme['text']};")
         list_header.addWidget(list_title)
 
         list_header.addStretch()
@@ -228,7 +228,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         header_label = QLabel("👨‍🎓 Students in Class")
         header_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         header_label.setFont(header_font)
-        header_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        header_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(header_label)
 
         # Current class display
@@ -259,7 +259,7 @@ class ClassManagementWindow(BaseFunctionWindow):
         # Table header with actions
         table_header = QHBoxLayout()
         table_title = QLabel("Enrolled Students")
-        table_title.setStyleSheet(f"font-weight: 600; color: {theme["text"]};")
+        table_title.setStyleSheet(f"font-weight: 600; color: {theme['text']};")
         table_header.addWidget(table_title)
 
         table_header.addStretch()
@@ -299,11 +299,11 @@ class ClassManagementWindow(BaseFunctionWindow):
         stats_layout = QVBoxLayout(stats_card)
 
         stats_title = QLabel("📊 Class Statistics")
-        stats_title.setStyleSheet(f"font-weight: 600; color: {theme["text"]};")
+        stats_title.setStyleSheet(f"font-weight: 600; color: {theme['text']};")
         stats_layout.addWidget(stats_title)
 
         self.stats_label = QLabel("Select a class to view statistics")
-        self.stats_label.setStyleSheet(f"color: {theme["text_secondary"]};")
+        self.stats_label.setStyleSheet(f"color: {theme['text_secondary']};")
         self.stats_label.setWordWrap(True)
         stats_layout.addWidget(self.stats_label)
 

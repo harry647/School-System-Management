@@ -68,7 +68,7 @@ class CustomReportsWindow(BaseFunctionWindow):
         title_label = QLabel("Custom Report Builder")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(title_label)
         
         # Data source
@@ -76,7 +76,7 @@ class CustomReportsWindow(BaseFunctionWindow):
         source_layout.setSpacing(12)
         
         source_label = QLabel("Data Source:")
-        source_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        source_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         source_layout.addWidget(source_label)
         
         self.data_source_combo = QComboBox()
@@ -126,7 +126,7 @@ class CustomReportsWindow(BaseFunctionWindow):
         title_label = QLabel("Report Results")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(title_label)
         
         # Results table

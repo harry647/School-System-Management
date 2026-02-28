@@ -68,13 +68,13 @@ class TeacherImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("Import Teachers")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         import_layout.addWidget(title_label)
         
         # Description
         desc_label = QLabel("Import teachers from an Excel file (.xlsx). The file should contain columns: Teacher ID, Name, Department, Email, Phone.")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 12px;")
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 12px;")
         import_layout.addWidget(desc_label)
         
         # File selection
@@ -82,7 +82,7 @@ class TeacherImportExportWindow(BaseFunctionWindow):
         file_layout.setSpacing(12)
         
         self.import_file_label = QLabel("No file selected")
-        self.import_file_label.setStyleSheet(f"color: {theme["text_secondary"]}; padding: 8px; border: 1px dashed {theme["border"]}; border-radius: 8px;")
+        self.import_file_label.setStyleSheet(f"color: {theme['text_secondary']}; padding: 8px; border: 1px dashed {theme['border']}; border-radius: 8px;")
         file_layout.addWidget(self.import_file_label, stretch=1)
         
         browse_btn = self.create_button("Browse...", "outline")
@@ -122,19 +122,19 @@ class TeacherImportExportWindow(BaseFunctionWindow):
         title_label = QLabel("Export Teachers")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         export_layout.addWidget(title_label)
         
         # Description
         desc_label = QLabel("Export teachers to an Excel file (.xlsx) or CSV file (.csv).")
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {theme["text_secondary"]}; margin-bottom: 12px;")
+        desc_label.setStyleSheet(f"color: {theme['text_secondary']}; margin-bottom: 12px;")
         export_layout.addWidget(desc_label)
         
         # Format selection
         format_layout = QVBoxLayout()
         format_label = QLabel("Export Format")
-        format_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        format_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         format_layout.addWidget(format_label)
         
         self.export_format_combo = QComboBox()

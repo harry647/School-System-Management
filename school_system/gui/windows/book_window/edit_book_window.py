@@ -73,13 +73,13 @@ class EditBookWindow(BaseFunctionWindow):
         title_label = QLabel("Edit Book Information")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         form_layout.addWidget(title_label)
         
         # Book ID field (read-only)
         id_layout = QVBoxLayout()
         id_label = QLabel("Book ID")
-        id_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        id_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         id_layout.addWidget(id_label)
         
         self.book_id_input = self.create_input("Book ID")
@@ -91,7 +91,7 @@ class EditBookWindow(BaseFunctionWindow):
         # Title field
         title_layout = QVBoxLayout()
         title_label = QLabel("Title *")
-        title_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        title_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         title_layout.addWidget(title_label)
         
         self.title_input = self.create_input("Enter book title")
@@ -102,7 +102,7 @@ class EditBookWindow(BaseFunctionWindow):
         # Author field
         author_layout = QVBoxLayout()
         author_label = QLabel("Author")
-        author_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        author_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         author_layout.addWidget(author_label)
         
         self.author_input = self.create_input("Enter author name")
@@ -113,7 +113,7 @@ class EditBookWindow(BaseFunctionWindow):
         # ISBN field
         isbn_layout = QVBoxLayout()
         isbn_label = QLabel("ISBN")
-        isbn_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        isbn_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         isbn_layout.addWidget(isbn_label)
         
         self.isbn_input = self.create_input("Enter ISBN")
@@ -124,7 +124,7 @@ class EditBookWindow(BaseFunctionWindow):
         # Subject field
         subject_layout = QVBoxLayout()
         subject_label = QLabel("Subject")
-        subject_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        subject_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         subject_layout.addWidget(subject_label)
         
         self.subject_input = QComboBox()
@@ -138,7 +138,7 @@ class EditBookWindow(BaseFunctionWindow):
         # Condition field
         condition_layout = QVBoxLayout()
         condition_label = QLabel("Condition *")
-        condition_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]}; margin-bottom: 4px;")
+        condition_label.setStyleSheet(f"font-weight: 500; color: {theme['text']}; margin-bottom: 4px;")
         condition_layout.addWidget(condition_label)
         
         self.condition_input = QComboBox()

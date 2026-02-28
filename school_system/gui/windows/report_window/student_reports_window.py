@@ -74,7 +74,7 @@ class StudentReportsWindow(BaseFunctionWindow):
         title_label = QLabel("Generate Student Report")
         title_font = QFont("Segoe UI", 18, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(title_label)
         
         # Report type
@@ -82,7 +82,7 @@ class StudentReportsWindow(BaseFunctionWindow):
         type_layout.setSpacing(12)
         
         type_label = QLabel("Report Type:")
-        type_label.setStyleSheet(f"font-weight: 500; color: {theme["text"]};")
+        type_label.setStyleSheet(f"font-weight: 500; color: {theme['text']};")
         type_layout.addWidget(type_label)
         
         self.report_type_combo = QComboBox()
@@ -267,7 +267,7 @@ class StudentReportsWindow(BaseFunctionWindow):
         title_label = QLabel("Report Results")
         title_font = QFont("Segoe UI", 16, QFont.Weight.Medium)
         title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {theme["text"]}; margin-bottom: 8px;")
+        title_label.setStyleSheet(f"color: {theme['text']}; margin-bottom: 8px;")
         layout.addWidget(title_label)
          
         # Results table
